@@ -1,0 +1,29 @@
+# Generated artifacts
+**/node_modules/
+**/dist/
+**/build/
+**/tmp/
+**/out-tsc/
+**/coverage/
+**/.angular/
+**/.ionic/
+**/.nx/
+**/.sass-cache/
+**/www/
+**/platforms/
+**/plugins/
+**/android/
+**/ios/
+
+# Logs and temp files
+*.log
+log.txt
+*.tmp
+*.tmp.*
+*.sw[mnpcod]
+*~
+$RECYCLE.BIN/
+
+# System files
+.DS_Store
+Thumbs.db
