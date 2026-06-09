@@ -26,5 +26,17 @@ class Settings(BaseSettings):
     # Subida de imágenes: tamaño máximo en bytes.
     max_imagen_bytes: int = 5 * 1024 * 1024
 
+    # Almacenamiento de imágenes (issue #8): "local" | "s3".
+    storage_backend: str = "local"
+    # 'local': directorio (montable como volumen para persistir).
+    upload_dir: str = "uploads"
+    # 's3' (S3-compatible). Requiere boto3.
+    s3_bucket: Optional[str] = None
+    s3_region: Optional[str] = None
+    s3_endpoint_url: Optional[str] = None
+    s3_public_base_url: Optional[str] = None
+    s3_access_key: Optional[str] = None
+    s3_secret_key: Optional[str] = None
+
 
 settings = Settings()

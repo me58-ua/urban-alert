@@ -127,6 +127,8 @@ Requiere `Authorization: Bearer <token de admin>` (sustituye a la antigua cabece
 
 Las imágenes se sirven como estáticos en `GET /uploads/<archivo>`.
 
+> *(issue #8)* El campo **`ruta`** es la URL pública de la imagen: con almacenamiento **local** es una ruta relativa (`/uploads/<archivo>`); con backend **S3** puede ser una **URL absoluta**. El frontend debe usar `ruta` tal cual como `src` de la imagen (anteponiendo la base de la API solo si es relativa).
+
 ---
 
 ## 🔔 Notificaciones — *issue #7*
@@ -208,6 +210,7 @@ Agregados calculados desde la BD (público, ideal para el dashboard / contadores
 | Notificaciones de cambio de estado | `GET /notificaciones`, `PATCH /notificaciones/{id}/leer` | #7 ✅ |
 | Validación/moderación de inputs e imágenes | `POST /incidencias`, `POST /incidencias/{id}/imagenes` | #10 ✅ |
 | Métricas / dashboard | `GET /stats` | #9 ✅ |
+| Almacenamiento de imágenes (local/S3, persistente) | `POST /incidencias/{id}/imagenes` | #8 ✅ |
 | Crear / detalle / imágenes | `POST`/`GET /incidencias`, `/imagenes` | base ✅ |
 
 > Esta tabla y las secciones se ampliarán al completar nuevas issues del backend.
