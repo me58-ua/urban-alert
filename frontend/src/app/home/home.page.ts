@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
+import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
 
 interface CategoryItem {
   label: string;
@@ -26,20 +27,27 @@ interface MetricItem {
   label: string;
 }
 
+interface HeaderLink {
+  label: string;
+  active: boolean;
+  href?: string;
+  route?: string;
+}
+
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule],
+  imports: [CommonModule, IonicModule, RouterModule, AppMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage {
   readonly brandMarkUrl = 'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
-  readonly headerLinks = [
+  readonly headerLinks: HeaderLink[] = [
     { label: 'Report an Incident', href: '#hero', active: true },
-    { label: 'View Map', href: '#categories', active: false },
+    { label: 'View Map', route: '/mapa-incidencias', active: false },
   ];
 
   readonly categories: CategoryItem[] = [

@@ -1,0 +1,191 @@
+<ion-header class="detail-header" translucent="true">
+  <ion-toolbar class="detail-toolbar">
+    <div class="toolbar-layout">
+      <a class="brand" routerLink="/home" aria-label="Urban Alert">
+        <span class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="" />
+        </span>
+
+        <span class="brand__text">
+          <span class="brand__title">Urban Alert</span>
+          <span class="brand__subtitle">Detalle de incidencia</span>
+        </span>
+      </a>
+
+      <app-menu></app-menu>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="detail-page" fullscreen="true">
+  <main class="page-shell">
+    <section class="incident-hero">
+      <div class="incident-hero__copy">
+        <div class="incident-meta">
+          <ion-chip class="status-chip">
+            <ion-icon name="radio-outline"></ion-icon>
+            <ion-label>{{ incident.status }}</ion-label>
+          </ion-chip>
+          <span>{{ incident.id }}</span>
+        </div>
+
+        <h1>{{ incident.title }}</h1>
+        <p>{{ incident.description }}</p>
+
+        <div class="summary-block" aria-label="Información de la incidencia">
+          <div class="summary-block__heading">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <h2>Información</h2>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-item" *ngFor="let detail of details; trackBy: trackByLabel">
+              <span>{{ detail.label }}</span>
+              <strong>{{ detail.value }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ion-card class="photo-card">
+        <div class="photo-card__image" aria-label="Foto de la incidencia">
+          <div class="street-light" aria-hidden="true">
+            <span></span>
+          </div>
+        </div>
+
+        <ion-card-content>
+          <div>
+            <strong>{{ incident.address }}</strong>
+            <span>{{ incident.reporter }}</span>
+          </div>
+          <ion-icon name="location-outline"></ion-icon>
+        </ion-card-content>
+      </ion-card>
+    </section>
+
+    <section class="content-grid">
+      <div class="main-column">
+        <ion-card class="panel timeline-panel">
+          <ion-card-header>
+            <ion-card-title>Estado del reporte</ion-card-title>
+            <ion-card-subtitle>Seguimiento actualizado por el municipio</ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <div
+              class="timeline-item"
+              *ngFor="let item of timeline; trackBy: trackByTitle"
+              [class.timeline-item--active]="item.active"
+            >
+              <span class="timeline-item__dot"></span>
+
+              <div class="timeline-item__body">
+                <div class="timeline-item__top">
+                  <h2>{{ item.title }}</h2>
+                  <span>{{ item.date }}</span>
+                </div>
+                <p>{{ item.description }}</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="panel map-panel">
+          <ion-card-header>
+            <ion-card-title>Ubicación</ion-card-title>
+            <ion-card-subtitle>{{ incident.address }}</ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <div class="map-preview">
+              <iframe
+                title="Mapa real de la incidencia"
+                [src]="mapUrl"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+              <span class="map-preview__pin"></span>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="panel community-panel">
+          <ion-card-header>
+            <ion-card-title>Comunidad</ion-card-title>
+            <ion-card-subtitle>Comentarios y aportes de vecinos</ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <div class="comment-list">
+              <article class="comment-item" *ngFor="let comment of comments; trackBy: trackByAuthor">
+                <div class="comment-item__avatar" aria-hidden="true">
+                  {{ comment.author.charAt(0) }}
+                </div>
+
+                <div class="comment-item__body">
+                  <div class="comment-item__top">
+                    <strong>{{ comment.author }}</strong>
+                    <span>{{ comment.date }}</span>
+                  </div>
+                  <p>{{ comment.message }}</p>
+                </div>
+              </article>
+            </div>
+
+            <form class="comment-form">
+              <label for="community-comment">Deja un comentario</label>
+              <textarea
+                id="community-comment"
+                rows="4"
+                placeholder="Añade información útil para el equipo municipal o para otros vecinos..."
+              ></textarea>
+
+              <div class="comment-form__actions">
+                <ion-button class="comment-button" fill="solid" type="button">
+                  <ion-icon slot="start" name="chatbubble-ellipses-outline"></ion-icon>
+                  Publicar comentario
+                </ion-button>
+              </div>
+            </form>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <aside class="side-column">
+        <ion-card class="panel evidence-panel">
+          <ion-card-header>
+            <ion-card-title>Galería de evidencias</ion-card-title>
+            <ion-card-subtitle>Fotos adjuntas por el ciudadano</ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <div class="evidence-grid">
+              <button
+                class="evidence-item"
+                type="button"
+                *ngFor="let item of evidence; trackBy: trackByLabel"
+              >
+                <span class="evidence-item__image" aria-hidden="true"></span>
+                <span class="evidence-item__text">
+                  <strong>{{ item.label }}</strong>
+                  <span>{{ item.type }}</span>
+                </span>
+              </button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="support-card">
+          <ion-card-content>
+            <div class="support-card__icon">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+            </div>
+            <h2>Reporte validado</h2>
+            <p>El aviso está vinculado a una cuenta ciudadana y será revisado por el área correspondiente.</p>
+          </ion-card-content>
+        </ion-card>
+      </aside>
+    </section>
+  </main>
+</ion-content>

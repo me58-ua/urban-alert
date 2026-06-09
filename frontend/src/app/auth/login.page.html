@@ -1,0 +1,74 @@
+<ion-header class="auth-header" translucent="true">
+  <ion-toolbar class="auth-toolbar">
+    <div class="toolbar-layout">
+      <a class="brand" routerLink="/home" aria-label="Urban Alert">
+        <span class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="" />
+        </span>
+
+        <span class="brand__text">
+          <span class="brand__title">Urban Alert</span>
+          <span class="brand__subtitle">Acceso ciudadano</span>
+        </span>
+      </a>
+
+      <app-menu></app-menu>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="auth-page" fullscreen="true">
+  <main class="auth-shell">
+    <section class="auth-card">
+      <div class="auth-card__header">
+        <ion-chip class="eyebrow">
+          <ion-label>Cuenta ciudadana</ion-label>
+        </ion-chip>
+        <h1>Iniciar sesión</h1>
+        <p>Accede para consultar tus incidencias, aportar comentarios y seguir el estado de tus reportes.</p>
+      </div>
+
+      <form class="auth-form" (ngSubmit)="submit()">
+        <label class="form-field">
+          <span>Correo electrónico</span>
+          <ion-input
+            type="email"
+            name="email"
+            [(ngModel)]="email"
+            placeholder="tu@email.com"
+            autocomplete="email"
+          ></ion-input>
+        </label>
+
+        <label class="form-field">
+          <span>Contraseña</span>
+          <ion-input
+            type="password"
+            name="password"
+            [(ngModel)]="password"
+            placeholder="Introduce tu contraseña"
+            autocomplete="current-password"
+          ></ion-input>
+        </label>
+
+        <div class="form-row">
+          <label class="check-row">
+            <ion-checkbox name="remember" [(ngModel)]="remember"></ion-checkbox>
+            <span>Recordarme</span>
+          </label>
+
+          <a href="#">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <ion-button class="primary-action" type="submit" expand="block">
+          Entrar
+        </ion-button>
+      </form>
+
+      <div class="auth-switch">
+        <span>¿No tienes cuenta?</span>
+        <a routerLink="/registrar">Crear cuenta</a>
+      </div>
+    </section>
+  </main>
+</ion-content>

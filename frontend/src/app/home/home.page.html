@@ -17,15 +17,14 @@
           *ngFor="let link of headerLinks; trackBy: trackByLabel"
           [class.header-nav__link--active]="link.active"
           [href]="link.href"
+          [routerLink]="link.route"
           class="header-nav__link"
         >
           {{ link.label }}
         </a>
       </nav>
 
-      <ion-button class="login-button" size="small" fill="solid" href="#trust">
-        Login
-      </ion-button>
+      <app-menu></app-menu>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -54,7 +53,7 @@
             Reportar incidencia
           </ion-button>
 
-          <ion-button class="secondary-action" size="large" fill="solid" href="#trust">
+          <ion-button class="secondary-action" size="large" fill="solid" [routerLink]="['/mapa-incidencias']">
             <ion-icon slot="start" name="map-outline"></ion-icon>
             Ver incidencias en el mapa
           </ion-button>
@@ -62,7 +61,7 @@
       </div>
 
       <div class="hero__visual" aria-label="Incident preview">
-        <ion-card class="preview-card">
+        <a class="preview-card preview-card-link" [routerLink]="['/mapa-incidencias']">
           <div class="map-canvas" aria-hidden="true">
             <div class="map-canvas__grid"></div>
             <div class="map-canvas__streets"></div>
@@ -77,7 +76,7 @@
               <span>124 Activas</span>
             </div>
           </ion-card-content>
-        </ion-card>
+        </a>
 
         <ion-card class="incident-card">
           <div class="incident-card__icon" aria-hidden="true">

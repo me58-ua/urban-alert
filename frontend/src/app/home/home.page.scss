@@ -220,6 +220,12 @@
   width: 100%;
 }
 
+.preview-card-link {
+  color: inherit;
+  display: block;
+  text-decoration: none;
+}
+
 .map-canvas {
   background:
     radial-gradient(circle at 50% 48%, rgba(186, 26, 26, 0.95) 0 0.9rem, transparent 0.95rem),

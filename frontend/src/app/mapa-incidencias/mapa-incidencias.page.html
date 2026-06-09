@@ -1,0 +1,100 @@
+<ion-header class="map-header" translucent="true">
+  <ion-toolbar class="map-toolbar">
+    <div class="toolbar-layout">
+      <a class="brand" routerLink="/home" aria-label="Urban Alert">
+        <span class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="" />
+        </span>
+
+        <span class="brand__text">
+          <span class="brand__title">Urban Alert</span>
+          <span class="brand__subtitle">Mapa de incidencias</span>
+        </span>
+      </a>
+
+      <app-menu></app-menu>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="map-page" fullscreen="true">
+  <main class="map-shell">
+    <section class="map-intro">
+      <div>
+        <ion-chip class="eyebrow">
+          <ion-label>Mapa en tiempo real</ion-label>
+        </ion-chip>
+        <h1>Incidencias cercanas</h1>
+        <p>Consulta los reportes activos en la ciudad y abre el detalle de cada incidencia.</p>
+      </div>
+
+      <ion-button class="new-report-button" fill="solid" routerLink="/crear-incidencia">
+        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+        Reportar incidencia
+      </ion-button>
+    </section>
+
+    <section class="map-layout">
+      <div class="map-panel">
+        <iframe
+          title="Mapa real de incidencias"
+          [src]="mapUrl"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+
+        <div class="map-overlay">
+          <button class="map-pin map-pin--main" type="button" routerLink="/detalle-incidencia">
+            <span></span>
+          </button>
+          <button class="map-pin map-pin--second" type="button" routerLink="/detalle-incidencia">
+            <span></span>
+          </button>
+          <button class="map-pin map-pin--third" type="button" routerLink="/detalle-incidencia">
+            <span></span>
+          </button>
+        </div>
+      </div>
+
+      <aside class="incidents-panel">
+        <div class="filter-row" aria-label="Filtros de incidencias">
+          <button
+            type="button"
+            *ngFor="let filter of filters; trackBy: trackByLabel"
+            [class.filter-row__button--active]="filter === 'Todas'"
+            class="filter-row__button"
+          >
+            {{ filter }}
+          </button>
+        </div>
+
+        <div class="incident-list">
+          <a
+            class="incident-card"
+            *ngFor="let incident of incidents; trackBy: trackByTitle"
+            routerLink="/detalle-incidencia"
+          >
+            <ion-card-content>
+              <div class="incident-card__top">
+                <span class="incident-card__category">{{ incident.category }}</span>
+                <span class="incident-card__status" [class]="'incident-card__status--' + incident.tone">
+                  {{ incident.status }}
+                </span>
+              </div>
+
+              <h2>{{ incident.title }}</h2>
+
+              <div class="incident-card__meta">
+                <span>
+                  <ion-icon name="location-outline"></ion-icon>
+                  {{ incident.address }}
+                </span>
+                <span>{{ incident.distance }}</span>
+              </div>
+            </ion-card-content>
+          </a>
+        </div>
+      </aside>
+    </section>
+  </main>
+</ion-content>

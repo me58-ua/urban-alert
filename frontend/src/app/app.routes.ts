@@ -11,6 +11,29 @@ export const routes: Routes = [
     component: CrearIncidenciaPage,
   },
   {
+    path: 'detalle-incidencia',
+    loadComponent: () =>
+      import('./detalle-incidencia/detalle-incidencia.page').then(
+        (m) => m.DetalleIncidenciaPage
+      ),
+  },
+  {
+    path: 'mapa-incidencias',
+    loadComponent: () =>
+      import('./mapa-incidencias/mapa-incidencias.page').then(
+        (m) => m.MapaIncidenciasPage
+      ),
+  },
+  {
+    path: 'login',
+    loadComponent: () => import('./auth/login.page').then((m) => m.LoginPage),
+  },
+  {
+    path: 'registrar',
+    loadComponent: () =>
+      import('./auth/registrar.page').then((m) => m.RegistrarPage),
+  },
+  {
     path: '',
     redirectTo: 'home',
     pathMatch: 'full',
