@@ -54,8 +54,19 @@ def listar_incidencias(
     if geo:
         import math
 
+        # Pre-filtro en SQL mediante un "bounding box" (caja de lat/lng) para NO
+        # cargar toda la tabla: la BD solo devuelve las incidencias dentro de la
+        # caja, aprovechable por índices. (issue #5)
+        lat_delta = radio / 111_320.0  # ~metros por grado de latitud
+        cos_lat = math.cos(math.radians(lat))
+        lng_delta = radio / (111_320.0 * cos_lat) if abs(cos_lat) > 1e-12 else 180.0
+        query = query.filter(
+            Incidencia.latitud.between(lat - lat_delta, lat + lat_delta),
+            Incidencia.longitud.between(lng - lng_delta, lng + lng_delta),
+        )
+
         def haversine(lat1, lon1, lat2, lon2):
-            R = 6371000  # radio tierra en metros
+            R = 6371000  # radio de la Tierra en metros
             phi1 = math.radians(lat1)
             phi2 = math.radians(lat2)
             delta_phi = math.radians(lat2 - lat1)
@@ -64,8 +75,7 @@ def listar_incidencias(
             c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
             return R * c
 
-        # El filtro geográfico se calcula en Python (ver issue #5 para pasarlo a SQL),
-        # por lo que la paginación se aplica sobre la lista ya filtrada.
+        # Refinamiento exacto (círculo Haversine) sobre los candidatos de la caja.
         resultados = [
             inc for inc in query.all()
             if haversine(lat, lng, inc.latitud, inc.longitud) <= radio

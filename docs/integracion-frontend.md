@@ -72,7 +72,7 @@ Devuelve el usuario autenticado (requiere `Authorization: Bearer`).
 | `estado` | enum | `abierta` · `en_progreso` · `resuelta` · `rechazada` |
 | `categoria` | enum | `infraestructura` · `alumbrado` · `residuos` · `trafico` · `zonas_verdes` · `otro` |
 | `prioridad` | enum | `baja` · `media` · `alta` |
-| `lat`, `lng`, `radio` | float | Filtro geográfico (radio en **metros**); los tres juntos |
+| `lat`, `lng`, `radio` | float | Filtro geográfico (radio en **metros**); los tres juntos. Filtrado eficiente en SQL (bounding box) + refinamiento exacto Haversine — *issue #5* |
 | `limit` | int | Resultados por página. Por defecto `20`, rango `1–100` |
 | `offset` | int | Resultados a saltar. Por defecto `0`, `≥ 0` |
 
@@ -161,6 +161,7 @@ Las imágenes se sirven como estáticos en `GET /uploads/<archivo>`.
 |---|---|---|
 | Autenticación JWT + roles | `/auth/*`, protección de `PATCH` | #3 ✅ |
 | Listado paginado + filtros | `GET /incidencias` (`limit`/`offset`) | #4 ✅ |
+| Filtro geográfico eficiente (SQL) | `GET /incidencias?lat&lng&radio` | #5 ✅ |
 | Crear / detalle / imágenes | `POST`/`GET /incidencias`, `/imagenes` | base ✅ |
 
 > Esta tabla y las secciones se ampliarán al completar nuevas issues del backend.
