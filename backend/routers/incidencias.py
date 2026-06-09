@@ -4,7 +4,8 @@ from typing import List, Optional
 from database import get_db
 from schemas import IncidenciaCreate, IncidenciaResponse, EstadoUpdate, ImagenResponse
 import services.incidencias as incidencias_service
-from dependencies import get_admin_role
+from auth import require_admin
+from models import User
 
 router = APIRouter(
     prefix="/incidencias",
@@ -36,12 +37,12 @@ def get_incidencia(id: int, db: Session = Depends(get_db)):
 
 @router.patch("/{id}", response_model=IncidenciaResponse)
 def actualizar_incidencia(
-    id: int, 
-    update_data: EstadoUpdate, 
+    id: int,
+    update_data: EstadoUpdate,
     db: Session = Depends(get_db),
-    admin_user: str = Depends(get_admin_role)
+    current_user: User = Depends(require_admin)
 ):
-    return incidencias_service.actualizar_incidencia(db=db, incidencia_id=id, update_data=update_data, admin_user=admin_user)
+    return incidencias_service.actualizar_incidencia(db=db, incidencia_id=id, update_data=update_data, admin_user=current_user.email)
 
 @router.post("/{id}/imagenes", response_model=ImagenResponse, status_code=status.HTTP_201_CREATED)
 def subir_imagen(id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):

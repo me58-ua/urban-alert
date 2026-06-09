@@ -85,7 +85,7 @@ def test_filtro_geografico(client):
     assert "Madrid Centro" not in titulos_zgz
     assert "Barcelona" not in titulos_zgz
 
-def test_patch_estado(client, db_session):
+def test_patch_estado(client, db_session, admin_headers, ciudadano_headers):
     # Crear incidencia
     payload = {
         "titulo": "Para Estado", "categoria": "trafico", "latitud": 1.0, "longitud": 1.0
@@ -93,15 +93,21 @@ def test_patch_estado(client, db_session):
     create_res = client.post("/incidencias", json=payload)
     inc_id = create_res.json()["id"]
 
-    # Test Sin permiso
-    res_403 = client.patch(f"/incidencias/{inc_id}", json={"estado": "en_progreso"})
+    # Sin token -> 401
+    res_401 = client.patch(f"/incidencias/{inc_id}", json={"estado": "en_progreso"})
+    assert res_401.status_code == 401
+
+    # Token de ciudadano (rol insuficiente) -> 403
+    res_403 = client.patch(
+        f"/incidencias/{inc_id}", json={"estado": "en_progreso"}, headers=ciudadano_headers
+    )
     assert res_403.status_code == 403
-    
-    # Test Con permiso
+
+    # Token de admin -> 200
     res_200 = client.patch(
-        f"/incidencias/{inc_id}", 
+        f"/incidencias/{inc_id}",
         json={"estado": "en_progreso", "prioridad": "alta"},
-        headers={"X-Role": "admin"}
+        headers=admin_headers
     )
     assert res_200.status_code == 200
     assert res_200.json()["estado"] == "en_progreso"
@@ -113,6 +119,8 @@ def test_patch_estado(client, db_session):
     assert len(historial) == 1
     assert historial[0].estado_anterior == "abierta"
     assert historial[0].estado_nuevo == "en_progreso"
+    # El cambio queda atribuido al email del administrador autenticado
+    assert historial[0].cambiado_por == "admin@test.com"
 
 def test_subir_imagen(client):
     # Crear incidencia
