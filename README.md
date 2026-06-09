@@ -38,6 +38,41 @@
 
 ---
 
+## 🚀 Despliegue local
+
+> Un único script (`script/deploy.ps1`) levanta **todo el stack** en `localhost`: la **base de datos PostgreSQL** en un contenedor Docker dedicado (`urban-alert-db`, puerto `5433`), el **backend** (FastAPI/uvicorn, puerto `8000`) y el **frontend** (Angular/Ionic, puerto `4200`), cada servicio en su propia ventana.
+
+**🧰 Prerrequisitos**
+
+- 🐳 **Docker** en marcha (Docker Desktop abierto).
+- 🐍 **Python** disponible en el `PATH`.
+- 🟢 **Node** + **npm** disponibles en el `PATH`.
+
+```powershell
+# 🚀 Desde la raíz del proyecto:
+.\script\deploy.ps1
+
+# 🔓 Si PowerShell bloquea el script por la Execution Policy:
+powershell -ExecutionPolicy Bypass -File .\script\deploy.ps1
+```
+
+### ⚙️ Opciones principales
+
+| Parámetro | Descripción | Por defecto |
+|---|---|---|
+| `-BackendPort` | Puerto del backend FastAPI | `8000` |
+| `-FrontendPort` | Puerto del frontend Angular/Ionic | `4200` |
+| `-DbPort` | Puerto host de PostgreSQL (contenedor) | `5433` |
+| `-SkipInstall` | No instala dependencias | — |
+| `-SkipDb` | No gestiona la base de datos | — |
+
+### 🌐 URLs resultantes
+
+- 📖 **API / Swagger**: http://localhost:8000/docs
+- 📱 **Frontend**: http://localhost:4200
+
+---
+
 ## 🏗️ Arquitectura
 
 ```mermaid
