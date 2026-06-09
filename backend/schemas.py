@@ -8,8 +8,7 @@ class ImagenResponse(BaseModel):
     ruta: str
     fecha_subida: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class HistorialResponse(BaseModel):
     id: int
@@ -20,8 +19,7 @@ class HistorialResponse(BaseModel):
     cambiado_por: str
     fecha: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class IncidenciaCreate(BaseModel):
     titulo: str = Field(..., min_length=3, max_length=200)
@@ -49,8 +47,7 @@ class IncidenciaResponse(BaseModel):
     imagenes: List[ImagenResponse] = []
     historial: List[HistorialResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class IncidenciaPage(BaseModel):
     """Respuesta paginada del listado de incidencias."""
