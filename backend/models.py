@@ -1,0 +1,64 @@
+from sqlalchemy import Column, Integer, String, Text, Float, Enum as SQLEnum, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+import enum
+from database import Base
+
+class CategoriaEnum(str, enum.Enum):
+    infraestructura = 'infraestructura'
+    alumbrado = 'alumbrado'
+    residuos = 'residuos'
+    trafico = 'trafico'
+    zonas_verdes = 'zonas_verdes'
+    otro = 'otro'
+
+class PrioridadEnum(str, enum.Enum):
+    baja = 'baja'
+    media = 'media'
+    alta = 'alta'
+
+class EstadoEnum(str, enum.Enum):
+    abierta = 'abierta'
+    en_progreso = 'en_progreso'
+    resuelta = 'resuelta'
+    rechazada = 'rechazada'
+
+class Incidencia(Base):
+    __tablename__ = "incidencias"
+
+    id = Column(Integer, primary_key=True, index=True)
+    titulo = Column(String(200), nullable=False)
+    descripcion = Column(Text, nullable=True)
+    categoria = Column(SQLEnum(CategoriaEnum), nullable=False)
+    prioridad = Column(SQLEnum(PrioridadEnum), default=PrioridadEnum.media, nullable=False)
+    estado = Column(SQLEnum(EstadoEnum), default=EstadoEnum.abierta, nullable=False)
+    latitud = Column(Float, nullable=False)
+    longitud = Column(Float, nullable=False)
+    
+    fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
+    fecha_actualizacion = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+
+    imagenes = relationship("Imagen", back_populates="incidencia", cascade="all, delete-orphan")
+    historial = relationship("HistorialEstado", back_populates="incidencia", cascade="all, delete-orphan")
+
+class Imagen(Base):
+    __tablename__ = "imagenes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    incidencia_id = Column(Integer, ForeignKey("incidencias.id", ondelete="CASCADE"), nullable=False)
+    ruta = Column(String, nullable=False)
+    fecha_subida = Column(DateTime(timezone=True), server_default=func.now())
+
+    incidencia = relationship("Incidencia", back_populates="imagenes")
+
+class HistorialEstado(Base):
+    __tablename__ = "historial_estados"
+
+    id = Column(Integer, primary_key=True, index=True)
+    incidencia_id = Column(Integer, ForeignKey("incidencias.id", ondelete="CASCADE"), nullable=False)
+    estado_anterior = Column(SQLEnum(EstadoEnum), nullable=True)
+    estado_nuevo = Column(SQLEnum(EstadoEnum), nullable=False)
+    cambiado_por = Column(String(100), default='admin')
+    fecha = Column(DateTime(timezone=True), server_default=func.now())
+
+    incidencia = relationship("Incidencia", back_populates="historial")
