@@ -1,0 +1,7 @@
+{
+  "name": "urban-alert",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
