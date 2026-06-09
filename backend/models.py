@@ -62,6 +62,8 @@ class HistorialEstado(Base):
     incidencia_id = Column(Integer, ForeignKey("incidencias.id", ondelete="CASCADE"), nullable=False)
     estado_anterior = Column(SQLEnum(EstadoEnum), nullable=True)
     estado_nuevo = Column(SQLEnum(EstadoEnum), nullable=False)
+    prioridad_anterior = Column(SQLEnum(PrioridadEnum), nullable=True)
+    prioridad_nueva = Column(SQLEnum(PrioridadEnum), nullable=True)
     cambiado_por = Column(String(100), default='admin')
     fecha = Column(DateTime(timezone=True), server_default=func.now())
 
