@@ -18,6 +18,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'mapa-incidencias',
+    loadComponent: () =>
+      import('./mapa-incidencias/mapa-incidencias.page').then(
+        (m) => m.MapaIncidenciasPage
+      ),
+  },
+  {
     path: '',
     redirectTo: 'home',
     pathMatch: 'full',

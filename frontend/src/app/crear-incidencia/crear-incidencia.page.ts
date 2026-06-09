@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
+import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
 
 type Priority = 'Baja' | 'Media' | 'Alta';
 
@@ -10,7 +11,7 @@ type Priority = 'Baja' | 'Media' | 'Alta';
   templateUrl: 'crear-incidencia.page.html',
   styleUrls: ['crear-incidencia.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule],
+  imports: [CommonModule, IonicModule, FormsModule, AppMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CrearIncidenciaPage {

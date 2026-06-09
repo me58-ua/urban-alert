@@ -1,9 +1,51 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { RouteReuseStrategy, provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  addCircleOutline,
+  alertCircleOutline,
+  arrowForwardOutline,
+  bulbOutline,
+  businessOutline,
+  chatbubbleEllipsesOutline,
+  constructOutline,
+  documentTextOutline,
+  informationCircleOutline,
+  locationOutline,
+  lockClosedOutline,
+  mapOutline,
+  menuOutline,
+  personCircleOutline,
+  radioOutline,
+  shieldCheckmarkOutline,
+  statsChartOutline,
+  trashOutline,
+} from 'ionicons/icons';
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
+
+addIcons({
+  addCircleOutline,
+  alertCircleOutline,
+  arrowForwardOutline,
+  bulbOutline,
+  businessOutline,
+  chatbubbleEllipsesOutline,
+  constructOutline,
+  documentTextOutline,
+  informationCircleOutline,
+  locationOutline,
+  lockClosedOutline,
+  mapOutline,
+  menuOutline,
+  personCircleOutline,
+  radioOutline,
+  shieldCheckmarkOutline,
+  statsChartOutline,
+  trashOutline,
+});
 
 bootstrapApplication(AppComponent, {
   providers: [

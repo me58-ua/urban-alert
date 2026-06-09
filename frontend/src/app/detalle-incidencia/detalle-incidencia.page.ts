@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
+import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
 
 interface TimelineItem {
   title: string;
@@ -13,7 +14,17 @@ interface TimelineItem {
 interface DetailItem {
   label: string;
   value: string;
-  icon: string;
+}
+
+interface EvidenceItem {
+  label: string;
+  type: string;
+}
+
+interface CommentItem {
+  author: string;
+  date: string;
+  message: string;
 }
 
 @Component({
@@ -21,7 +32,7 @@ interface DetailItem {
   templateUrl: 'detalle-incidencia.page.html',
   styleUrls: ['detalle-incidencia.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule],
+  imports: [CommonModule, IonicModule, RouterModule, AppMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DetalleIncidenciaPage {
@@ -30,24 +41,44 @@ export class DetalleIncidenciaPage {
 
   readonly incident = {
     id: '#UA-2048',
-    title: 'Farola fundida en via principal',
-    status: 'En revision',
+    title: 'Farola fundida en vía principal',
+    status: 'En revisión',
     statusTone: 'warning',
-    category: 'Alumbrado publico',
+    category: 'Alumbrado público',
     priority: 'Media',
     date: '09 Jun 2026',
     time: '18:40',
     address: 'Calle Mayor, 14, Madrid',
     reporter: 'Vecino verificado',
     description:
-      'La farola de la esquina no funciona desde hace varios dias. La zona queda oscura por la noche y dificulta el paso de peatones.',
+      'La farola de la esquina no funciona desde hace varios días. La zona queda oscura por la noche y dificulta el paso de peatones.',
   };
 
   readonly details: DetailItem[] = [
-    { label: 'Categoria', value: this.incident.category, icon: 'bulb-outline' },
-    { label: 'Prioridad', value: this.incident.priority, icon: 'flag-outline' },
-    { label: 'Fecha', value: this.incident.date, icon: 'calendar-outline' },
-    { label: 'Hora', value: this.incident.time, icon: 'time-outline' },
+    { label: 'Categoría', value: this.incident.category },
+    { label: 'Prioridad', value: this.incident.priority },
+    { label: 'Fecha', value: this.incident.date },
+  ];
+
+  readonly evidence: EvidenceItem[] = [
+    { label: 'Foto principal', type: 'Farola apagada' },
+    { label: 'Vista de la calle', type: 'Zona afectada' },
+    { label: 'Referencia', type: 'Ubicación exacta' },
+  ];
+
+  readonly comments: CommentItem[] = [
+    {
+      author: 'María G.',
+      date: 'Hoy, 19:12',
+      message:
+        'Confirmo que la zona queda muy oscura al cruzar. También afecta a la parada cercana.',
+    },
+    {
+      author: 'Carlos R.',
+      date: 'Hoy, 19:28',
+      message:
+        'Hay otra farola intermitente unos metros más adelante, junto al paso de peatones.',
+    },
   ];
 
   readonly timeline: TimelineItem[] = [
@@ -58,15 +89,15 @@ export class DetalleIncidenciaPage {
       active: true,
     },
     {
-      title: 'En revision municipal',
+      title: 'En revisión municipal',
       date: '09 Jun, 19:05',
-      description: 'El equipo de alumbrado esta validando la ubicacion.',
+      description: 'El equipo de alumbrado está validando la ubicación.',
       active: true,
     },
     {
-      title: 'Asignacion de cuadrilla',
+      title: 'Asignación de cuadrilla',
       date: 'Pendiente',
-      description: 'Se notificara al ciudadano cuando el trabajo sea asignado.',
+      description: 'Se notificará al ciudadano cuando el trabajo sea asignado.',
       active: false,
     },
     {
@@ -79,6 +110,7 @@ export class DetalleIncidenciaPage {
 
   trackByTitle = (_index: number, item: { title: string }) => item.title;
   trackByLabel = (_index: number, item: { label: string }) => item.label;
+  trackByAuthor = (_index: number, item: { author: string }) => item.author;
 }
 
 export default DetalleIncidenciaPage;
