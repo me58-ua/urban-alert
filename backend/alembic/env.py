@@ -19,15 +19,14 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from database import Base
+from config import settings
 import models
 
 target_metadata = Base.metadata
 
-# Permite sobreescribir la URL de la BD vía variable de entorno DATABASE_URL
-# (coherente con database.py). Si no se define, se usa la de alembic.ini.
-_db_url = os.getenv("DATABASE_URL")
-if _db_url:
-    config.set_main_option("sqlalchemy.url", _db_url)
+# Usa la configuración por entorno (config.Settings -> DATABASE_URL / .env), de modo
+# que las credenciales no dependen del valor hardcodeado en alembic.ini.
+config.set_main_option("sqlalchemy.url", settings.database_url)
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

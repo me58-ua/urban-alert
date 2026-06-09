@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from models import Incidencia, HistorialEstado, EstadoEnum
 from schemas import IncidenciaCreate
 import services.notificaciones as notificaciones_service
+from config import settings
 
 def crear_incidencia(db: Session, incidencia_in: IncidenciaCreate) -> Incidencia:
     db_incidencia = Incidencia(
@@ -137,8 +138,8 @@ from fastapi import UploadFile, HTTPException
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Validación de imágenes (issue #10)
-MAX_IMAGEN_BYTES = int(os.getenv("MAX_IMAGEN_BYTES", str(5 * 1024 * 1024)))  # 5 MB
+# Validación de imágenes (issue #10). Tamaño máximo desde la configuración (issue #12).
+MAX_IMAGEN_BYTES = settings.max_imagen_bytes
 _FIRMAS_IMAGEN = {
     b"\xff\xd8\xff": "jpg",          # JPEG
     b"\x89PNG\r\n\x1a\n": "png",     # PNG

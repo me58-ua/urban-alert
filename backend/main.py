@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 from routers import incidencias, auth, notificaciones, stats
+from config import settings
 import os
 
 os.makedirs("uploads", exist_ok=True)
@@ -23,8 +24,7 @@ default_origins = [
     "capacitor://localhost",   # Capacitor (iOS)
     "ionic://localhost",       # Ionic WebView
 ]
-allowed_origins = os.getenv("ALLOWED_ORIGINS")
-origins = [o.strip() for o in allowed_origins.split(",")] if allowed_origins else default_origins
+origins = [o.strip() for o in settings.allowed_origins.split(",")] if settings.allowed_origins else default_origins
 
 app.add_middleware(
     CORSMiddleware,
