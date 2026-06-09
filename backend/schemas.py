@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict, conlist, field_validator
-from typing import Optional, List
+from typing import Optional, List, Dict
 from datetime import datetime
 from models import CategoriaEnum, PrioridadEnum, EstadoEnum, RolEnum
 
@@ -99,3 +99,14 @@ class NotificacionResponse(BaseModel):
     fecha_creacion: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+# ── Métricas / Estadísticas ──────────────────────────────────────────────────
+class EstadisticasResponse(BaseModel):
+    total: int
+    por_estado: Dict[str, int]
+    por_categoria: Dict[str, int]
+    por_prioridad: Dict[str, int]
+    porcentaje_resueltas: float
+    tiempo_medio_resolucion_horas: Optional[float] = None
+    reportes_ultimos_7_dias: int
+    reportes_ultimos_30_dias: int

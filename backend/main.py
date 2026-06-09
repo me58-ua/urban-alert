@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import incidencias, auth, notificaciones
+from routers import incidencias, auth, notificaciones, stats
 import os
 
 os.makedirs("uploads", exist_ok=True)
@@ -39,6 +39,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.include_router(auth.router)
 app.include_router(incidencias.router)
 app.include_router(notificaciones.router)
+app.include_router(stats.router)
 
 @app.get("/ping")
 def ping():
