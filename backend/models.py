@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Float, Enum as SQLEnum, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Text, Float, Enum as SQLEnum, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -44,6 +44,7 @@ class Incidencia(Base):
 
     imagenes = relationship("Imagen", back_populates="incidencia", cascade="all, delete-orphan")
     historial = relationship("HistorialEstado", back_populates="incidencia", cascade="all, delete-orphan")
+    notificaciones = relationship("Notificacion", back_populates="incidencia", cascade="all, delete-orphan")
 
 class Imagen(Base):
     __tablename__ = "imagenes"
@@ -77,3 +78,15 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     rol = Column(SQLEnum(RolEnum), default=RolEnum.ciudadano, nullable=False)
     fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
+
+class Notificacion(Base):
+    __tablename__ = "notificaciones"
+
+    id = Column(Integer, primary_key=True, index=True)
+    incidencia_id = Column(Integer, ForeignKey("incidencias.id", ondelete="CASCADE"), nullable=False)
+    mensaje = Column(String(255), nullable=False)
+    estado_nuevo = Column(SQLEnum(EstadoEnum), nullable=False)
+    leida = Column(Boolean, default=False, nullable=False)
+    fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
+
+    incidencia = relationship("Incidencia", back_populates="notificaciones")

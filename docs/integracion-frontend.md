@@ -126,6 +126,25 @@ Las imágenes se sirven como estáticos en `GET /uploads/<archivo>`.
 
 ---
 
+## 🔔 Notificaciones — *issue #7*
+
+Al **cambiar el estado** de una incidencia se crea automáticamente una notificación. (Un cambio de solo prioridad **no** genera notificación.)
+
+### `GET /notificaciones`
+**Query params** (opcionales): `incidencia_id` (int), `leida` (bool). Ordenadas de más reciente a más antigua.
+```json
+[ { "id": 1, "incidencia_id": 3, "mensaje": "La incidencia '…' cambió de estado: abierta → en_progreso",
+    "estado_nuevo": "en_progreso", "leida": false, "fecha_creacion": "2026-06-09T20:00:00Z" } ]
+```
+
+### `PATCH /notificaciones/{id}/leer`
+Marca la notificación como leída.
+- `200` → `NotificacionResponse` con `leida: true` · `404` → no existe.
+
+> Endpoints públicos (sin token) en esta fase. El frontend puede sondear `GET /notificaciones?incidencia_id=…` para mostrar avisos de cambios de estado.
+
+---
+
 ## 🧱 Modelo de respuesta `IncidenciaResponse`
 ```json
 {
@@ -163,6 +182,7 @@ Las imágenes se sirven como estáticos en `GET /uploads/<archivo>`.
 | Listado paginado + filtros | `GET /incidencias` (`limit`/`offset`) | #4 ✅ |
 | Filtro geográfico eficiente (SQL) | `GET /incidencias?lat&lng&radio` | #5 ✅ |
 | Historial de estado **y prioridad** | `historial` en el detalle / tras `PATCH` | #6 ✅ |
+| Notificaciones de cambio de estado | `GET /notificaciones`, `PATCH /notificaciones/{id}/leer` | #7 ✅ |
 | Crear / detalle / imágenes | `POST`/`GET /incidencias`, `/imagenes` | base ✅ |
 
 > Esta tabla y las secciones se ampliarán al completar nuevas issues del backend.

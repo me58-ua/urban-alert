@@ -76,3 +76,14 @@ class UserResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+# ── Notificaciones ───────────────────────────────────────────────────────────
+class NotificacionResponse(BaseModel):
+    id: int
+    incidencia_id: int
+    mensaje: str
+    estado_nuevo: EstadoEnum
+    leida: bool
+    fecha_creacion: datetime
+
+    model_config = ConfigDict(from_attributes=True)
