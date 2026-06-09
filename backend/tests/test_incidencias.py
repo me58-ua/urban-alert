@@ -213,21 +213,78 @@ def test_subir_imagen(client):
     create_res = client.post("/incidencias", json=payload)
     inc_id = create_res.json()["id"]
 
-    # Simular archivo de imagen
-    file_bytes = b"fake_image_content"
+    # Imagen JPEG válida (magic bytes FF D8 FF ...)
+    file_bytes = b"\xff\xd8\xff\xe0" + b"\x00" * 32
     files = {"file": ("test_image.jpg", file_bytes, "image/jpeg")}
-    
+
     # Test subida exitosa
     res_upload = client.post(f"/incidencias/{inc_id}/imagenes", files=files)
     assert res_upload.status_code == 201
-    
+
     # Validar respuesta
     data = res_upload.json()
     assert "ruta" in data
     assert "id" in data
     assert data["ruta"].startswith("/uploads/")
+    assert data["ruta"].endswith(".jpg")  # extensión derivada del tipo real
 
     # Test mime type inválido
     files_pdf = {"file": ("test.pdf", b"pdf_content", "application/pdf")}
     res_bad = client.post(f"/incidencias/{inc_id}/imagenes", files=files_pdf)
     assert res_bad.status_code == 400
+
+
+def test_subir_imagen_validacion(client):
+    create_res = client.post("/incidencias", json={
+        "titulo": "Validacion imagen", "categoria": "otro", "latitud": 3.0, "longitud": 3.0
+    })
+    inc_id = create_res.json()["id"]
+
+    # PNG válido (magic bytes) -> 201 y extensión .png
+    png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
+    r_png = client.post(f"/incidencias/{inc_id}/imagenes", files={"file": ("x.png", png, "image/png")})
+    assert r_png.status_code == 201
+    assert r_png.json()["ruta"].endswith(".png")
+
+    # content_type FALSEADO: dice image/jpeg pero el contenido no es imagen -> 400
+    r_falso = client.post(
+        f"/incidencias/{inc_id}/imagenes",
+        files={"file": ("malicioso.jpg", b"esto no es una imagen", "image/jpeg")},
+    )
+    assert r_falso.status_code == 400
+
+    # Archivo vacío -> 400
+    r_vacio = client.post(
+        f"/incidencias/{inc_id}/imagenes",
+        files={"file": ("vacio.jpg", b"", "image/jpeg")},
+    )
+    assert r_vacio.status_code == 400
+
+    # Imagen demasiado grande (> 5 MB) -> 400
+    grande = b"\xff\xd8\xff\xe0" + b"\x00" * (5 * 1024 * 1024 + 1)
+    r_grande = client.post(
+        f"/incidencias/{inc_id}/imagenes",
+        files={"file": ("grande.jpg", grande, "image/jpeg")},
+    )
+    assert r_grande.status_code == 400
+
+
+def test_crear_incidencia_validacion_payload(client):
+    # Título que tras recortar espacios queda por debajo de min_length -> 422
+    r_corto = client.post("/incidencias", json={
+        "titulo": "  ab  ", "categoria": "otro", "latitud": 1.0, "longitud": 1.0
+    })
+    assert r_corto.status_code == 422
+
+    # Moderación: término no permitido en el título -> 422
+    r_spam = client.post("/incidencias", json={
+        "titulo": "Vendo SPAM barato", "categoria": "otro", "latitud": 1.0, "longitud": 1.0
+    })
+    assert r_spam.status_code == 422
+
+    # Título con espacios alrededor se sanea (recorta) y se acepta
+    r_ok = client.post("/incidencias", json={
+        "titulo": "  Bache real  ", "categoria": "otro", "latitud": 1.0, "longitud": 1.0
+    })
+    assert r_ok.status_code == 201
+    assert r_ok.json()["titulo"] == "Bache real"

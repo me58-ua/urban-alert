@@ -132,33 +132,57 @@ def actualizar_incidencia(db: Session, incidencia_id: int, update_data, admin_us
 
 import os
 import uuid
-import shutil
 from fastapi import UploadFile, HTTPException
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+# Validación de imágenes (issue #10)
+MAX_IMAGEN_BYTES = int(os.getenv("MAX_IMAGEN_BYTES", str(5 * 1024 * 1024)))  # 5 MB
+_FIRMAS_IMAGEN = {
+    b"\xff\xd8\xff": "jpg",          # JPEG
+    b"\x89PNG\r\n\x1a\n": "png",     # PNG
+}
+
+
+def _detectar_tipo_imagen(contenido: bytes):
+    """Devuelve 'jpg'/'png' según los magic bytes reales, o None si no es imagen válida."""
+    for firma, ext in _FIRMAS_IMAGEN.items():
+        if contenido.startswith(firma):
+            return ext
+    return None
+
+
 def subir_imagen_incidencia(db: Session, incidencia_id: int, file: UploadFile):
-    # Validar que existe
+    # Validar que la incidencia existe
     get_incidencia(db, incidencia_id)
-    
-    # Validar mime
-    if file.content_type not in ["image/jpeg", "image/png"]:
+
+    # Gate barato por content_type declarado
+    if file.content_type not in ("image/jpeg", "image/png"):
         raise HTTPException(status_code=400, detail="Formato de imagen inválido")
-    
-    # Guardar en disco
-    ext = file.filename.split(".")[-1]
-    filename = f"{uuid.uuid4()}.{ext}"
+
+    contenido = file.file.read()
+    if not contenido:
+        raise HTTPException(status_code=400, detail="El archivo está vacío")
+    if len(contenido) > MAX_IMAGEN_BYTES:
+        raise HTTPException(status_code=400, detail="La imagen supera el tamaño máximo permitido (5 MB)")
+
+    # Validación robusta por el CONTENIDO real (magic bytes), no solo por content_type:
+    # rechaza archivos que falseen el content_type.
+    tipo = _detectar_tipo_imagen(contenido)
+    if tipo is None:
+        raise HTTPException(status_code=400, detail="El contenido no es una imagen JPEG o PNG válida")
+
+    # La extensión se deriva del tipo detectado, no del nombre del archivo.
+    filename = f"{uuid.uuid4()}.{tipo}"
     filepath = os.path.join(UPLOAD_DIR, filename)
-    
     with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-        
-    # Guardar en BD
+        buffer.write(contenido)
+
     from models import Imagen
     db_img = Imagen(incidencia_id=incidencia_id, ruta=f"/uploads/{filename}")
     db.add(db_img)
     db.commit()
     db.refresh(db_img)
-    
+
     return db_img
