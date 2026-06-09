@@ -1,25 +1,28 @@
 <div class="app-menu">
-  <button class="menu-button" type="button" (click)="toggle()" aria-label="Abrir menú">
+  <button class="menu-button" type="button" (click)="toggle($event)" aria-label="Abrir menú">
     <ion-icon name="menu-outline"></ion-icon>
   </button>
 
-  <button
-    class="menu-backdrop"
-    type="button"
-    aria-label="Cerrar menú"
-    *ngIf="isOpen()"
-    (click)="close()"
-  ></button>
-
-  <nav class="menu-panel" *ngIf="isOpen()" aria-label="Menú principal">
-    <a
-      class="menu-panel__link"
-      *ngFor="let item of items; trackBy: trackByLabel"
-      [routerLink]="item.route"
-      (click)="close()"
-    >
-      <ion-icon [name]="item.icon"></ion-icon>
-      <span>{{ item.label }}</span>
-    </a>
-  </nav>
+  <ion-popover
+    class="app-menu-popover"
+    [isOpen]="isOpen()"
+    [event]="popoverEvent()"
+    (didDismiss)="close()"
+    side="bottom"
+    alignment="end"
+  >
+    <ng-template>
+      <nav class="menu-panel" aria-label="Menú principal">
+        <a
+          class="menu-panel__link"
+          *ngFor="let item of items; trackBy: trackByLabel"
+          [href]="item.route"
+          (click)="goTo(item.route, $event)"
+        >
+          <ion-icon [name]="item.icon"></ion-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      </nav>
+    </ng-template>
+  </ion-popover>
 </div>

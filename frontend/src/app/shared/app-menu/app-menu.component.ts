@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 interface AppMenuItem {
   label: string;
@@ -19,6 +19,7 @@ interface AppMenuItem {
 })
 export class AppMenuComponent {
   readonly isOpen = signal(false);
+  readonly popoverEvent = signal<Event | undefined>(undefined);
 
   readonly items: AppMenuItem[] = [
     { label: 'Iniciar sesión / Registrarse', route: '/home', icon: 'person-circle-outline' },
@@ -27,12 +28,22 @@ export class AppMenuComponent {
     { label: 'Mis incidencias', route: '/detalle-incidencia', icon: 'document-text-outline' },
   ];
 
-  toggle() {
+  constructor(private readonly router: Router) {}
+
+  toggle(event: Event) {
+    this.popoverEvent.set(event);
     this.isOpen.update((isOpen) => !isOpen);
+  }
+
+  goTo(route: string, event: Event) {
+    event.preventDefault();
+    this.close();
+    setTimeout(() => void this.router.navigateByUrl(route), 0);
   }
 
   close() {
     this.isOpen.set(false);
+    this.popoverEvent.set(undefined);
   }
 
   trackByLabel = (_index: number, item: AppMenuItem) => item.label;
