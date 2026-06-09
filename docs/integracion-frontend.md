@@ -114,7 +114,7 @@ Requiere `Authorization: Bearer <token de admin>` (sustituye a la antigua cabece
 ```json
 { "estado": "en_progreso", "prioridad": "alta" }
 ```
-- `200` → `IncidenciaResponse` actualizada (se registra una entrada en `historial`).
+- `200` → `IncidenciaResponse` actualizada. Se registra una entrada en `historial` ante **cualquier** cambio real de **estado y/o prioridad** (con sus valores anterior/nuevo); un PATCH sin cambios reales no genera entrada. *(issue #6)*
 - `401` sin token · `403` si el rol no es admin · `404` si no existe.
 
 ### `POST /incidencias/{id}/imagenes` — subir imagen
@@ -140,7 +140,7 @@ Las imágenes se sirven como estáticos en `GET /uploads/<archivo>`.
   "fecha_creacion": "2026-06-09T20:00:00Z",
   "fecha_actualizacion": "2026-06-09T20:00:00Z",
   "imagenes": [ { "id", "ruta", "fecha_subida" } ],
-  "historial": [ { "id", "estado_anterior", "estado_nuevo", "cambiado_por", "fecha" } ]
+  "historial": [ { "id", "estado_anterior", "estado_nuevo", "prioridad_anterior", "prioridad_nueva", "cambiado_por", "fecha" } ]
 }
 ```
 
@@ -162,6 +162,7 @@ Las imágenes se sirven como estáticos en `GET /uploads/<archivo>`.
 | Autenticación JWT + roles | `/auth/*`, protección de `PATCH` | #3 ✅ |
 | Listado paginado + filtros | `GET /incidencias` (`limit`/`offset`) | #4 ✅ |
 | Filtro geográfico eficiente (SQL) | `GET /incidencias?lat&lng&radio` | #5 ✅ |
+| Historial de estado **y prioridad** | `historial` en el detalle / tras `PATCH` | #6 ✅ |
 | Crear / detalle / imágenes | `POST`/`GET /incidencias`, `/imagenes` | base ✅ |
 
 > Esta tabla y las secciones se ampliarán al completar nuevas issues del backend.

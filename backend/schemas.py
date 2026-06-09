@@ -15,6 +15,8 @@ class HistorialResponse(BaseModel):
     id: int
     estado_anterior: Optional[EstadoEnum]
     estado_nuevo: EstadoEnum
+    prioridad_anterior: Optional[PrioridadEnum] = None
+    prioridad_nueva: Optional[PrioridadEnum] = None
     cambiado_por: str
     fecha: datetime
 

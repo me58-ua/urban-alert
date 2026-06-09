@@ -50,6 +50,11 @@ def crear_usuario(db_session):
     from security import hash_password
 
     def _crear(email, password="password123", rol=RolEnum.ciudadano):
+        # get-or-create: la BD es de ámbito módulo y persiste entre tests, así que
+        # un mismo email (p.ej. admin@test.com) puede pedirse en varios tests.
+        existing = db_session.query(User).filter(User.email == email).first()
+        if existing:
+            return existing
         user = User(email=email, hashed_password=hash_password(password), rol=rol)
         db_session.add(user)
         db_session.commit()

@@ -170,8 +170,40 @@ def test_patch_estado(client, db_session, admin_headers, ciudadano_headers):
     assert len(historial) == 1
     assert historial[0].estado_anterior == "abierta"
     assert historial[0].estado_nuevo == "en_progreso"
+    # También se registra el cambio de prioridad (media -> alta)
+    assert historial[0].prioridad_anterior == "media"
+    assert historial[0].prioridad_nueva == "alta"
     # El cambio queda atribuido al email del administrador autenticado
     assert historial[0].cambiado_por == "admin@test.com"
+
+
+def test_patch_solo_prioridad(client, db_session, admin_headers):
+    # Incidencia nueva: estado=abierta, prioridad=media (por defecto)
+    create_res = client.post("/incidencias", json={
+        "titulo": "Solo prioridad", "categoria": "otro", "latitud": 2.0, "longitud": 2.0
+    })
+    inc_id = create_res.json()["id"]
+
+    # PATCH solo de prioridad (sin tocar estado)
+    res = client.patch(f"/incidencias/{inc_id}", json={"prioridad": "alta"}, headers=admin_headers)
+    assert res.status_code == 200
+    assert res.json()["estado"] == "abierta"   # el estado no cambia
+    assert res.json()["prioridad"] == "alta"
+
+    from models import HistorialEstado
+    hist = db_session.query(HistorialEstado).filter(HistorialEstado.incidencia_id == inc_id).all()
+    # El cambio de SOLO prioridad también queda registrado (issue #6)
+    assert len(hist) == 1
+    assert hist[0].estado_anterior == "abierta"
+    assert hist[0].estado_nuevo == "abierta"      # estado sin cambios
+    assert hist[0].prioridad_anterior == "media"
+    assert hist[0].prioridad_nueva == "alta"
+
+    # PATCH sin cambios reales (misma prioridad) -> NO crea entrada de historial
+    res_noop = client.patch(f"/incidencias/{inc_id}", json={"prioridad": "alta"}, headers=admin_headers)
+    assert res_noop.status_code == 200
+    hist2 = db_session.query(HistorialEstado).filter(HistorialEstado.incidencia_id == inc_id).all()
+    assert len(hist2) == 1   # sigue habiendo solo 1
 
 def test_subir_imagen(client):
     # Crear incidencia

@@ -91,27 +91,30 @@ def listar_incidencias(
 def actualizar_incidencia(db: Session, incidencia_id: int, update_data, admin_user: str) -> Incidencia:
     incidencia = get_incidencia(db, incidencia_id)
     estado_anterior = incidencia.estado
-    
-    # Sólo registrar historial si el estado cambia realmente o si lo forzamos.
-    # Dado que el spec es cambiar estado o prioridad, si cambia el estado lo registramos.
-    if update_data.estado and update_data.estado != estado_anterior:
+    prioridad_anterior = incidencia.prioridad
+
+    # Detectar qué cambia realmente (un valor None en el payload = "no tocar").
+    cambia_estado = update_data.estado is not None and update_data.estado != estado_anterior
+    cambia_prioridad = update_data.prioridad is not None and update_data.prioridad != prioridad_anterior
+
+    if cambia_estado:
         incidencia.estado = update_data.estado
+    if cambia_prioridad:
+        incidencia.prioridad = update_data.prioridad
+
+    # Registrar en el historial CUALQUIER cambio (estado y/o prioridad), con
+    # los valores anterior/nuevo de ambos atributos y el autor del cambio.
+    if cambia_estado or cambia_prioridad:
         historial = HistorialEstado(
             incidencia_id=incidencia.id,
             estado_anterior=estado_anterior,
             estado_nuevo=incidencia.estado,
-            cambiado_por=admin_user
+            prioridad_anterior=prioridad_anterior,
+            prioridad_nueva=incidencia.prioridad,
+            cambiado_por=admin_user,
         )
         db.add(historial)
 
-    if update_data.prioridad:
-        incidencia.prioridad = update_data.prioridad
-
-    # Si por casualidad sólo cambió prioridad pero el spec dice registrar TODO cambio
-    # lo registramos siempre que se llame con admin_user para este update
-    if update_data.estado and update_data.estado == estado_anterior:
-        pass # No cambiamos estado real
-        
     db.commit()
     db.refresh(incidencia)
     return incidencia
