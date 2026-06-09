@@ -102,7 +102,7 @@ Devuelve el usuario autenticado (requiere `Authorization: Bearer`).
 }
 ```
 - `201` → `IncidenciaResponse` (con `estado: "abierta"`).
-- `422` → validación de campos.
+- `422` → validación de campos. *(issue #10)* `titulo` y `descripcion` se **sanean** (se recortan espacios) y se aplica **moderación básica**: si el texto contiene términos no permitidos, o el `titulo` queda con menos de 3 caracteres tras recortar, se devuelve `422`.
 
 ### `GET /incidencias/{id}` — detalle
 - `200` → `IncidenciaResponse` (incluye `imagenes` e `historial`).
@@ -118,9 +118,12 @@ Requiere `Authorization: Bearer <token de admin>` (sustituye a la antigua cabece
 - `401` sin token · `403` si el rol no es admin · `404` si no existe.
 
 ### `POST /incidencias/{id}/imagenes` — subir imagen
-`multipart/form-data` con campo **`file`**. Solo `image/jpeg` o `image/png`.
+`multipart/form-data` con campo **`file`**. Validación robusta *(issue #10)*:
+- Solo **JPEG** o **PNG**, verificado por el **contenido real** (*magic bytes*), no solo por el `content_type` → un archivo que falsee el `content_type` se rechaza.
+- Tamaño máximo **5 MB**; archivo vacío rechazado.
+- La extensión del fichero guardado se deriva del tipo real detectado.
 - `201` → `{ "id", "ruta": "/uploads/<uuid>.jpg", "fecha_subida" }`
-- `400` → formato inválido · `404` → incidencia inexistente.
+- `400` → no es imagen válida / content_type no permitido / vacío / supera 5 MB · `404` → incidencia inexistente.
 
 Las imágenes se sirven como estáticos en `GET /uploads/<archivo>`.
 
@@ -183,6 +186,7 @@ Marca la notificación como leída.
 | Filtro geográfico eficiente (SQL) | `GET /incidencias?lat&lng&radio` | #5 ✅ |
 | Historial de estado **y prioridad** | `historial` en el detalle / tras `PATCH` | #6 ✅ |
 | Notificaciones de cambio de estado | `GET /notificaciones`, `PATCH /notificaciones/{id}/leer` | #7 ✅ |
+| Validación/moderación de inputs e imágenes | `POST /incidencias`, `POST /incidencias/{id}/imagenes` | #10 ✅ |
 | Crear / detalle / imágenes | `POST`/`GET /incidencias`, `/imagenes` | base ✅ |
 
 > Esta tabla y las secciones se ampliarán al completar nuevas issues del backend.

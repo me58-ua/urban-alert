@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict, conlist
+from pydantic import BaseModel, Field, ConfigDict, conlist, field_validator
 from typing import Optional, List
 from datetime import datetime
 from models import CategoriaEnum, PrioridadEnum, EstadoEnum, RolEnum
@@ -21,6 +21,10 @@ class HistorialResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+# Lista básica de moderación (ampliable). Si un texto contiene alguno de estos
+# términos se rechaza la incidencia (issue #10).
+PALABRAS_PROHIBIDAS = {"spam", "xxx"}
+
 class IncidenciaCreate(BaseModel):
     titulo: str = Field(..., min_length=3, max_length=200)
     descripcion: Optional[str] = None
@@ -28,6 +32,17 @@ class IncidenciaCreate(BaseModel):
     prioridad: PrioridadEnum = PrioridadEnum.media
     latitud: float = Field(..., ge=-90, le=90)
     longitud: float = Field(..., ge=-180, le=180)
+
+    @field_validator("titulo", "descripcion", mode="before")
+    @classmethod
+    def _sanitizar_y_moderar(cls, v):
+        # Sanitiza (recorta espacios) ANTES de aplicar min/max_length y aplica
+        # una moderación básica de contenido.
+        if isinstance(v, str):
+            v = v.strip()
+            if any(p in v.lower() for p in PALABRAS_PROHIBIDAS):
+                raise ValueError("El texto contiene términos no permitidos")
+        return v
 
 class EstadoUpdate(BaseModel):
     estado: Optional[EstadoEnum] = None
