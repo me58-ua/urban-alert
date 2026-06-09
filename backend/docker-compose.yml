@@ -1,16 +1,28 @@
-version: '3.8'
-
+# Base de datos PostgreSQL de Urban Alert.
+# Arranque:  docker compose up -d   (desde la carpeta backend/)
+# Coincide con el contenedor que gestiona script/deploy.ps1 (mismo nombre, volumen y puerto).
 services:
   db:
-    image: postgres:15-alpine
+    image: postgres:latest                # PostgreSQL 18+ (la imagen ya descargada en local)
+    container_name: urban-alert-db
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: adminpassword
       POSTGRES_DB: incidencias_db
     ports:
-      - "5432:5432"
+      # Puerto host 5433 por defecto para no chocar con un PostgreSQL nativo en :5432.
+      # Se puede sobreescribir con la variable DB_PORT (p.ej. DB_PORT=5432 docker compose up -d).
+      - "${DB_PORT:-5433}:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # PG 18+ requiere montar el volumen en /var/lib/postgresql (no en /data).
+      - urban_alert_pgdata:/var/lib/postgresql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d incidencias_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
-  pgdata:
+  urban_alert_pgdata:
+    name: urban_alert_pgdata
