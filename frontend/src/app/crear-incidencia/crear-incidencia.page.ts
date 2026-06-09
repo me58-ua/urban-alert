@@ -53,13 +53,15 @@ export class CrearIncidenciaPage {
     { label: 'Mobiliario', icon: 'business-outline' },
   ];
 
+  readonly priorities: Priority[] = ['Baja', 'Media', 'Alta'];
+
   // Mapea las etiquetas de la UI a las categorías del backend (enum CategoriaEnum).
   private readonly categoriaMap: Record<string, Categoria> = {
     Alumbrado: 'alumbrado',
     Basura: 'residuos',
     Baches: 'infraestructura',
     Vandalismo: 'otro',
-    'Mobiliario urbano': 'infraestructura',
+    Mobiliario: 'infraestructura',
   };
 
   goTo(stepNum: number) {
