@@ -1,0 +1,143 @@
+<ion-header class="site-header" translucent="true">
+  <ion-toolbar class="site-toolbar">
+    <div class="toolbar-layout">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="Urban Alert" />
+        </div>
+        <div class="brand__text">
+          <div class="brand__title">Urban Alert</div>
+          <div class="brand__subtitle">Gestión de incidencias</div>
+        </div>
+      </div>
+
+      <ion-button class="login-button" size="small" fill="solid" href="#">
+        Iniciar sesión
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="urban-alert-page" fullscreen>
+  <main class="page-shell page-create">
+    <section class="create-header">
+      <h1>Crear incidencia</h1>
+      <p class="muted">Describe el problema para que los servicios municipales puedan atenderlo.</p>
+    </section>
+
+    <section class="form-layout">
+      <div class="form-main">
+        <div class="step-indicator">
+          <button [class.active]="step===1" (click)="goTo(1)">1. Detalles</button>
+          <div class="divider"></div>
+          <button [class.active]="step===2" (click)="goTo(2)">2. Ubicación</button>
+        </div>
+
+        <ion-card *ngIf="step===1" class="card-section">
+          <ion-card-header>
+            <ion-card-title>Detalles de la incidencia</ion-card-title>
+            <ion-card-subtitle>Selecciona el tipo y describe el problema</ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <ion-item>
+              <ion-label position="stacked">Tipo de incidencia</ion-label>
+              <ion-select [(ngModel)]="incidentType" placeholder="Selecciona">
+                <ion-select-option *ngFor="let t of incidentTypes">{{ t }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <div class="priority-row">
+              <label>Nivel de prioridad</label>
+              <ion-segment [(ngModel)]="priority">
+                <ion-segment-button value="Baja">Baja</ion-segment-button>
+                <ion-segment-button value="Media">Media</ion-segment-button>
+                <ion-segment-button value="Alta">Alta</ion-segment-button>
+              </ion-segment>
+            </div>
+
+            <ion-item>
+              <ion-label position="stacked">Descripción detallada</ion-label>
+              <ion-textarea rows="5" [(ngModel)]="description" placeholder="Describe la incidencia, puntos de referencia, y cualquier detalle adicional..."></ion-textarea>
+            </ion-item>
+
+            <div class="photo-upload">
+              <label>Añadir fotos</label>
+              <div class="photo-controls">
+                <input accept="image/*" id="file" type="file" (change)="addPhoto($event)" />
+              </div>
+
+              <div class="thumbs">
+                <div class="thumb" *ngFor="let p of photos; let i = index">
+                  <img [src]="p" alt="Foto {{ i + 1 }}" />
+                  <button class="remove" (click)="removePhoto(i)">&times;</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="controls">
+              <ion-button fill="outline" (click)="next()">Siguiente</ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card *ngIf="step===2" class="card-section">
+          <ion-card-header>
+            <ion-card-title>Ubicación</ion-card-title>
+            <ion-card-subtitle>Marca el lugar en el mapa o introduce la dirección</ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <ion-card class="map-placeholder">
+              <div class="map-canvas">Mapa interactivo (mock)</div>
+            </ion-card>
+
+            <ion-item>
+              <ion-label position="stacked">Dirección (opcional)</ion-label>
+              <ion-input [(ngModel)]="address" placeholder="Introduce la dirección manualmente..."></ion-input>
+            </ion-item>
+
+            <div class="controls">
+              <ion-button fill="clear" (click)="prev()">Anterior</ion-button>
+              <ion-button fill="solid" (click)="submit()">Enviar reporte</ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <aside class="form-side">
+        <ion-card class="summary">
+          <ion-card-header>
+            <ion-card-title>Resumen</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p><strong>Tipo:</strong> {{ incidentType || '—' }}</p>
+            <p><strong>Prioridad:</strong> {{ priority }}</p>
+            <p><strong>Fotos:</strong> {{ photos.length }}</p>
+            <p><strong>Dirección:</strong> {{ address || '—' }}</p>
+            <ion-button expand="block" fill="outline" (click)="submit()">Enviar ahora</ion-button>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="help-card">
+          <ion-card-content>
+            <h4>Consejos</h4>
+            <ul>
+              <li>Adjunta fotos claras y un punto de referencia.</li>
+              <li>Selecciona la categoría correcta para acelerar la gestión.</li>
+            </ul>
+          </ion-card-content>
+        </ion-card>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <div class="site-footer__title">Urban Alert</div>
+        <div class="site-footer__copy">© 2026 Gestión municipal. Todos los derechos reservados.</div>
+      </div>
+    </div>
+  </footer>
+</ion-content>

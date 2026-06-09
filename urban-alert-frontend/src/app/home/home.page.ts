@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
+import { RouterModule } from '@angular/router';
 
 interface CategoryItem {
   label: string;
@@ -30,7 +31,7 @@ interface MetricItem {
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, RouterModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage {
