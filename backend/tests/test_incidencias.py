@@ -88,6 +88,25 @@ def test_filtro_geografico(client):
     assert "Madrid Centro" not in titulos_zgz
     assert "Barcelona" not in titulos_zgz
 
+def test_filtro_geografico_exacto(client):
+    # El pre-filtro SQL es una caja (bounding box); el refinamiento Haversine debe
+    # excluir los puntos que caen DENTRO de la caja pero FUERA del círculo de radio.
+    # Centro (0,0), radio 10 km -> caja ~ ±0.0898°.
+    # (0.08, 0.08) está dentro de la caja pero a ~12.6 km (fuera del círculo).
+    client.post("/incidencias", json={
+        "titulo": "Diagonal fuera", "categoria": "otro", "latitud": 0.08, "longitud": 0.08
+    })
+    # (0.05, 0.05) está a ~7.9 km (dentro del círculo).
+    client.post("/incidencias", json={
+        "titulo": "Diagonal dentro", "categoria": "otro", "latitud": 0.05, "longitud": 0.05
+    })
+
+    res = client.get("/incidencias?lat=0&lng=0&radio=10000")
+    assert res.status_code == 200
+    titulos = [i["titulo"] for i in res.json()["items"]]
+    assert "Diagonal dentro" in titulos
+    assert "Diagonal fuera" not in titulos  # excluido por Haversine, no solo por la caja
+
 def test_paginacion(client):
     # Crear 5 incidencias adicionales
     for i in range(5):
