@@ -50,6 +50,15 @@ class IncidenciaResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class IncidenciaPage(BaseModel):
+    """Respuesta paginada del listado de incidencias."""
+    items: List[IncidenciaResponse]
+    total: int
+    limit: int
+    offset: int
+
+    model_config = ConfigDict(from_attributes=True)
+
 # ── Autenticación ────────────────────────────────────────────────────────────
 class UserCreate(BaseModel):
     email: str = Field(..., min_length=3, max_length=255)
