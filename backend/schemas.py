@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field, conlist
+from pydantic import BaseModel, Field, ConfigDict, conlist
 from typing import Optional, List
 from datetime import datetime
-from models import CategoriaEnum, PrioridadEnum, EstadoEnum
+from models import CategoriaEnum, PrioridadEnum, EstadoEnum, RolEnum
 
 class ImagenResponse(BaseModel):
     id: int
@@ -49,3 +49,19 @@ class IncidenciaResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# ── Autenticación ────────────────────────────────────────────────────────────
+class UserCreate(BaseModel):
+    email: str = Field(..., min_length=3, max_length=255)
+    password: str = Field(..., min_length=8, max_length=128)
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    rol: RolEnum
+
+    model_config = ConfigDict(from_attributes=True)
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

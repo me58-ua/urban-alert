@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import incidencias
+from routers import incidencias, auth
 import os
 
 os.makedirs("uploads", exist_ok=True)
@@ -36,6 +36,7 @@ app.add_middleware(
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
+app.include_router(auth.router)
 app.include_router(incidencias.router)
 
 @app.get("/ping")

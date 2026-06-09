@@ -23,6 +23,10 @@ class EstadoEnum(str, enum.Enum):
     resuelta = 'resuelta'
     rechazada = 'rechazada'
 
+class RolEnum(str, enum.Enum):
+    ciudadano = 'ciudadano'
+    admin = 'admin'
+
 class Incidencia(Base):
     __tablename__ = "incidencias"
 
@@ -62,3 +66,12 @@ class HistorialEstado(Base):
     fecha = Column(DateTime(timezone=True), server_default=func.now())
 
     incidencia = relationship("Incidencia", back_populates="historial")
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    rol = Column(SQLEnum(RolEnum), default=RolEnum.ciudadano, nullable=False)
+    fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
