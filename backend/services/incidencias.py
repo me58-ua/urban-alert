@@ -25,14 +25,21 @@ def get_incidencia(db: Session, incidencia_id: int) -> Incidencia:
     return incidencia
 
 def listar_incidencias(
-    db: Session, 
-    estado: str = None, 
-    categoria: str = None, 
+    db: Session,
+    estado: str = None,
+    categoria: str = None,
     prioridad: str = None,
     lat: float = None,
     lng: float = None,
-    radio: float = None
+    radio: float = None,
+    limit: int = 20,
+    offset: int = 0,
 ):
+    """Lista incidencias con filtros y paginación.
+
+    Devuelve una tupla ``(items, total)`` donde ``total`` es el número de
+    incidencias que cumplen los filtros (antes de aplicar limit/offset).
+    """
     query = db.query(Incidencia)
     if estado:
         query = query.filter(Incidencia.estado == estado)
@@ -40,27 +47,36 @@ def listar_incidencias(
         query = query.filter(Incidencia.categoria == categoria)
     if prioridad:
         query = query.filter(Incidencia.prioridad == prioridad)
-    
-    resultados = query.all()
 
-    if lat is not None and lng is not None and radio is not None:
+    query = query.order_by(Incidencia.id)
+
+    geo = lat is not None and lng is not None and radio is not None
+    if geo:
         import math
+
         def haversine(lat1, lon1, lat2, lon2):
-            R = 6371000 # radio tierra en metros
+            R = 6371000  # radio tierra en metros
             phi1 = math.radians(lat1)
             phi2 = math.radians(lat2)
             delta_phi = math.radians(lat2 - lat1)
             delta_lambda = math.radians(lon2 - lon1)
-            a = math.sin(delta_phi/2.0)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda/2.0)**2
-            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+            a = math.sin(delta_phi / 2.0) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2.0) ** 2
+            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
             return R * c
-        
+
+        # El filtro geográfico se calcula en Python (ver issue #5 para pasarlo a SQL),
+        # por lo que la paginación se aplica sobre la lista ya filtrada.
         resultados = [
-            inc for inc in resultados 
+            inc for inc in query.all()
             if haversine(lat, lng, inc.latitud, inc.longitud) <= radio
         ]
-        
-    return resultados
+        total = len(resultados)
+        items = resultados[offset:offset + limit]
+    else:
+        total = query.count()
+        items = query.offset(offset).limit(limit).all()
+
+    return items, total
 
 def actualizar_incidencia(db: Session, incidencia_id: int, update_data, admin_user: str) -> Incidencia:
     incidencia = get_incidencia(db, incidencia_id)

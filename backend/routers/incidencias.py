@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, Query, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from database import get_db
-from schemas import IncidenciaCreate, IncidenciaResponse, EstadoUpdate, ImagenResponse
+from schemas import IncidenciaCreate, IncidenciaResponse, EstadoUpdate, ImagenResponse, IncidenciaPage
 import services.incidencias as incidencias_service
 from auth import require_admin
 from models import User
@@ -16,7 +16,7 @@ router = APIRouter(
 def crear_incidencia(incidencia_in: IncidenciaCreate, db: Session = Depends(get_db)):
     return incidencias_service.crear_incidencia(db=db, incidencia_in=incidencia_in)
 
-@router.get("", response_model=List[IncidenciaResponse])
+@router.get("", response_model=IncidenciaPage)
 def listar_incidencias(
     estado: Optional[str] = Query(None),
     categoria: Optional[str] = Query(None),
@@ -24,12 +24,15 @@ def listar_incidencias(
     lat: Optional[float] = Query(None),
     lng: Optional[float] = Query(None),
     radio: Optional[float] = Query(None),
+    limit: int = Query(20, ge=1, le=100, description="Nº máximo de resultados por página"),
+    offset: int = Query(0, ge=0, description="Nº de resultados a saltar (paginación)"),
     db: Session = Depends(get_db)
 ):
-    return incidencias_service.listar_incidencias(
+    items, total = incidencias_service.listar_incidencias(
         db=db, estado=estado, categoria=categoria, prioridad=prioridad,
-        lat=lat, lng=lng, radio=radio
+        lat=lat, lng=lng, radio=radio, limit=limit, offset=offset
     )
+    return {"items": items, "total": total, "limit": limit, "offset": offset}
 
 @router.get("/{id}", response_model=IncidenciaResponse)
 def get_incidencia(id: int, db: Session = Depends(get_db)):

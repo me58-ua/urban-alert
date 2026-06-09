@@ -47,19 +47,22 @@ def test_listar_incidencias(client):
         "titulo": "Inc 2", "categoria": "alumbrado", "prioridad": "alta", "latitud": 1.0, "longitud": 1.0
     })
 
-    # Traer todas (paginación por defecto)
+    # Traer todas (paginación por defecto): respuesta con envoltura {items, total, limit, offset}
     res = client.get("/incidencias")
     assert res.status_code == 200
-    assert len(res.json()) >= 2
+    data = res.json()
+    assert data["total"] >= 2
+    assert len(data["items"]) >= 2
+    assert "limit" in data and "offset" in data
 
     # Probar filtros
     res_alumbrado = client.get("/incidencias?categoria=alumbrado")
     assert res_alumbrado.status_code == 200
-    assert all(i["categoria"] == "alumbrado" for i in res_alumbrado.json())
-    
+    assert all(i["categoria"] == "alumbrado" for i in res_alumbrado.json()["items"])
+
     res_alta = client.get("/incidencias?prioridad=alta")
     assert res_alta.status_code == 200
-    assert all(i["prioridad"] == "alta" for i in res_alta.json())
+    assert all(i["prioridad"] == "alta" for i in res_alta.json()["items"])
 
 def test_filtro_geografico(client):
     # Incidencias en Madrid (-3.703790, 40.416775)
@@ -74,16 +77,45 @@ def test_filtro_geografico(client):
     # Consultar Madrid con radio 50km
     res_madrid = client.get("/incidencias?lat=40.4167&lng=-3.7032&radio=50000")
     assert res_madrid.status_code == 200
-    titulos = [i["titulo"] for i in res_madrid.json()]
+    titulos = [i["titulo"] for i in res_madrid.json()["items"]]
     assert "Madrid Centro" in titulos
     assert "Barcelona" not in titulos
 
     # Consultar con punto medio que no alcance (ej radio 10km en zaragoza 41.64, -0.88)
     res_zgz = client.get("/incidencias?lat=41.64&lng=-0.88&radio=10000")
     assert res_zgz.status_code == 200
-    titulos_zgz = [i["titulo"] for i in res_zgz.json()]
+    titulos_zgz = [i["titulo"] for i in res_zgz.json()["items"]]
     assert "Madrid Centro" not in titulos_zgz
     assert "Barcelona" not in titulos_zgz
+
+def test_paginacion(client):
+    # Crear 5 incidencias adicionales
+    for i in range(5):
+        client.post("/incidencias", json={
+            "titulo": f"Pag {i}", "categoria": "otro", "latitud": 0.0, "longitud": 0.0
+        })
+
+    # Página 1 (limit=2, offset=0)
+    r1 = client.get("/incidencias?limit=2&offset=0")
+    assert r1.status_code == 200
+    d1 = r1.json()
+    assert len(d1["items"]) == 2
+    assert d1["limit"] == 2
+    assert d1["offset"] == 0
+    assert d1["total"] >= 5
+
+    # Página 2 (limit=2, offset=2): items distintos a la página 1
+    r2 = client.get("/incidencias?limit=2&offset=2")
+    d2 = r2.json()
+    assert len(d2["items"]) == 2
+    ids1 = {i["id"] for i in d1["items"]}
+    ids2 = {i["id"] for i in d2["items"]}
+    assert ids1.isdisjoint(ids2)
+
+    # Validación de límites: limit fuera de rango -> 422
+    assert client.get("/incidencias?limit=0").status_code == 422
+    assert client.get("/incidencias?limit=101").status_code == 422
+    assert client.get("/incidencias?offset=-1").status_code == 422
 
 def test_patch_estado(client, db_session, admin_headers, ciudadano_headers):
     # Crear incidencia
