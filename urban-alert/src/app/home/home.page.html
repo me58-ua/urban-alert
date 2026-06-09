@@ -1,0 +1,203 @@
+<ion-header class="site-header" translucent="true">
+  <ion-toolbar class="site-toolbar">
+    <div class="toolbar-layout">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="Urban Alert" />
+        </div>
+
+        <div class="brand__text">
+          <div class="brand__title">Urban Alert</div>
+          <div class="brand__subtitle">Urban Management</div>
+        </div>
+      </div>
+
+      <nav class="header-nav" aria-label="Primary">
+        <a
+          *ngFor="let link of headerLinks; trackBy: trackByLabel"
+          [class.header-nav__link--active]="link.active"
+          [href]="link.href"
+          class="header-nav__link"
+        >
+          {{ link.label }}
+        </a>
+      </nav>
+
+      <ion-button class="login-button" size="small" fill="solid" href="#trust">
+        Login
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="urban-alert-page" fullscreen="true">
+  <main class="page-shell">
+    <section class="hero" id="hero">
+      <div class="hero__content">
+        <ion-chip class="eyebrow" color="primary">
+          <ion-label>Plataforma ciudadana</ion-label>
+        </ion-chip>
+
+        <h1>
+          Reporta incidencias de tu ciudad de forma
+          <span>rápida y visual.</span>
+        </h1>
+
+        <p class="hero__description">
+          Mejora tu barrio en segundos. Conecta directamente con los servicios municipales para una
+          gestión eficiente y transparente de los problemas urbanos.
+        </p>
+
+        <div class="hero__actions">
+          <ion-button class="primary-action" size="large" fill="solid" href="#categories">
+            <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+            Reportar incidencia
+          </ion-button>
+
+          <ion-button class="secondary-action" size="large" fill="solid" href="#trust">
+            <ion-icon slot="start" name="map-outline"></ion-icon>
+            Ver incidencias en el mapa
+          </ion-button>
+        </div>
+      </div>
+
+      <div class="hero__visual" aria-label="Incident preview">
+        <ion-card class="preview-card">
+          <div class="map-canvas" aria-hidden="true">
+            <div class="map-canvas__grid"></div>
+            <div class="map-canvas__streets"></div>
+            <div class="map-canvas__pin"></div>
+            <div class="map-canvas__skyline"></div>
+          </div>
+
+          <ion-card-content class="preview-card__footer">
+            <div class="preview-card__label">Mapa en tiempo real</div>
+            <div class="preview-card__status">
+              <span class="status-dot"></span>
+              <span>124 Activas</span>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="incident-card">
+          <div class="incident-card__icon" aria-hidden="true">
+            <ion-icon name="radio-outline"></ion-icon>
+          </div>
+
+          <div class="incident-card__body">
+            <div class="incident-card__title">Farola fundida</div>
+            <div class="incident-card__meta">Calle Mayor, 14. Hace 10 min.</div>
+            <ion-chip class="incident-card__chip" color="danger">Pendiente</ion-chip>
+          </div>
+        </ion-card>
+      </div>
+    </section>
+
+    <section class="section" id="categories">
+      <div class="section__header">
+        <div>
+          <h2>Categorías principales</h2>
+          <p>
+            Identifica y reporta rápidamente problemas comunes. Tu contribución ayuda a priorizar
+            los recursos municipales.
+          </p>
+        </div>
+
+        <a class="section__link" href="#steps">
+          Ver todas las categorías
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </a>
+      </div>
+
+      <div class="category-grid">
+        <ion-card class="category-card" *ngFor="let category of categories; trackBy: trackByLabel">
+          <ion-card-content>
+            <div class="category-card__icon">
+              <ion-icon [name]="category.icon"></ion-icon>
+            </div>
+            <div class="category-card__label">{{ category.label }}</div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </section>
+
+    <section class="section section--steps" id="steps">
+      <div class="section__title-block section__title-block--center">
+        <h2>Gestión en tres pasos</h2>
+        <span class="section__underline"></span>
+      </div>
+
+      <div class="steps-grid">
+        <ion-card
+          class="step-card"
+          *ngFor="let step of steps; trackBy: trackByTitle"
+          [class.step-card--dark]="step.tone === 'dark'"
+          [class.step-card--blue]="step.tone === 'blue'"
+          [class.step-card--accent]="step.tone === 'accent'"
+        >
+          <ion-card-content>
+            <div class="step-card__badge">{{ step.number }}</div>
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.description }}</p>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </section>
+
+    <section class="section section--trust" id="trust">
+      <div class="trust-panel">
+        <div class="trust-panel__content">
+          <h2>Compromiso con la transparencia ciudadana</h2>
+
+          <div class="trust-list">
+            <div class="trust-list__item" *ngFor="let point of trustPoints; trackBy: trackByTitle">
+              <div class="trust-list__icon" aria-hidden="true">
+                <ion-icon [name]="point.icon"></ion-icon>
+              </div>
+
+              <div class="trust-list__body">
+                <div class="trust-list__title">{{ point.title }}:</div>
+                <div class="trust-list__text">{{ point.description }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ion-card class="stats-card">
+          <ion-card-content>
+            <div class="stats-card__heading">
+              <ion-icon name="stats-chart-outline"></ion-icon>
+              <h3>Impacto en cifras</h3>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stats-grid__item" *ngFor="let metric of metrics; trackBy: trackByValue">
+                <div class="stats-grid__value">{{ metric.value }}</div>
+                <div class="stats-grid__label">{{ metric.label }}</div>
+              </div>
+            </div>
+
+            <ion-button class="report-button" fill="outline" expand="block">
+              Leer informe de gestión anual
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <div class="site-footer__title">Urban Incident</div>
+        <div class="site-footer__copy">© 2024 Urban Incident Management. All rights reserved.</div>
+      </div>
+
+      <nav class="site-footer__links" aria-label="Footer">
+        <a *ngFor="let link of footerLinks; trackBy: trackByLabel" [href]="link.href">
+          {{ link.label }}
+        </a>
+      </nav>
+    </div>
+  </footer>
+</ion-content>

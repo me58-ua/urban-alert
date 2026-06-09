@@ -10,4 +10,8 @@ export const routes: Routes = [
     redirectTo: 'home',
     pathMatch: 'full',
   },
+  {
+    path: 'urban-alert',
+    loadComponent: () => import('./urban-alert/urban-alert.page').then( m => m.UrbanAlertPage)
+  },
 ];
