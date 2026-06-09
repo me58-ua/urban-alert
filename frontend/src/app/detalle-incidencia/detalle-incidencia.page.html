@@ -98,7 +98,13 @@
           </ion-card-header>
 
           <ion-card-content>
-            <div class="map-preview" aria-hidden="true">
+            <div class="map-preview">
+              <iframe
+                title="Mapa real de la incidencia"
+                [src]="mapUrl"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
               <span class="map-preview__pin"></span>
             </div>
           </ion-card-content>

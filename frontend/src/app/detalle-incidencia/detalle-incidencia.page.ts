@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
@@ -38,6 +39,14 @@ interface CommentItem {
 export class DetalleIncidenciaPage {
   readonly brandMarkUrl =
     'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
+
+  readonly mapUrl: SafeResourceUrl;
+
+  constructor(private readonly sanitizer: DomSanitizer) {
+    this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+      'https://www.openstreetmap.org/export/embed.html?bbox=-3.7105%2C40.4128%2C-3.6971%2C40.4214&layer=mapnik&marker=40.4168%2C-3.7038'
+    );
+  }
 
   readonly incident = {
     id: '#UA-2048',
