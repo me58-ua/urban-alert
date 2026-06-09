@@ -6,7 +6,7 @@ from routers import incidencias, auth, notificaciones, stats
 from config import settings
 import os
 
-os.makedirs("uploads", exist_ok=True)
+os.makedirs(settings.upload_dir, exist_ok=True)
 
 # FastAPI initialization
 app = FastAPI(
@@ -34,7 +34,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
 
 app.include_router(auth.router)
 app.include_router(incidencias.router)

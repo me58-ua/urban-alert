@@ -131,12 +131,8 @@ def actualizar_incidencia(db: Session, incidencia_id: int, update_data, admin_us
     db.refresh(incidencia)
     return incidencia
 
-import os
-import uuid
 from fastapi import UploadFile, HTTPException
-
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+from storage import get_storage
 
 # Validación de imágenes (issue #10). Tamaño máximo desde la configuración (issue #12).
 MAX_IMAGEN_BYTES = settings.max_imagen_bytes
@@ -174,14 +170,12 @@ def subir_imagen_incidencia(db: Session, incidencia_id: int, file: UploadFile):
     if tipo is None:
         raise HTTPException(status_code=400, detail="El contenido no es una imagen JPEG o PNG válida")
 
+    # Persistencia delegada al backend de almacenamiento (local/S3) -> issue #8.
     # La extensión se deriva del tipo detectado, no del nombre del archivo.
-    filename = f"{uuid.uuid4()}.{tipo}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
-    with open(filepath, "wb") as buffer:
-        buffer.write(contenido)
+    ruta = get_storage().guardar(contenido, tipo)
 
     from models import Imagen
-    db_img = Imagen(incidencia_id=incidencia_id, ruta=f"/uploads/{filename}")
+    db_img = Imagen(incidencia_id=incidencia_id, ruta=ruta)
     db.add(db_img)
     db.commit()
     db.refresh(db_img)
