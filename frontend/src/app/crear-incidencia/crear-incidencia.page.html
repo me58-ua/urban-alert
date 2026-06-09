@@ -1,141 +1,180 @@
-<ion-header class="site-header" translucent="true">
-  <ion-toolbar class="site-toolbar">
+<ion-header class="create-header-bar" translucent="true">
+  <ion-toolbar class="create-toolbar">
     <div class="toolbar-layout">
-      <div class="brand">
-        <div class="brand__mark" aria-hidden="true">
-          <img [src]="brandMarkUrl" alt="Urban Alert" />
-        </div>
-        <div class="brand__text">
-          <div class="brand__title">Urban Alert</div>
-          <div class="brand__subtitle">Gestión de incidencias</div>
-        </div>
-      </div>
+      <a class="brand" routerLink="/home" aria-label="Urban Alert">
+        <span class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="" />
+        </span>
+
+        <span class="brand__text">
+          <span class="brand__title">Urban Alert</span>
+          <span class="brand__subtitle">Nuevo reporte</span>
+        </span>
+      </a>
 
       <app-menu></app-menu>
     </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="urban-alert-page" fullscreen>
-  <main class="page-shell page-create">
-    <section class="create-header">
+<ion-content class="create-page" fullscreen="true">
+  <main class="create-shell">
+    <section class="page-intro">
+      <ion-chip class="eyebrow">
+        <ion-label>Reporte ciudadano</ion-label>
+      </ion-chip>
+
       <h1>Crear incidencia</h1>
-      <p class="muted">Describe el problema para que los servicios municipales puedan atenderlo.</p>
+      <p>Describe el problema, añade evidencias y marca la ubicación para que el municipio pueda actuar.</p>
     </section>
 
-    <section class="form-layout">
-      <div class="form-main">
-        <div class="step-indicator">
-          <button [class.active]="step===1" (click)="goTo(1)">1. Detalles</button>
-          <div class="divider"></div>
-          <button [class.active]="step===2" (click)="goTo(2)">2. Ubicación</button>
+    <section class="step-tabs" aria-label="Pasos del reporte">
+      <button type="button" [class.step-tabs__item--active]="step === 1" (click)="goTo(1)">
+        <span>1</span>
+        Detalles
+      </button>
+      <button type="button" [class.step-tabs__item--active]="step === 2" (click)="goTo(2)">
+        <span>2</span>
+        Ubicación
+      </button>
+    </section>
+
+    <section class="create-card" *ngIf="step === 1">
+      <div class="section-heading">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <div>
+          <h2>Resumen de la incidencia</h2>
+          <p>Selecciona el tipo, la prioridad y explica qué está pasando.</p>
+        </div>
+      </div>
+
+      <div class="category-grid">
+        <button
+          class="category-button"
+          type="button"
+          *ngFor="let type of incidentTypes; trackBy: trackByLabel"
+          [class.category-button--active]="incidentType === type.label"
+          (click)="selectIncidentType(type.label)"
+        >
+          <ion-icon [name]="type.icon"></ion-icon>
+          <span>{{ type.label }}</span>
+        </button>
+      </div>
+
+      <div class="field-group">
+        <label>Prioridad</label>
+        <div class="priority-grid">
+          <button
+            type="button"
+            *ngFor="let item of priorities; trackBy: trackByValue"
+            [class.priority-button--active]="priority === item"
+            [class.priority-button--high]="item === 'Alta'"
+            class="priority-button"
+            (click)="selectPriority(item)"
+          >
+            {{ item }}
+          </button>
+        </div>
+      </div>
+
+      <label class="field-group">
+        <span>Descripción</span>
+        <ion-textarea
+          rows="6"
+          [(ngModel)]="description"
+          placeholder="Incluye referencias visibles, horarios en los que ocurre y cualquier dato útil..."
+        ></ion-textarea>
+      </label>
+
+      <div class="evidence-box">
+        <div class="evidence-box__copy">
+          <ion-icon name="camera-outline"></ion-icon>
+          <div>
+            <h3>Galería de evidencias</h3>
+            <p>Añade fotos claras de la incidencia.</p>
+          </div>
         </div>
 
-        <ion-card *ngIf="step===1" class="card-section">
-          <ion-card-header>
-            <ion-card-title>Detalles de la incidencia</ion-card-title>
-            <ion-card-subtitle>Selecciona el tipo y describe el problema</ion-card-subtitle>
-          </ion-card-header>
+        <label class="upload-button" for="incident-photo">
+          <ion-icon name="image-outline"></ion-icon>
+          Añadir foto
+        </label>
+        <input accept="image/*" id="incident-photo" type="file" (change)="addPhoto($event)" />
 
-          <ion-card-content>
-            <ion-item>
-              <ion-label position="stacked">Tipo de incidencia</ion-label>
-              <ion-select [(ngModel)]="incidentType" placeholder="Selecciona">
-                <ion-select-option *ngFor="let t of incidentTypes">{{ t }}</ion-select-option>
-              </ion-select>
-            </ion-item>
-
-            <div class="priority-row">
-              <label>Nivel de prioridad</label>
-              <ion-segment [(ngModel)]="priority">
-                <ion-segment-button value="Baja">Baja</ion-segment-button>
-                <ion-segment-button value="Media">Media</ion-segment-button>
-                <ion-segment-button value="Alta">Alta</ion-segment-button>
-              </ion-segment>
-            </div>
-
-            <ion-item>
-              <ion-label position="stacked">Descripción detallada</ion-label>
-              <ion-textarea rows="5" [(ngModel)]="description" placeholder="Describe la incidencia, puntos de referencia, y cualquier detalle adicional..."></ion-textarea>
-            </ion-item>
-
-            <div class="photo-upload">
-              <label>Añadir fotos</label>
-              <div class="photo-controls">
-                <input accept="image/*" id="file" type="file" (change)="addPhoto($event)" />
-              </div>
-
-              <div class="thumbs">
-                <div class="thumb" *ngFor="let p of photos; let i = index">
-                  <img [src]="p" alt="Foto {{ i + 1 }}" />
-                  <button class="remove" (click)="removePhoto(i)">&times;</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="controls">
-              <ion-button fill="outline" (click)="next()">Siguiente</ion-button>
-            </div>
-          </ion-card-content>
-        </ion-card>
-
-        <ion-card *ngIf="step===2" class="card-section">
-          <ion-card-header>
-            <ion-card-title>Ubicación</ion-card-title>
-            <ion-card-subtitle>Marca el lugar en el mapa o introduce la dirección</ion-card-subtitle>
-          </ion-card-header>
-
-          <ion-card-content>
-            <ion-card class="map-placeholder">
-              <div class="map-canvas">Mapa interactivo (mock)</div>
-            </ion-card>
-
-            <ion-item>
-              <ion-label position="stacked">Dirección (opcional)</ion-label>
-              <ion-input [(ngModel)]="address" placeholder="Introduce la dirección manualmente..."></ion-input>
-            </ion-item>
-
-            <div class="controls">
-              <ion-button fill="clear" (click)="prev()">Anterior</ion-button>
-              <ion-button fill="solid" (click)="submit()">Enviar reporte</ion-button>
-            </div>
-          </ion-card-content>
-        </ion-card>
+        <div class="thumbs" *ngIf="photos.length > 0">
+          <div class="thumb" *ngFor="let photo of photos; let i = index">
+            <img [src]="photo" alt="Evidencia {{ i + 1 }}" />
+            <button type="button" aria-label="Eliminar foto" (click)="removePhoto(i)">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <aside class="form-side">
-        <ion-card class="summary">
-          <ion-card-header>
-            <ion-card-title>Resumen</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <p><strong>Tipo:</strong> {{ incidentType || '—' }}</p>
-            <p><strong>Prioridad:</strong> {{ priority }}</p>
-            <p><strong>Fotos:</strong> {{ photos.length }}</p>
-            <p><strong>Dirección:</strong> {{ address || '—' }}</p>
-            <ion-button expand="block" fill="outline" (click)="submit()">Enviar ahora</ion-button>
-          </ion-card-content>
-        </ion-card>
+      <div class="summary-strip">
+        <div>
+          <span>Categoría</span>
+          <strong>{{ incidentType }}</strong>
+        </div>
+        <div>
+          <span>Prioridad</span>
+          <strong>{{ priority }}</strong>
+        </div>
+        <div>
+          <span>Fotos</span>
+          <strong>{{ photos.length }}</strong>
+        </div>
+      </div>
 
-        <ion-card class="help-card">
-          <ion-card-content>
-            <h4>Consejos</h4>
-            <ul>
-              <li>Adjunta fotos claras y un punto de referencia.</li>
-              <li>Selecciona la categoría correcta para acelerar la gestión.</li>
-            </ul>
-          </ion-card-content>
-        </ion-card>
-      </aside>
+      <ion-button class="primary-action" expand="block" (click)="next()">
+        Continuar
+        <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
+      </ion-button>
+    </section>
+
+    <section class="create-card" *ngIf="step === 2">
+      <div class="section-heading">
+        <ion-icon name="location-outline"></ion-icon>
+        <div>
+          <h2>Ubicación</h2>
+          <p>Confirma el punto exacto donde se encuentra la incidencia.</p>
+        </div>
+      </div>
+
+      <div class="map-card" aria-label="Vista previa del mapa">
+        <div class="map-card__pin"></div>
+        <div class="map-card__badge">
+          <ion-icon name="locate-outline"></ion-icon>
+          Usar ubicación actual
+        </div>
+      </div>
+
+      <label class="field-group">
+        <span>Dirección o referencia</span>
+        <ion-input
+          [(ngModel)]="address"
+          placeholder="Ej. Calle Mayor 14, junto al paso de peatones"
+        ></ion-input>
+      </label>
+
+      <div class="summary-strip summary-strip--stacked">
+        <div>
+          <span>Tipo</span>
+          <strong>{{ incidentType }}</strong>
+        </div>
+        <div>
+          <span>Dirección</span>
+          <strong>{{ address || 'Pendiente' }}</strong>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <ion-button class="secondary-action" fill="clear" (click)="prev()">Anterior</ion-button>
+        <ion-button class="primary-action" (click)="submit()">
+          Enviar reporte
+          <ion-icon slot="end" name="checkmark-circle-outline"></ion-icon>
+        </ion-button>
+      </div>
     </section>
   </main>
-
-  <footer class="site-footer">
-    <div class="site-footer__inner">
-      <div class="site-footer__brand">
-        <div class="site-footer__title">Urban Alert</div>
-        <div class="site-footer__copy">© 2026 Gestión municipal. Todos los derechos reservados.</div>
-      </div>
-    </div>
-  </footer>
 </ion-content>

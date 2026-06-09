@@ -6,6 +6,11 @@ import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
 
 type Priority = 'Baja' | 'Media' | 'Alta';
 
+interface IncidentType {
+  label: string;
+  icon: string;
+}
+
 @Component({
   selector: 'app-crear-incidencia',
   templateUrl: 'crear-incidencia.page.html',
@@ -19,22 +24,32 @@ export class CrearIncidenciaPage {
 
   step = 1;
 
-  incidentType = '';
+  incidentType = 'Alumbrado';
   priority: Priority = 'Media';
   description = '';
   photos: string[] = [];
   address = '';
 
-  readonly incidentTypes = [
-    'Alumbrado',
-    'Basura',
-    'Baches',
-    'Vandalismo',
-    'Mobiliario urbano',
+  readonly incidentTypes: IncidentType[] = [
+    { label: 'Alumbrado', icon: 'bulb-outline' },
+    { label: 'Basura', icon: 'trash-outline' },
+    { label: 'Baches', icon: 'construct-outline' },
+    { label: 'Vandalismo', icon: 'alert-circle-outline' },
+    { label: 'Mobiliario', icon: 'business-outline' },
   ];
+
+  readonly priorities: Priority[] = ['Baja', 'Media', 'Alta'];
 
   goTo(stepNum: number) {
     this.step = stepNum;
+  }
+
+  selectIncidentType(type: string) {
+    this.incidentType = type;
+  }
+
+  selectPriority(priority: Priority) {
+    this.priority = priority;
   }
 
   addPhoto(ev: Event) {
@@ -70,13 +85,16 @@ export class CrearIncidenciaPage {
       address: this.address,
     });
     this.step = 1;
-    this.incidentType = '';
+    this.incidentType = 'Alumbrado';
     this.priority = 'Media';
     this.description = '';
     this.photos = [];
     this.address = '';
     alert('Tu reporte se ha enviado correctamente.');
   }
+
+  trackByLabel = (_index: number, item: { label: string }) => item.label;
+  trackByValue = (_index: number, item: string) => item;
 }
 
 export default CrearIncidenciaPage;
