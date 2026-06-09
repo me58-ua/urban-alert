@@ -1,12 +1,10 @@
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Si se está corriendo en test, podríamos sobreescribir esta variable
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://admin:adminpassword@localhost:5432/incidencias_db"
-)
+from config import settings
+
+# URL de la BD desde la configuración por entorno (variable DATABASE_URL / .env).
+DATABASE_URL = settings.database_url
 
 # Engine de SQLAlchemy
 engine = create_engine(DATABASE_URL)

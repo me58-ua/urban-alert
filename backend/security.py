@@ -3,17 +3,18 @@
 Sin dependencias de FastAPI ni de la BD para evitar imports circulares.
 La configuración se lee de variables de entorno (con valores por defecto de desarrollo).
 """
-import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import bcrypt
 import jwt
 
-# Configuración (ver issue de gestión de secretos para mover esto a settings).
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me-in-production")
-ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+from config import settings
+
+# Configuración centralizada por entorno (ver config.py).
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.jwt_algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 
 def hash_password(password: str) -> str:
