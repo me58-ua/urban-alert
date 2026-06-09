@@ -148,6 +148,26 @@ Marca la notificación como leída.
 
 ---
 
+## 📊 Métricas / Dashboard — *issue #9*
+
+### `GET /stats`
+Agregados calculados desde la BD (público, ideal para el dashboard / contadores de la home).
+```json
+{
+  "total": 42,
+  "por_estado": { "abierta": 20, "en_progreso": 10, "resuelta": 10, "rechazada": 2 },
+  "por_categoria": { "infraestructura": 8, "alumbrado": 12, "residuos": 7, "trafico": 5, "zonas_verdes": 4, "otro": 6 },
+  "por_prioridad": { "baja": 15, "media": 18, "alta": 9 },
+  "porcentaje_resueltas": 23.81,
+  "tiempo_medio_resolucion_horas": 14.5,   // null si no hay incidencias resueltas
+  "reportes_ultimos_7_dias": 12,
+  "reportes_ultimos_30_dias": 30
+}
+```
+> Los conteos `por_*` incluyen **todas** las claves del enum (con `0` si no hay). `tiempo_medio_resolucion_horas` es aproximado (última actualización − creación de las resueltas).
+
+---
+
 ## 🧱 Modelo de respuesta `IncidenciaResponse`
 ```json
 {
@@ -187,6 +207,7 @@ Marca la notificación como leída.
 | Historial de estado **y prioridad** | `historial` en el detalle / tras `PATCH` | #6 ✅ |
 | Notificaciones de cambio de estado | `GET /notificaciones`, `PATCH /notificaciones/{id}/leer` | #7 ✅ |
 | Validación/moderación de inputs e imágenes | `POST /incidencias`, `POST /incidencias/{id}/imagenes` | #10 ✅ |
+| Métricas / dashboard | `GET /stats` | #9 ✅ |
 | Crear / detalle / imágenes | `POST`/`GET /incidencias`, `/imagenes` | base ✅ |
 
 > Esta tabla y las secciones se ampliarán al completar nuevas issues del backend.
