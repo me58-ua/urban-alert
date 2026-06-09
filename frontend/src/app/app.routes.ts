@@ -25,6 +25,15 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'login',
+    loadComponent: () => import('./auth/login.page').then((m) => m.LoginPage),
+  },
+  {
+    path: 'registrar',
+    loadComponent: () =>
+      import('./auth/registrar.page').then((m) => m.RegistrarPage),
+  },
+  {
     path: '',
     redirectTo: 'home',
     pathMatch: 'full',

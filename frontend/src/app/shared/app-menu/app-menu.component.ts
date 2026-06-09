@@ -22,7 +22,7 @@ export class AppMenuComponent {
   readonly popoverEvent = signal<Event | undefined>(undefined);
 
   readonly items: AppMenuItem[] = [
-    { label: 'Iniciar sesión / Registrarse', route: '/home', icon: 'person-circle-outline' },
+    { label: 'Iniciar sesión / Registrarse', route: '/login', icon: 'person-circle-outline' },
     { label: 'Mapa', route: '/mapa-incidencias', icon: 'map-outline' },
     { label: 'Reportar', route: '/crear-incidencia', icon: 'add-circle-outline' },
     { label: 'Mis incidencias', route: '/detalle-incidencia', icon: 'document-text-outline' },

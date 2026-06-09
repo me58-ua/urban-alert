@@ -1,0 +1,81 @@
+<ion-header class="auth-header" translucent="true">
+  <ion-toolbar class="auth-toolbar">
+    <div class="toolbar-layout">
+      <a class="brand" routerLink="/home" aria-label="Urban Alert">
+        <span class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="" />
+        </span>
+
+        <span class="brand__text">
+          <span class="brand__title">Urban Alert</span>
+          <span class="brand__subtitle">Registro ciudadano</span>
+        </span>
+      </a>
+
+      <app-menu></app-menu>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="auth-page" fullscreen="true">
+  <main class="auth-shell">
+    <section class="auth-card">
+      <div class="auth-card__header">
+        <ion-chip class="eyebrow">
+          <ion-label>Nuevo perfil</ion-label>
+        </ion-chip>
+        <h1>Crear cuenta</h1>
+        <p>Regístrate para enviar reportes, guardar evidencias y recibir actualizaciones municipales.</p>
+      </div>
+
+      <form class="auth-form" (ngSubmit)="submit()">
+        <label class="form-field">
+          <span>Nombre completo</span>
+          <ion-input
+            type="text"
+            name="name"
+            [(ngModel)]="name"
+            placeholder="Nombre y apellidos"
+            autocomplete="name"
+          ></ion-input>
+        </label>
+
+        <label class="form-field">
+          <span>Correo electrónico</span>
+          <ion-input
+            type="email"
+            name="email"
+            [(ngModel)]="email"
+            placeholder="tu@email.com"
+            autocomplete="email"
+          ></ion-input>
+        </label>
+
+        <label class="form-field">
+          <span>Contraseña</span>
+          <ion-input
+            type="password"
+            name="password"
+            [(ngModel)]="password"
+            placeholder="Crea una contraseña segura"
+            autocomplete="new-password"
+          ></ion-input>
+        </label>
+
+        <label class="check-row check-row--terms">
+          <ion-checkbox name="acceptTerms" [(ngModel)]="acceptTerms"></ion-checkbox>
+          <span>Acepto las condiciones de uso y la política de privacidad.</span>
+        </label>
+
+        <ion-button class="primary-action" type="submit" expand="block">
+          Registrarme
+        </ion-button>
+      </form>
+
+      <div class="auth-switch">
+        <span>¿Ya tienes cuenta?</span>
+        <a routerLink="/login">Iniciar sesión</a>
+      </div>
+    </section>
+  </main>
+</ion-content>
