@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from models import Incidencia, HistorialEstado, EstadoEnum
 from schemas import IncidenciaCreate
+import services.notificaciones as notificaciones_service
 
 def crear_incidencia(db: Session, incidencia_in: IncidenciaCreate) -> Incidencia:
     db_incidencia = Incidencia(
@@ -114,6 +115,16 @@ def actualizar_incidencia(db: Session, incidencia_id: int, update_data, admin_us
             cambiado_por=admin_user,
         )
         db.add(historial)
+
+    # Notificar el cambio de ESTADO (issue #7).
+    if cambia_estado:
+        mensaje = (
+            f"La incidencia '{incidencia.titulo}' cambió de estado: "
+            f"{estado_anterior.value} → {incidencia.estado.value}"
+        )
+        notificaciones_service.crear_notificacion(
+            db, incidencia_id=incidencia.id, estado_nuevo=incidencia.estado, mensaje=mensaje
+        )
 
     db.commit()
     db.refresh(incidencia)
