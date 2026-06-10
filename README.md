@@ -202,8 +202,9 @@ npm run lint         # 🧹 ESLint
 | 🕓 | **Historial de estado y prioridad** | Auditoría automática de cada cambio, con valores anterior/nuevo |
 | 🔔 | **Notificaciones** | Aviso automático al cambiar el estado de una incidencia |
 | 🖼️ | **Imágenes validadas y persistentes** | Validación por *magic bytes* + tamaño; almacenamiento **local** (volumen) o **S3** |
-| 📊 | **Métricas / dashboard** | Agregados reales: conteos, % resueltas, tiempo medio de resolución y reportes por periodo |
+| 📊 | **Métricas / dashboard (admin)** | Agregados reales: conteos, % resueltas, tiempo medio de resolución y reportes por periodo |
 | 🛡️ | **Validación y moderación** | Saneo de textos y reglas básicas de moderación de contenido |
+| 👥 | **Gestión de usuarios y roles (admin)** | Listar usuarios y promover a admin; *bootstrap* del primer administrador |
 | ⚙️ | **Configuración por entorno** | Secretos y ajustes vía variables de entorno / `.env` (pydantic-settings) |
 
 </div>
@@ -223,7 +224,9 @@ npm run lint         # 🧹 ESLint
 | `POST` | `/incidencias/{id}/imagenes` | 🖼️ Subir imagen `multipart` (validada) |
 | `GET` | `/notificaciones` | 🔔 Listar notificaciones (`incidencia_id`, `leida`) |
 | `PATCH` | `/notificaciones/{id}/leer` | ✅ Marcar notificación como leída |
-| `GET` | `/stats` | 📊 Métricas / analytics para el dashboard |
+| `GET` | `/stats` | 📊 Métricas / analytics para el dashboard *(solo admin)* |
+| `GET` | `/users` | 👥 Listar usuarios *(solo admin)* |
+| `PATCH` | `/users/{id}/rol` | 🔼 Cambiar rol / promover a admin *(solo admin)* |
 
 > 📘 Guía de integración completa para el frontend (auth, esquemas, ejemplos): [`docs/integracion-frontend.md`](docs/integracion-frontend.md)
 
