@@ -1,10 +1,16 @@
+from typing import Optional
+
 from sqlalchemy.orm import Session
 from models import Incidencia, HistorialEstado, EstadoEnum
 from schemas import IncidenciaCreate
 import services.notificaciones as notificaciones_service
 from config import settings
 
-def crear_incidencia(db: Session, incidencia_in: IncidenciaCreate) -> Incidencia:
+def crear_incidencia(
+    db: Session, incidencia_in: IncidenciaCreate, user_id: Optional[int] = None
+) -> Incidencia:
+    """Crea una incidencia. ``user_id`` es el autor (issue #33); puede ser None
+    para incidencias anónimas (POST sin JWT)."""
     db_incidencia = Incidencia(
         titulo=incidencia_in.titulo,
         descripcion=incidencia_in.descripcion,
@@ -12,7 +18,8 @@ def crear_incidencia(db: Session, incidencia_in: IncidenciaCreate) -> Incidencia
         prioridad=incidencia_in.prioridad,
         latitud=incidencia_in.latitud,
         longitud=incidencia_in.longitud,
-        estado=EstadoEnum.abierta
+        estado=EstadoEnum.abierta,
+        user_id=user_id,
     )
     db.add(db_incidencia)
     db.commit()
@@ -88,6 +95,17 @@ def listar_incidencias(
         total = query.count()
         items = query.offset(offset).limit(limit).all()
 
+    return items, total
+
+def listar_incidencias_de_usuario(db: Session, user_id: int, limit: int = 20, offset: int = 0):
+    """Lista, paginadas, SOLO las incidencias cuyo autor es ``user_id`` (issue #33).
+
+    Devuelve una tupla ``(items, total)`` donde ``total`` es el número total de
+    incidencias del usuario (antes de aplicar limit/offset).
+    """
+    query = db.query(Incidencia).filter(Incidencia.user_id == user_id).order_by(Incidencia.id)
+    total = query.count()
+    items = query.offset(offset).limit(limit).all()
     return items, total
 
 def actualizar_incidencia(db: Session, incidencia_id: int, update_data, admin_user: str) -> Incidencia:

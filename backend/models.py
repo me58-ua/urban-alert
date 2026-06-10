@@ -38,10 +38,16 @@ class Incidencia(Base):
     estado = Column(SQLEnum(EstadoEnum), default=EstadoEnum.abierta, nullable=False)
     latitud = Column(Float, nullable=False)
     longitud = Column(Float, nullable=False)
-    
+
+    # Autor de la incidencia (issue #33). NULLABLE: se permiten incidencias
+    # anónimas (POST sin JWT). ON DELETE SET NULL: si se borra el usuario, la
+    # incidencia se conserva pero queda sin autor.
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+
     fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
     fecha_actualizacion = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
+    autor = relationship("User", back_populates="incidencias")
     imagenes = relationship("Imagen", back_populates="incidencia", cascade="all, delete-orphan")
     historial = relationship("HistorialEstado", back_populates="incidencia", cascade="all, delete-orphan")
     notificaciones = relationship("Notificacion", back_populates="incidencia", cascade="all, delete-orphan")
@@ -78,6 +84,8 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     rol = Column(SQLEnum(RolEnum), default=RolEnum.ciudadano, nullable=False)
     fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
+
+    incidencias = relationship("Incidencia", back_populates="autor")
 
 class Notificacion(Base):
     __tablename__ = "notificaciones"

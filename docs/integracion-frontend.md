@@ -104,6 +104,27 @@ Devuelve el usuario autenticado (requiere `Authorization: Bearer`).
 - `201` → `IncidenciaResponse` (con `estado: "abierta"`).
 - `422` → validación de campos. *(issue #10)* `titulo` y `descripcion` se **sanean** (se recortan espacios) y se aplica **moderación básica**: si el texto contiene términos no permitidos, o el `titulo` queda con menos de 3 caracteres tras recortar, se devuelve `422`.
 
+> *(issue #33)* **Autoría con auth opcional.** Si la petición incluye `Authorization: Bearer <token>`, la incidencia queda **asociada al usuario autor** (`user_id`). Si la petición es **anónima** (sin token), se crea igualmente y `user_id` queda `null`. Un token inválido/expirado **no** provoca error en este endpoint: simplemente se trata como anónima.
+
+### `GET /incidencias/mias` — mis incidencias — *issue #33*
+Devuelve, **paginadas**, **solo** las incidencias del **usuario autenticado**. **Requiere `Authorization: Bearer <token>`.**
+
+**Query params** (opcionales): `limit` (1–100, def. `20`), `offset` (≥0, def. `0`).
+
+**Respuesta `200`** — misma envoltura paginada que `GET /incidencias`:
+```json
+{
+  "items": [ { /* IncidenciaResponse, con user_id = id del usuario */ } ],
+  "total": 7,
+  "limit": 20,
+  "offset": 0
+}
+```
+- `401` → sin token / token inválido o expirado.
+- `422` → `limit`/`offset` fuera de rango.
+
+> El frontend usa este endpoint para la pantalla **"Mis incidencias"**. `total` es el nº total de incidencias del usuario (antes de paginar).
+
 ### `GET /incidencias/{id}` — detalle
 - `200` → `IncidenciaResponse` (incluye `imagenes` e `historial`).
 - `404` → no existe.
@@ -199,6 +220,7 @@ Cambia el rol de un usuario (p. ej. **promover a admin**). **Body:** `{ "rol": "
   "estado": "abierta",
   "latitud": 38.477,
   "longitud": -0.791,
+  "user_id": 1,                            // autor (issue #33); null si anónima
   "fecha_creacion": "2026-06-09T20:00:00Z",
   "fecha_actualizacion": "2026-06-09T20:00:00Z",
   "imagenes": [ { "id", "ruta", "fecha_subida" } ],
@@ -230,6 +252,7 @@ Cambia el rol de un usuario (p. ej. **promover a admin**). **Body:** `{ "rol": "
 | Métricas / dashboard (solo admin) | `GET /stats` | #9, #26 ✅ |
 | Almacenamiento de imágenes (local/S3, persistente) | `POST /incidencias/{id}/imagenes` | #8 ✅ |
 | Gestión de usuarios y roles (solo admin) | `GET /users`, `PATCH /users/{id}/rol` | #27 ✅ |
+| Autor de incidencia + "mis incidencias" | `POST /incidencias` (auth opcional), `GET /incidencias/mias` | #33 ✅ |
 | Crear / detalle / imágenes | `POST`/`GET /incidencias`, `/imagenes` | base ✅ |
 
 > Esta tabla y las secciones se ampliarán al completar nuevas issues del backend.
