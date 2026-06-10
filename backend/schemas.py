@@ -128,6 +128,42 @@ class NotificacionResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+# ── Equipos y trabajadores (issue #35, solo admin) ───────────────────────────
+class TrabajadorCreate(BaseModel):
+    nombre: str = Field(..., min_length=1, max_length=120)
+    puesto: Optional[str] = Field(default=None, max_length=120)
+    disponible: bool = True
+
+class TrabajadorUpdate(BaseModel):
+    nombre: Optional[str] = Field(default=None, min_length=1, max_length=120)
+    puesto: Optional[str] = Field(default=None, max_length=120)
+    disponible: Optional[bool] = None
+
+class TrabajadorResponse(BaseModel):
+    id: int
+    nombre: str
+    puesto: Optional[str] = None
+    disponible: bool
+    equipo_id: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class EquipoCreate(BaseModel):
+    nombre: str = Field(..., min_length=1, max_length=120)
+    categoria: CategoriaEnum
+
+class EquipoUpdate(BaseModel):
+    nombre: Optional[str] = Field(default=None, min_length=1, max_length=120)
+    categoria: Optional[CategoriaEnum] = None
+
+class EquipoResponse(BaseModel):
+    id: int
+    nombre: str
+    categoria: CategoriaEnum
+    trabajadores: List[TrabajadorResponse] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
 # ── Métricas / Estadísticas ──────────────────────────────────────────────────
 class EstadisticasResponse(BaseModel):
     total: int
