@@ -128,8 +128,11 @@ flowchart LR
 | **Base de Datos** | PostgreSQL `15` (`psycopg2`) | Persistencia de incidencias y estados |
 | **ORM & Migraciones** | SQLAlchemy `2.0` + Alembic `1.18` | Modelado y versionado del esquema |
 | **Validación** | Pydantic `2.12` | Schemas de entrada/salida tipados |
-| **Subida de archivos** | `python-multipart` | Imágenes `multipart/form-data` |
-| **Testing** | Pytest `9` + `pytest-asyncio` + SQLite `StaticPool` | Suite TDD en memoria, rápida y aislada |
+| **Autenticación** | JWT (`PyJWT`) + `bcrypt` | Login, tokens y roles ciudadano/admin |
+| **Configuración** | `pydantic-settings` (`.env`) | Secretos y ajustes por entorno |
+| **Subida de archivos** | `python-multipart` | Imágenes `multipart/form-data` (validadas) |
+| **Almacenamiento** | Local (volumen) / **S3** (`boto3`) | Persistencia de imágenes configurable |
+| **Testing** | Pytest `9` + `pytest-asyncio` + SQLite `StaticPool` | Suite TDD en memoria (28 tests) |
 | **Infraestructura** | Docker Compose | BD PostgreSQL reproducible |
 
 ```bash
@@ -191,15 +194,17 @@ npm run lint         # 🧹 ESLint
 
 | | Funcionalidad | Descripción |
 |:--:|---|---|
-| 📝 | **Reporte de incidencias (CRUD)** | Crear reportes con foto, ubicación, categoría, descripción y prioridad |
-| 🌐 | **Geolocalización** | Búsqueda de incidencias cercanas por `lat` / `lng` / `radio` con la fórmula de **Haversine** |
-| 🗺️ | **Visualización en mapa** | Datos estructurados para pintar incidencias sobre mapa interactivo |
-| 🔎 | **Filtros avanzados** | Por estado, categoría y prioridad |
-| 🔄 | **Gestión de estados** | `abierta` → `en progreso` → `resuelta` / `rechazada` (solo administradores) |
-| 🛡️ | **Control por rol** | `PATCH` protegido mediante cabecera `X-Role: admin` |
-| 🕓 | **Historial inmutable** | Auditoría automática de cada cambio de estado |
-| 🖼️ | **Subida de imágenes** | Adjuntar fotos como evidencia, servidas como archivos estáticos (`/uploads`) |
-| 📄 | **Detalle de incidencia** | Vista completa con imágenes e historial de cambios |
+| 🔐 | **Autenticación JWT + roles** | Registro/login, tokens **JWT** y roles `ciudadano` / `admin` (contraseñas con bcrypt) |
+| 📝 | **Reporte de incidencias (CRUD)** | Crear / listar / ver incidencias con foto, ubicación, categoría, descripción y prioridad |
+| 📄 | **Listado paginado + filtros** | Paginación (`limit` / `offset`) y filtros por estado, categoría y prioridad |
+| 🌐 | **Geolocalización (Haversine en SQL)** | Búsqueda de incidencias cercanas por `lat` / `lng` / `radio`, filtrada en la base de datos |
+| 🔄 | **Gestión de estados (admin)** | `abierta` → `en_progreso` → `resuelta` / `rechazada`, protegido por **JWT** de admin |
+| 🕓 | **Historial de estado y prioridad** | Auditoría automática de cada cambio, con valores anterior/nuevo |
+| 🔔 | **Notificaciones** | Aviso automático al cambiar el estado de una incidencia |
+| 🖼️ | **Imágenes validadas y persistentes** | Validación por *magic bytes* + tamaño; almacenamiento **local** (volumen) o **S3** |
+| 📊 | **Métricas / dashboard** | Agregados reales: conteos, % resueltas, tiempo medio de resolución y reportes por periodo |
+| 🛡️ | **Validación y moderación** | Saneo de textos y reglas básicas de moderación de contenido |
+| ⚙️ | **Configuración por entorno** | Secretos y ajustes vía variables de entorno / `.env` (pydantic-settings) |
 
 </div>
 
@@ -207,12 +212,20 @@ npm run lint         # 🧹 ESLint
 
 | Método | Ruta | Descripción |
 |:--:|---|---|
+| `POST` | `/auth/register` | 👤 Registro de ciudadano |
+| `POST` | `/auth/login` | 🔑 Login → **JWT** (form `username` / `password`) |
+| `GET` | `/auth/me` | 🪪 Usuario autenticado |
 | `GET` | `/ping` | ❤️ Salud del servidor |
 | `POST` | `/incidencias` | ➕ Crear incidencia |
-| `GET` | `/incidencias` | 📋 Listar (filtros: `estado`, `categoria`, `prioridad`, `lat`, `lng`, `radio`) |
+| `GET` | `/incidencias` | 📋 Listar paginado (`limit`, `offset`) + filtros (`estado`, `categoria`, `prioridad`, `lat`, `lng`, `radio`) |
 | `GET` | `/incidencias/{id}` | 🔍 Detalle + imágenes + historial |
-| `PATCH` | `/incidencias/{id}` | 🔄 Actualizar estado/prioridad *(requiere `X-Role: admin`)* |
-| `POST` | `/incidencias/{id}/imagenes` | 🖼️ Subir imagen `multipart` |
+| `PATCH` | `/incidencias/{id}` | 🔄 Actualizar estado/prioridad *(JWT con rol admin)* |
+| `POST` | `/incidencias/{id}/imagenes` | 🖼️ Subir imagen `multipart` (validada) |
+| `GET` | `/notificaciones` | 🔔 Listar notificaciones (`incidencia_id`, `leida`) |
+| `PATCH` | `/notificaciones/{id}/leer` | ✅ Marcar notificación como leída |
+| `GET` | `/stats` | 📊 Métricas / analytics para el dashboard |
+
+> 📘 Guía de integración completa para el frontend (auth, esquemas, ejemplos): [`docs/integracion-frontend.md`](docs/integracion-frontend.md)
 
 ---
 
@@ -234,9 +247,9 @@ urban-alert/
 | Fase | 🎯 Entregables |
 |:--:|---|
 | **MVP** ✅ | Reporte + listado + gestión básica |
-| **Fase 2** 🔔 | Notificaciones + login/autenticación |
-| **Fase 3** 🤖 | IA para priorización automática |
-| **Fase 4** 📊 | Analytics y dashboard municipal |
+| **Fase 2** ✅ | Notificaciones + login/autenticación **JWT** *(backend listo)* |
+| **Fase 3** 🤖 | IA para priorización automática *(pendiente)* |
+| **Fase 4** 📊 | Analytics y dashboard municipal *(endpoint de métricas `GET /stats` listo)* |
 
 ---
 
