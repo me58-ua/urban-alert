@@ -794,3 +794,154 @@
     grid-template-columns: minmax(17rem, 0.9fr) minmax(0, 1.4fr);
   }
 }
+
+.users-page .users-hero {
+  padding-bottom: 0.75rem;
+}
+
+.users-page .users-summary {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.users-page .user-create-panel {
+  margin-bottom: 1rem;
+}
+
+.users-page .user-form {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.users-page .user-form label,
+.users-page .inline-field,
+.users-page .inline-stack {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.users-page .user-form label span {
+  color: #526070;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.users-page ion-input,
+.users-page ion-select {
+  --background: #f8fbff;
+  --border-color: #dbe5ef;
+  --border-radius: 0.55rem;
+  --border-style: solid;
+  --border-width: 1px;
+  --highlight-color-focused: #0457d3;
+  --padding-end: 0.75rem;
+  --padding-start: 0.75rem;
+  min-height: 2.65rem;
+}
+
+.users-page .users-table {
+  overflow-x: auto;
+}
+
+.users-page .users-head,
+.users-page .users-row {
+  align-items: center;
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: 4rem minmax(10rem, 1fr) minmax(13rem, 1.2fr) minmax(7rem, 0.7fr) minmax(7rem, 0.7fr) minmax(6rem, 0.6fr);
+  min-width: 58rem;
+  padding: 0.85rem 1rem;
+}
+
+.users-page .users-head {
+  background: #edf3f8;
+  color: #526070;
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.users-page .users-row {
+  border-top: 1px solid #dbe5ef;
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+.users-page .users-row strong {
+  color: #0b1728;
+}
+
+.users-page .user-contact,
+.users-page .inline-stack {
+  min-width: 0;
+}
+
+.users-page .user-contact {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.users-page .user-contact small {
+  color: #526070;
+  font-weight: 700;
+}
+
+.users-page .role-pill,
+.users-page .status-pill {
+  border: 0;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 850;
+  padding: 0.45rem 0.65rem;
+  width: fit-content;
+}
+
+.users-page .role-pill {
+  background: #edf2f7;
+  color: #475569;
+}
+
+.users-page .role-pill--admin {
+  background: #e6f0ff;
+  color: #0457d3;
+}
+
+.users-page .user-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.users-page .icon-action {
+  align-items: center;
+  background: #e8f0fb;
+  border: 0;
+  border-radius: 0.55rem;
+  color: #0457d3;
+  display: flex;
+  height: 2.2rem;
+  justify-content: center;
+  width: 2.2rem;
+}
+
+.users-page .icon-action--danger {
+  background: #ffe9e7;
+  color: #8f1d17;
+}
+
+.users-page .icon-action--save {
+  background: #def7ec;
+  color: #075f3a;
+}
+
+@media (min-width: 760px) {
+  .users-page .users-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .users-page .user-form {
+    align-items: end;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr) minmax(8rem, 0.7fr) auto;
+  }
+}

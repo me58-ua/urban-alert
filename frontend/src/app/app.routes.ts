@@ -24,6 +24,11 @@ export const routes: Routes = [
       import('./admin/equipos-management.page').then((m) => m.EquiposManagementPage),
   },
   {
+    path: 'admin/usuarios',
+    loadComponent: () =>
+      import('./admin/users-management.page').then((m) => m.UsersManagementPage),
+  },
+  {
     path: 'crear-incidencia',
     component: CrearIncidenciaPage,
   },

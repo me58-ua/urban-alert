@@ -57,6 +57,7 @@ export class EquiposManagementPage {
   readonly menuItems: AdminMenuItem[] = [
     { label: 'Dashboard', route: '/admin', icon: 'grid-outline' },
     { label: 'Equipos', route: '/admin/equipos', icon: 'people-circle-outline' },
+    { label: 'Usuarios', route: '/admin/usuarios', icon: 'person-circle-outline' },
     { label: 'Mapa ciudadano', route: '/mapa-incidencias', icon: 'map-outline' },
     { label: 'Vista ciudadana', route: '/home', icon: 'people-outline' },
   ];
