@@ -57,6 +57,7 @@ class IncidenciaResponse(BaseModel):
     estado: EstadoEnum
     latitud: float
     longitud: float
+    user_id: Optional[int] = None
     fecha_creacion: datetime
     fecha_actualizacion: datetime
     imagenes: List[ImagenResponse] = []
