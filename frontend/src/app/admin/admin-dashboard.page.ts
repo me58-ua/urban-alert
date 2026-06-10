@@ -59,7 +59,7 @@ export class AdminDashboardPage {
   ];
 
   readonly vm$ = this.incidencias.listar().pipe(
-    map((incidents): AdminViewModel => ({
+    map(({ items: incidents }): AdminViewModel => ({
       incidents,
       metrics: this.buildMetrics(incidents),
       loading: false,

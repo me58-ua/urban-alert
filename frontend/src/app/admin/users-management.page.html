@@ -95,7 +95,7 @@
         <label>
           <span>Rol</span>
           <ion-select name="newRole" [(ngModel)]="newUser.role" interface="popover">
-            <ion-select-option value="user">Usuario</ion-select-option>
+            <ion-select-option value="ciudadano">Ciudadano</ion-select-option>
             <ion-select-option value="admin">Admin</ion-select-option>
           </ion-select>
         </label>
@@ -135,7 +135,7 @@
               <ion-input name="editPhone{{ user.id }}" [(ngModel)]="draftUser.phone"></ion-input>
             </div>
             <ion-select name="editRole{{ user.id }}" [(ngModel)]="draftUser.role" interface="popover">
-              <ion-select-option value="user">Usuario</ion-select-option>
+              <ion-select-option value="ciudadano">Ciudadano</ion-select-option>
               <ion-select-option value="admin">Admin</ion-select-option>
             </ion-select>
             <ion-select name="editStatus{{ user.id }}" [(ngModel)]="draftUser.status" interface="popover">
@@ -163,7 +163,7 @@
               type="button"
               class="role-pill"
               [class.role-pill--admin]="user.role === 'admin'"
-              (click)="changeRole(user.id, user.role === 'admin' ? 'user' : 'admin')"
+              (click)="changeRole(user.id, user.role === 'admin' ? 'ciudadano' : 'admin')"
             >
               {{ roleLabel(user.role) }}
             </button>

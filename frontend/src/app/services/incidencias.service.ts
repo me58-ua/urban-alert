@@ -61,6 +61,19 @@ export interface ListarFiltros {
   lat?: number;
   lng?: number;
   radio?: number;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Respuesta paginada de `GET /incidencias`.
+ * El backend devuelve `{ items, total, limit, offset }`, no un array plano.
+ */
+export interface IncidenciaPage {
+  items: Incidencia[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 /**
@@ -77,15 +90,18 @@ export class IncidenciasService {
     return this.http.get<{ message: string }>(`${this.base}/ping`);
   }
 
-  /** Lista incidencias con filtros opcionales (estado, categoría, geográficos…). */
-  listar(filtros: ListarFiltros = {}): Observable<Incidencia[]> {
+  /**
+   * Lista incidencias con filtros opcionales (estado, categoría, geográficos…).
+   * Devuelve la respuesta paginada del backend: `{ items, total, limit, offset }`.
+   */
+  listar(filtros: ListarFiltros = {}): Observable<IncidenciaPage> {
     let params = new HttpParams();
     for (const [key, value] of Object.entries(filtros)) {
       if (value !== undefined && value !== null) {
         params = params.set(key, String(value));
       }
     }
-    return this.http.get<Incidencia[]>(`${this.base}/incidencias`, { params });
+    return this.http.get<IncidenciaPage>(`${this.base}/incidencias`, { params });
   }
 
   /** Obtiene el detalle de una incidencia (incluye imágenes e historial). */
