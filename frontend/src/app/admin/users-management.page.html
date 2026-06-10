@@ -47,9 +47,14 @@
       <div>
         <p class="eyebrow">Administracion de plataforma</p>
         <h1>Usuarios</h1>
-        <p class="hero-copy">Gestiona cuentas, roles y datos basicos de los usuarios registrados.</p>
+        <p class="hero-copy">Gestiona cuentas, roles y estado de los usuarios registrados.</p>
       </div>
     </section>
+
+    <div class="users-error" *ngIf="error()" role="alert">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <span>{{ error() }}</span>
+    </div>
 
     <section class="users-summary" aria-label="Resumen de usuarios">
       <article class="metric-card metric-card--blue">
@@ -81,20 +86,16 @@
 
       <form class="user-form" (ngSubmit)="createUser()">
         <label>
-          <span>Nombre</span>
-          <ion-input name="newName" [(ngModel)]="newUser.name" placeholder="Nombre completo"></ion-input>
-        </label>
-        <label>
           <span>Email</span>
           <ion-input name="newEmail" type="email" [(ngModel)]="newUser.email" placeholder="usuario@email.com"></ion-input>
         </label>
         <label>
-          <span>Telefono</span>
-          <ion-input name="newPhone" [(ngModel)]="newUser.phone" placeholder="+34 600 000 000"></ion-input>
+          <span>Password</span>
+          <ion-input name="newPassword" type="password" [(ngModel)]="newUser.password" placeholder="Contrasena"></ion-input>
         </label>
         <label>
           <span>Rol</span>
-          <ion-select name="newRole" [(ngModel)]="newUser.role" interface="popover">
+          <ion-select name="newRole" [(ngModel)]="newUser.rol" interface="popover">
             <ion-select-option value="ciudadano">Ciudadano</ion-select-option>
             <ion-select-option value="admin">Admin</ion-select-option>
           </ion-select>
@@ -110,40 +111,44 @@
       <div class="panel__header">
         <div>
           <h2>Todos los usuarios</h2>
-          <p>Editar datos, cambiar roles o eliminar cuentas.</p>
+          <p>Editar email, cambiar roles, activar/desactivar o eliminar cuentas.</p>
         </div>
       </div>
 
       <div class="users-table">
         <div class="users-head">
           <span>ID</span>
-          <span>Usuario</span>
-          <span>Contacto</span>
+          <span>Email</span>
           <span>Rol</span>
           <span>Estado</span>
           <span>Acciones</span>
         </div>
 
         <div class="users-row" *ngFor="let user of users(); trackBy: trackByUserId">
-          <ng-container *ngIf="editingUserId() === user.id && draftUser; else readUser">
+          <ng-container *ngIf="editingUserId() === user.id; else readUser">
             <span>#{{ user.id }}</span>
             <label class="inline-field">
-              <ion-input name="editName{{ user.id }}" [(ngModel)]="draftUser.name"></ion-input>
+              <ion-input name="editEmail{{ user.id }}" type="email" [(ngModel)]="draftEmail"></ion-input>
             </label>
-            <div class="inline-stack">
-              <ion-input name="editEmail{{ user.id }}" type="email" [(ngModel)]="draftUser.email"></ion-input>
-              <ion-input name="editPhone{{ user.id }}" [(ngModel)]="draftUser.phone"></ion-input>
-            </div>
-            <ion-select name="editRole{{ user.id }}" [(ngModel)]="draftUser.role" interface="popover">
-              <ion-select-option value="ciudadano">Ciudadano</ion-select-option>
-              <ion-select-option value="admin">Admin</ion-select-option>
-            </ion-select>
-            <ion-select name="editStatus{{ user.id }}" [(ngModel)]="draftUser.status" interface="popover">
-              <ion-select-option value="activo">Activo</ion-select-option>
-              <ion-select-option value="bloqueado">Bloqueado</ion-select-option>
-            </ion-select>
+            <button
+              type="button"
+              class="role-pill"
+              [class.role-pill--admin]="user.rol === 'admin'"
+              (click)="changeRole(user.id, user.rol === 'admin' ? 'ciudadano' : 'admin')"
+            >
+              {{ roleLabel(user.rol) }}
+            </button>
+            <button
+              type="button"
+              class="status-pill"
+              [class.status-pill--green]="user.activo"
+              [class.status-pill--red]="!user.activo"
+              (click)="changeEstado(user.id, !user.activo)"
+            >
+              {{ estadoLabel(user.activo) }}
+            </button>
             <div class="user-actions">
-              <button type="button" class="icon-action icon-action--save" (click)="saveEdit()" aria-label="Guardar">
+              <button type="button" class="icon-action icon-action--save" (click)="saveEdit(user.id)" aria-label="Guardar">
                 <ion-icon name="checkmark-outline"></ion-icon>
               </button>
               <button type="button" class="icon-action" (click)="cancelEdit()" aria-label="Cancelar">
@@ -154,27 +159,23 @@
 
           <ng-template #readUser>
             <span>#{{ user.id }}</span>
-            <strong>{{ user.name }}</strong>
-            <span class="user-contact">
-              <span>{{ user.email }}</span>
-              <small>{{ user.phone || 'Sin telefono' }}</small>
-            </span>
+            <strong>{{ user.email }}</strong>
             <button
               type="button"
               class="role-pill"
-              [class.role-pill--admin]="user.role === 'admin'"
-              (click)="changeRole(user.id, user.role === 'admin' ? 'ciudadano' : 'admin')"
+              [class.role-pill--admin]="user.rol === 'admin'"
+              (click)="changeRole(user.id, user.rol === 'admin' ? 'ciudadano' : 'admin')"
             >
-              {{ roleLabel(user.role) }}
+              {{ roleLabel(user.rol) }}
             </button>
             <button
               type="button"
               class="status-pill"
-              [class.status-pill--green]="user.status === 'activo'"
-              [class.status-pill--red]="user.status === 'bloqueado'"
-              (click)="changeStatus(user.id, user.status === 'activo' ? 'bloqueado' : 'activo')"
+              [class.status-pill--green]="user.activo"
+              [class.status-pill--red]="!user.activo"
+              (click)="changeEstado(user.id, !user.activo)"
             >
-              {{ statusLabel(user.status) }}
+              {{ estadoLabel(user.activo) }}
             </button>
             <div class="user-actions">
               <button type="button" class="icon-action" (click)="startEdit(user)" aria-label="Editar">
@@ -187,7 +188,7 @@
           </ng-template>
         </div>
 
-        <div class="empty-state" *ngIf="users().length === 0">
+        <div class="empty-state" *ngIf="!loading() && users().length === 0">
           <ion-icon name="people-outline"></ion-icon>
           <span>No hay usuarios registrados.</span>
         </div>
