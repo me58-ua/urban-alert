@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-registrar',
@@ -21,12 +22,26 @@ export class RegistrarPage {
   email = '';
   password = '';
   acceptTerms = false;
+  error = '';
+  loading = false;
+
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   submit() {
-    console.log('Registro ciudadano', {
-      name: this.name,
-      email: this.email,
-      acceptTerms: this.acceptTerms,
+    this.error = '';
+    this.loading = true;
+    this.auth.register(this.email, this.password).subscribe({
+      next: () => {
+        this.loading = false;
+        void this.router.navigateByUrl('/login');
+      },
+      error: () => {
+        this.loading = false;
+        this.error = 'No se pudo completar el registro. Inténtalo de nuevo.';
+        this.cdr.markForCheck();
+      },
     });
   }
 }

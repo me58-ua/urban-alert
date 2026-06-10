@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { Router, Routes } from '@angular/router';
 import { CrearIncidenciaPage } from './crear-incidencia/crear-incidencia.page';
+import { adminGuard } from './guards/admin.guard';
 
 const redirectAdminHome = () => {
   const router = inject(Router);
@@ -15,16 +16,19 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
+    canActivate: [adminGuard],
     loadComponent: () =>
       import('./admin/admin-dashboard.page').then((m) => m.AdminDashboardPage),
   },
   {
     path: 'admin/equipos',
+    canActivate: [adminGuard],
     loadComponent: () =>
       import('./admin/equipos-management.page').then((m) => m.EquiposManagementPage),
   },
   {
     path: 'admin/usuarios',
+    canActivate: [adminGuard],
     loadComponent: () =>
       import('./admin/users-management.page').then((m) => m.UsersManagementPage),
   },

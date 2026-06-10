@@ -195,6 +195,13 @@
   align-items: flex-start;
 }
 
+.form-error {
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0;
+}
+
 .primary-action {
   --background: var(--navy);
   --background-activated: #102a43;

@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
+import { switchMap } from 'rxjs';
 import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -20,24 +22,32 @@ export class LoginPage {
   email = '';
   password = '';
   remember = true;
+  error = '';
+  loading = false;
 
-  constructor(private readonly router: Router) {}
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   submit() {
-    const role = this.resolveRole();
-    localStorage.setItem('urban-alert-role', role);
-    console.log('Inicio de sesion', {
-      email: this.email,
-      remember: this.remember,
-      role,
-    });
-    void this.router.navigateByUrl(role === 'admin' ? '/admin' : '/home');
-  }
-
-  private resolveRole(): 'admin' | 'user' {
-    const storedRole = localStorage.getItem('urban-alert-login-role');
-    if (storedRole === 'admin' || storedRole === 'user') return storedRole;
-    return this.email.trim().toLowerCase().includes('admin') ? 'admin' : 'user';
+    this.error = '';
+    this.loading = true;
+    this.auth
+      .login(this.email, this.password)
+      .pipe(switchMap(() => this.auth.me()))
+      .subscribe({
+        next: (user) => {
+          this.loading = false;
+          void this.router.navigateByUrl(
+            user.rol === 'admin' ? '/admin' : '/home',
+          );
+        },
+        error: () => {
+          this.loading = false;
+          this.error = 'Credenciales incorrectas. Inténtalo de nuevo.';
+          this.cdr.markForCheck();
+        },
+      });
   }
 }
 
