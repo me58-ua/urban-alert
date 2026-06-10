@@ -19,6 +19,16 @@
 
 <ion-content class="detail-page" fullscreen="true">
   <main class="page-shell">
+    <section class="status-panel" *ngIf="loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando incidencia...</p>
+    </section>
+
+    <section class="status-panel status-panel--error" *ngIf="!loading && error">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ error }}</p>
+    </section>
+
     <section class="incident-hero">
       <div class="incident-hero__copy">
         <div class="incident-meta">
@@ -49,7 +59,8 @@
 
       <ion-card class="photo-card">
         <div class="photo-card__image" aria-label="Foto de la incidencia">
-          <div class="street-light" aria-hidden="true">
+          <img *ngIf="photoUrl" [src]="photoUrl" [alt]="incident.title" />
+          <div class="street-light" aria-hidden="true" *ngIf="!photoUrl">
             <span></span>
           </div>
         </div>

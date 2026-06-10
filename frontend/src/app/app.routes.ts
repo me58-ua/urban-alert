@@ -18,6 +18,20 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'detalle-incidencia/:id',
+    loadComponent: () =>
+      import('./detalle-incidencia/detalle-incidencia.page').then(
+        (m) => m.DetalleIncidenciaPage
+      ),
+  },
+  {
+    path: 'mis-incidencias',
+    loadComponent: () =>
+      import('./mis-incidencias/mis-incidencias.page').then(
+        (m) => m.MisIncidenciasPage
+      ),
+  },
+  {
     path: 'mapa-incidencias',
     loadComponent: () =>
       import('./mapa-incidencias/mapa-incidencias.page').then(

@@ -1,0 +1,104 @@
+<ion-header class="incidents-header" translucent="true">
+  <ion-toolbar class="incidents-toolbar">
+    <div class="toolbar-layout">
+      <a class="brand" routerLink="/home" aria-label="Urban Alert">
+        <span class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="" />
+        </span>
+
+        <span class="brand__text">
+          <span class="brand__title">Urban Alert</span>
+          <span class="brand__subtitle">Mis incidencias</span>
+        </span>
+      </a>
+
+      <app-menu></app-menu>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="incidents-page" fullscreen="true">
+  <main class="page-shell" *ngIf="vm$ | async as vm">
+    <section class="page-intro">
+      <div>
+        <ion-chip class="eyebrow">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <ion-label>Seguimiento ciudadano</ion-label>
+        </ion-chip>
+        <h1>Mis incidencias</h1>
+        <p>Consulta tus reportes, revisa el estado y abre el detalle completo de cada incidencia.</p>
+      </div>
+
+      <ion-button class="new-report-button" routerLink="/crear-incidencia">
+        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+        Nueva incidencia
+      </ion-button>
+    </section>
+
+    <section class="status-panel" *ngIf="vm.loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando incidencias...</p>
+    </section>
+
+    <section class="status-panel status-panel--error" *ngIf="!vm.loading && vm.error">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ vm.error }}</p>
+    </section>
+
+    <section class="status-panel" *ngIf="!vm.loading && !vm.error && vm.incidents.length === 0">
+      <ion-icon name="folder-open-outline"></ion-icon>
+      <p>Todavia no tienes incidencias registradas.</p>
+    </section>
+
+    <section
+      class="incidents-list"
+      *ngIf="!vm.loading && !vm.error && vm.incidents.length > 0"
+      aria-label="Lista de mis incidencias"
+    >
+      <a
+        class="incident-card"
+        *ngFor="let incident of vm.incidents; trackBy: trackById"
+        [routerLink]="['/detalle-incidencia', incident.id]"
+      >
+        <div class="incident-card__photo">
+          <img *ngIf="imageUrl(incident) as photo" [src]="photo" [alt]="incident.titulo" />
+          <div class="incident-card__placeholder" *ngIf="!imageUrl(incident)">
+            <ion-icon name="image-outline"></ion-icon>
+          </div>
+        </div>
+
+        <div class="incident-card__body">
+          <div class="incident-card__top">
+            <span class="incident-card__category">{{ formatCategory(incident.categoria) }}</span>
+            <span
+              class="incident-card__status"
+              [ngClass]="'incident-card__status--' + statusTone(incident.estado)"
+            >
+              {{ formatStatus(incident.estado) }}
+            </span>
+          </div>
+
+          <h2>{{ incident.titulo }}</h2>
+          <p>{{ incident.descripcion || 'Sin descripcion adicional.' }}</p>
+
+          <div class="incident-card__meta">
+            <span>
+              <ion-icon name="flag-outline"></ion-icon>
+              {{ formatPriority(incident.prioridad) }}
+            </span>
+            <span>
+              <ion-icon name="calendar-outline"></ion-icon>
+              {{ formatDate(incident.fecha_creacion) }}
+            </span>
+            <span>
+              <ion-icon name="images-outline"></ion-icon>
+              {{ incident.imagenes.length }} foto{{ incident.imagenes.length === 1 ? '' : 's' }}
+            </span>
+          </div>
+        </div>
+
+        <ion-icon class="incident-card__arrow" name="chevron-forward-outline"></ion-icon>
+      </a>
+    </section>
+  </main>
+</ion-content>
