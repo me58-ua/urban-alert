@@ -1,10 +1,32 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { CrearIncidenciaPage } from './crear-incidencia/crear-incidencia.page';
+
+const redirectAdminHome = () => {
+  const router = inject(Router);
+  return localStorage.getItem('urban-alert-role') === 'admin' ? router.parseUrl('/admin') : true;
+};
 
 export const routes: Routes = [
   {
     path: 'home',
+    canActivate: [redirectAdminHome],
     loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
+  },
+  {
+    path: 'admin',
+    loadComponent: () =>
+      import('./admin/admin-dashboard.page').then((m) => m.AdminDashboardPage),
+  },
+  {
+    path: 'admin/equipos',
+    loadComponent: () =>
+      import('./admin/equipos-management.page').then((m) => m.EquiposManagementPage),
+  },
+  {
+    path: 'admin/usuarios',
+    loadComponent: () =>
+      import('./admin/users-management.page').then((m) => m.UsersManagementPage),
   },
   {
     path: 'crear-incidencia',
@@ -15,6 +37,20 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./detalle-incidencia/detalle-incidencia.page').then(
         (m) => m.DetalleIncidenciaPage
+      ),
+  },
+  {
+    path: 'detalle-incidencia/:id',
+    loadComponent: () =>
+      import('./detalle-incidencia/detalle-incidencia.page').then(
+        (m) => m.DetalleIncidenciaPage
+      ),
+  },
+  {
+    path: 'mis-incidencias',
+    loadComponent: () =>
+      import('./mis-incidencias/mis-incidencias.page').then(
+        (m) => m.MisIncidenciasPage
       ),
   },
   {

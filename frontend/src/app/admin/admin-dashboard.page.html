@@ -1,0 +1,221 @@
+<ion-header class="admin-header" translucent="true">
+  <ion-toolbar class="admin-toolbar">
+    <div class="toolbar-layout">
+      <a class="brand" routerLink="/admin" aria-label="Urban Alert Admin">
+        <span class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="" />
+        </span>
+        <span class="brand__text">
+          <span class="brand__title">Urban Alert</span>
+          <span class="brand__subtitle">Admin dashboard</span>
+        </span>
+      </a>
+
+      <button class="admin-menu-button" type="button" (click)="openMenu($event)" aria-label="Abrir menu">
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+
+      <ion-popover
+        class="admin-menu-popover"
+        [isOpen]="isMenuOpen()"
+        [event]="popoverEvent()"
+        (didDismiss)="closeMenu()"
+        side="bottom"
+        alignment="end"
+      >
+        <ng-template>
+          <nav class="admin-menu-panel" aria-label="Administracion">
+            <a
+              class="admin-menu-panel__link"
+              *ngFor="let item of menuItems; trackBy: trackByMenuLabel"
+              [routerLink]="item.route"
+              (click)="closeMenu()"
+            >
+              <ion-icon [name]="item.icon"></ion-icon>
+              <span>{{ item.label }}</span>
+            </a>
+          </nav>
+        </ng-template>
+      </ion-popover>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="admin-page" fullscreen="true">
+  <main class="admin-shell" *ngIf="vm$ | async as vm">
+    <section class="hero-row">
+      <div>
+        <p class="eyebrow">Administracion urbana</p>
+        <h1>Dashboard</h1>
+        <p class="hero-copy">Supervisa incidencias, revisa ubicaciones criticas y prioriza la respuesta operativa.</p>
+      </div>
+
+      <div class="hero-actions">
+        <span class="live-chip">
+          <span aria-hidden="true"></span>
+          En vivo
+        </span>
+        <ion-button class="primary-action" routerLink="/mapa-incidencias">
+          <ion-icon slot="start" name="map-outline"></ion-icon>
+          Abrir mapa
+        </ion-button>
+      </div>
+    </section>
+
+    <section class="state-panel" *ngIf="vm.loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>Cargando panel...</span>
+    </section>
+
+    <section class="offline-banner" *ngIf="!vm.loading && vm.error">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <span>{{ vm.error }}</span>
+    </section>
+
+    <ng-container *ngIf="!vm.loading">
+      <section class="metrics-grid" aria-label="Indicadores principales">
+        <article
+          class="metric-card"
+          *ngFor="let metric of vm.metrics; trackBy: trackByLabel"
+          [ngClass]="'metric-card--' + metric.tone"
+        >
+          <span class="metric-card__icon">
+            <ion-icon [name]="metric.icon"></ion-icon>
+          </span>
+          <span class="metric-card__label">{{ metric.label }}</span>
+          <strong>{{ metric.value }}</strong>
+        </article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel map-panel">
+          <div class="panel__header">
+            <div>
+              <h2>Mapa operativo</h2>
+              <p>{{ openIncidents(vm.incidents) }} incidencias activas cerca del centro</p>
+            </div>
+            <span class="status-pill status-pill--red">Criticas</span>
+          </div>
+
+          <div class="admin-map">
+            <iframe
+              title="Mapa operativo de incidencias"
+              [src]="mapUrl"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+
+            <div class="map-overlay">
+              <a class="map-pin map-pin--main" routerLink="/detalle-incidencia" aria-label="Incidencia principal"></a>
+              <a class="map-pin map-pin--second" routerLink="/detalle-incidencia" aria-label="Incidencia secundaria"></a>
+              <a class="map-pin map-pin--third" routerLink="/detalle-incidencia" aria-label="Incidencia terciaria"></a>
+            </div>
+          </div>
+        </article>
+
+        <aside class="panel summary-panel">
+          <div class="panel__header">
+            <div>
+              <h2>Estado global</h2>
+              <p>Distribucion actual</p>
+            </div>
+          </div>
+
+          <div class="status-list">
+            <div class="status-item" *ngFor="let status of statusOrder; trackBy: trackByStatus">
+              <span class="status-pill" [ngClass]="'status-pill--' + statusTone(status)">
+                {{ formatStatus(status) }}
+              </span>
+              <strong>{{ countByStatus(vm.incidents, status) }}</strong>
+            </div>
+          </div>
+        </aside>
+
+        <article class="panel chart-panel">
+          <div class="panel__header">
+            <div>
+              <h2>Resolucion</h2>
+              <p>Porcentaje completado</p>
+            </div>
+          </div>
+
+          <div class="donut-wrap">
+            <div class="donut-chart" [style.--value]="completionPercent(vm.incidents) + '%'">
+              <strong>{{ completionPercent(vm.incidents) }}%</strong>
+            </div>
+            <div class="chart-legend">
+              <span><i class="legend-dot legend-dot--green"></i>Resueltas</span>
+              <span><i class="legend-dot legend-dot--blue"></i>Activas</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel chart-panel">
+          <div class="panel__header">
+            <div>
+              <h2>Actividad</h2>
+              <p>Reportes por periodo</p>
+            </div>
+          </div>
+
+          <div class="bar-chart" aria-label="Grafico de actividad">
+            <span style="--size: 42%"></span>
+            <span style="--size: 68%"></span>
+            <span style="--size: 35%"></span>
+            <span style="--size: 78%"></span>
+            <span style="--size: 54%"></span>
+            <span style="--size: 88%"></span>
+          </div>
+          <div class="bar-labels">
+            <span>L</span>
+            <span>M</span>
+            <span>X</span>
+            <span>J</span>
+            <span>V</span>
+            <span>S</span>
+          </div>
+        </article>
+
+        <article class="panel queue-panel">
+          <div class="panel__header">
+            <div>
+              <h2>Cola de incidencias</h2>
+              <p>Ultimos reportes recibidos</p>
+            </div>
+            <ion-button fill="clear" routerLink="/mis-incidencias">
+              Ver todas
+              <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
+            </ion-button>
+          </div>
+
+          <div class="table-head">
+            <span>Incidencia</span>
+            <span>Categoria</span>
+            <span>Prioridad</span>
+            <span>Estado</span>
+            <span>Fecha</span>
+          </div>
+
+          <a
+            class="incident-row"
+            *ngFor="let incident of recentIncidents(vm.incidents); trackBy: trackById"
+            [routerLink]="['/detalle-incidencia', incident.id]"
+          >
+            <strong>#{{ incident.id }} {{ incident.titulo }}</strong>
+            <span>{{ formatCategory(incident.categoria) }}</span>
+            <span>{{ formatPriority(incident.prioridad) }}</span>
+            <span class="status-pill" [ngClass]="'status-pill--' + statusTone(incident.estado)">
+              {{ formatStatus(incident.estado) }}
+            </span>
+            <span>{{ formatDate(incident.fecha_creacion) }}</span>
+          </a>
+
+          <div class="empty-state" *ngIf="vm.incidents.length === 0">
+            <ion-icon name="folder-open-outline"></ion-icon>
+            <span>No hay incidencias registradas.</span>
+          </div>
+        </article>
+      </section>
+    </ng-container>
+  </main>
+</ion-content>

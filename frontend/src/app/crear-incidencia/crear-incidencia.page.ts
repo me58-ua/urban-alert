@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { Categoria, IncidenciaCreate, IncidenciasService, Prioridad } from '../services/incidencias.service';
 
@@ -19,7 +20,7 @@ interface IncidentType {
   templateUrl: 'crear-incidencia.page.html',
   styleUrls: ['crear-incidencia.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, AppMenuComponent],
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule, AppMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CrearIncidenciaPage {

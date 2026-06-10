@@ -25,7 +25,7 @@ export class AppMenuComponent {
     { label: 'Iniciar sesión / Registrarse', route: '/login', icon: 'person-circle-outline' },
     { label: 'Mapa', route: '/mapa-incidencias', icon: 'map-outline' },
     { label: 'Reportar', route: '/crear-incidencia', icon: 'add-circle-outline' },
-    { label: 'Mis incidencias', route: '/detalle-incidencia', icon: 'document-text-outline' },
+    { label: 'Mis incidencias', route: '/mis-incidencias', icon: 'document-text-outline' },
   ];
 
   constructor(private readonly router: Router) {}

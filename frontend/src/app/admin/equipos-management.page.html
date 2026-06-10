@@ -1,0 +1,176 @@
+<ion-header class="admin-header" translucent="true">
+  <ion-toolbar class="admin-toolbar">
+    <div class="toolbar-layout">
+      <a class="brand" routerLink="/admin" aria-label="Urban Alert Admin">
+        <span class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="" />
+        </span>
+        <span class="brand__text">
+          <span class="brand__title">Urban Alert</span>
+          <span class="brand__subtitle">Gestion de equipos</span>
+        </span>
+      </a>
+
+      <button class="admin-menu-button" type="button" (click)="openMenu($event)" aria-label="Abrir menu">
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+
+      <ion-popover
+        class="admin-menu-popover"
+        [isOpen]="isMenuOpen()"
+        [event]="popoverEvent()"
+        (didDismiss)="closeMenu()"
+        side="bottom"
+        alignment="end"
+      >
+        <ng-template>
+          <nav class="admin-menu-panel" aria-label="Administracion">
+            <a
+              class="admin-menu-panel__link"
+              *ngFor="let item of menuItems; trackBy: trackByMenuLabel"
+              [routerLink]="item.route"
+              (click)="closeMenu()"
+            >
+              <ion-icon [name]="item.icon"></ion-icon>
+              <span>{{ item.label }}</span>
+            </a>
+          </nav>
+        </ng-template>
+      </ion-popover>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="admin-page teams-page" fullscreen="true">
+  <main class="admin-shell" *ngIf="vm$ | async as vm">
+    <section class="hero-row teams-hero">
+      <div>
+        <p class="eyebrow">Gestion operativa</p>
+        <h1>Equipos</h1>
+        <p class="hero-copy">Asigna trabajadores a equipos y vincula cada equipo solo con incidencias compatibles.</p>
+      </div>
+    </section>
+
+    <section class="offline-banner" *ngIf="!vm.loading && vm.error">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <span>{{ vm.error }}</span>
+    </section>
+
+    <section class="teams-summary" aria-label="Resumen de equipos">
+      <article class="metric-card metric-card--blue">
+        <span class="metric-card__icon"><ion-icon name="people-circle-outline"></ion-icon></span>
+        <span class="metric-card__label">Equipos activos</span>
+        <strong>{{ teams().length }}</strong>
+      </article>
+
+      <article class="metric-card metric-card--green">
+        <span class="metric-card__icon"><ion-icon name="person-add-outline"></ion-icon></span>
+        <span class="metric-card__label">Trabajadores disponibles</span>
+        <strong>{{ availableWorkersCount() }}</strong>
+      </article>
+    </section>
+
+    <section class="teams-layout">
+      <article class="panel teams-list-panel">
+        <div class="panel__header">
+          <div>
+            <h2>Equipos</h2>
+            <p>Categoria operativa e id</p>
+          </div>
+        </div>
+
+        <button
+          class="team-card"
+          type="button"
+          *ngFor="let team of teams(); trackBy: trackByTeamId"
+          [class.team-card--active]="team.id === selectedTeam().id"
+          (click)="selectTeam(team.id)"
+        >
+          <span class="team-card__top">
+            <strong>{{ team.id }}</strong>
+            <span class="status-pill status-pill--slate">{{ team.category }}</span>
+          </span>
+          <span class="team-card__name">{{ team.name }}</span>
+          <span class="team-card__workers">{{ workerNames(team) }}</span>
+        </button>
+      </article>
+
+      <article class="panel workers-panel" *ngIf="selectedTeam() as team">
+        <div class="panel__header">
+          <div>
+            <h2>{{ team.name }}</h2>
+            <p>{{ team.id }} · {{ team.category }} · {{ formatCategory(team.backendCategory) }}</p>
+          </div>
+        </div>
+
+        <div class="category-rules" aria-label="Categoria del equipo">
+          <button
+            type="button"
+            class="rule-chip"
+            *ngFor="let category of categories; trackBy: trackByCategory"
+            [class.rule-chip--active]="category === team.category"
+            (click)="updateTeamCategory(category)"
+          >
+            {{ category }}
+          </button>
+        </div>
+
+        <div class="worker-list">
+          <label class="worker-row" *ngFor="let worker of workers(); trackBy: trackByWorkerId">
+            <ion-checkbox
+              [checked]="isWorkerInSelectedTeam(worker.id)"
+              [disabled]="!worker.available"
+              (ionChange)="toggleWorker(worker.id, $event.detail.checked)"
+            ></ion-checkbox>
+            <span>
+              <strong>{{ worker.name }}</strong>
+              <small>{{ worker.role }} · {{ worker.available ? 'Disponible' : 'No disponible' }}</small>
+            </span>
+          </label>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel assignment-panel">
+      <div class="panel__header">
+        <div>
+          <h2>Asignar equipo a incidencia</h2>
+          <p>Solo se muestran equipos con la misma categoria backend que la incidencia.</p>
+        </div>
+      </div>
+
+      <section class="state-panel teams-loading" *ngIf="vm.loading">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Cargando incidencias...</span>
+      </section>
+
+      <div class="assignment-table" *ngIf="!vm.loading">
+        <div class="assignment-head">
+          <span>Incidencia</span>
+          <span>Categoria</span>
+          <span>Equipo compatible</span>
+        </div>
+
+        <div class="assignment-row" *ngFor="let incident of vm.incidents; trackBy: trackByIncidentId">
+          <strong>#{{ incident.id }} {{ incident.titulo }}</strong>
+          <span>{{ formatCategory(incident.categoria) }}</span>
+          <div class="team-actions">
+            <button
+              type="button"
+              *ngFor="let team of eligibleTeams(incident); trackBy: trackByTeamId"
+              (click)="assignTeam(team.id, incident.id)"
+              [class.team-action--assigned]="team.assignedIncidentId === incident.id"
+            >
+              {{ team.id }}
+            </button>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="vm.incidents.length === 0">
+          <ion-icon name="folder-open-outline"></ion-icon>
+          <span>No hay incidencias para asignar todavia.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</ion-content>

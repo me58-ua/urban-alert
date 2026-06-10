@@ -1,0 +1,197 @@
+<ion-header class="admin-header" translucent="true">
+  <ion-toolbar class="admin-toolbar">
+    <div class="toolbar-layout">
+      <a class="brand" routerLink="/admin" aria-label="Urban Alert Admin">
+        <span class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="" />
+        </span>
+        <span class="brand__text">
+          <span class="brand__title">Urban Alert</span>
+          <span class="brand__subtitle">Gestion de usuarios</span>
+        </span>
+      </a>
+
+      <button class="admin-menu-button" type="button" (click)="openMenu($event)" aria-label="Abrir menu">
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+
+      <ion-popover
+        class="admin-menu-popover"
+        [isOpen]="isMenuOpen()"
+        [event]="popoverEvent()"
+        (didDismiss)="closeMenu()"
+        side="bottom"
+        alignment="end"
+      >
+        <ng-template>
+          <nav class="admin-menu-panel" aria-label="Administracion">
+            <a
+              class="admin-menu-panel__link"
+              *ngFor="let item of menuItems; trackBy: trackByMenuLabel"
+              [routerLink]="item.route"
+              (click)="closeMenu()"
+            >
+              <ion-icon [name]="item.icon"></ion-icon>
+              <span>{{ item.label }}</span>
+            </a>
+          </nav>
+        </ng-template>
+      </ion-popover>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="admin-page users-page" fullscreen="true">
+  <main class="admin-shell">
+    <section class="hero-row users-hero">
+      <div>
+        <p class="eyebrow">Administracion de plataforma</p>
+        <h1>Usuarios</h1>
+        <p class="hero-copy">Gestiona cuentas, roles y datos basicos de los usuarios registrados.</p>
+      </div>
+    </section>
+
+    <section class="users-summary" aria-label="Resumen de usuarios">
+      <article class="metric-card metric-card--blue">
+        <span class="metric-card__icon"><ion-icon name="people-outline"></ion-icon></span>
+        <span class="metric-card__label">Usuarios totales</span>
+        <strong>{{ users().length }}</strong>
+      </article>
+
+      <article class="metric-card metric-card--green">
+        <span class="metric-card__icon"><ion-icon name="shield-checkmark-outline"></ion-icon></span>
+        <span class="metric-card__label">Administradores</span>
+        <strong>{{ adminCount() }}</strong>
+      </article>
+
+      <article class="metric-card metric-card--amber">
+        <span class="metric-card__icon"><ion-icon name="checkmark-circle-outline"></ion-icon></span>
+        <span class="metric-card__label">Cuentas activas</span>
+        <strong>{{ activeCount() }}</strong>
+      </article>
+    </section>
+
+    <section class="panel user-create-panel">
+      <div class="panel__header">
+        <div>
+          <h2>Crear usuario</h2>
+          <p>Alta manual para usuarios de la plataforma.</p>
+        </div>
+      </div>
+
+      <form class="user-form" (ngSubmit)="createUser()">
+        <label>
+          <span>Nombre</span>
+          <ion-input name="newName" [(ngModel)]="newUser.name" placeholder="Nombre completo"></ion-input>
+        </label>
+        <label>
+          <span>Email</span>
+          <ion-input name="newEmail" type="email" [(ngModel)]="newUser.email" placeholder="usuario@email.com"></ion-input>
+        </label>
+        <label>
+          <span>Telefono</span>
+          <ion-input name="newPhone" [(ngModel)]="newUser.phone" placeholder="+34 600 000 000"></ion-input>
+        </label>
+        <label>
+          <span>Rol</span>
+          <ion-select name="newRole" [(ngModel)]="newUser.role" interface="popover">
+            <ion-select-option value="user">Usuario</ion-select-option>
+            <ion-select-option value="admin">Admin</ion-select-option>
+          </ion-select>
+        </label>
+        <ion-button class="primary-action" type="submit">
+          <ion-icon slot="start" name="person-add-outline"></ion-icon>
+          Crear
+        </ion-button>
+      </form>
+    </section>
+
+    <section class="panel users-table-panel">
+      <div class="panel__header">
+        <div>
+          <h2>Todos los usuarios</h2>
+          <p>Editar datos, cambiar roles o eliminar cuentas.</p>
+        </div>
+      </div>
+
+      <div class="users-table">
+        <div class="users-head">
+          <span>ID</span>
+          <span>Usuario</span>
+          <span>Contacto</span>
+          <span>Rol</span>
+          <span>Estado</span>
+          <span>Acciones</span>
+        </div>
+
+        <div class="users-row" *ngFor="let user of users(); trackBy: trackByUserId">
+          <ng-container *ngIf="editingUserId() === user.id && draftUser; else readUser">
+            <span>#{{ user.id }}</span>
+            <label class="inline-field">
+              <ion-input name="editName{{ user.id }}" [(ngModel)]="draftUser.name"></ion-input>
+            </label>
+            <div class="inline-stack">
+              <ion-input name="editEmail{{ user.id }}" type="email" [(ngModel)]="draftUser.email"></ion-input>
+              <ion-input name="editPhone{{ user.id }}" [(ngModel)]="draftUser.phone"></ion-input>
+            </div>
+            <ion-select name="editRole{{ user.id }}" [(ngModel)]="draftUser.role" interface="popover">
+              <ion-select-option value="user">Usuario</ion-select-option>
+              <ion-select-option value="admin">Admin</ion-select-option>
+            </ion-select>
+            <ion-select name="editStatus{{ user.id }}" [(ngModel)]="draftUser.status" interface="popover">
+              <ion-select-option value="activo">Activo</ion-select-option>
+              <ion-select-option value="bloqueado">Bloqueado</ion-select-option>
+            </ion-select>
+            <div class="user-actions">
+              <button type="button" class="icon-action icon-action--save" (click)="saveEdit()" aria-label="Guardar">
+                <ion-icon name="checkmark-outline"></ion-icon>
+              </button>
+              <button type="button" class="icon-action" (click)="cancelEdit()" aria-label="Cancelar">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+          </ng-container>
+
+          <ng-template #readUser>
+            <span>#{{ user.id }}</span>
+            <strong>{{ user.name }}</strong>
+            <span class="user-contact">
+              <span>{{ user.email }}</span>
+              <small>{{ user.phone || 'Sin telefono' }}</small>
+            </span>
+            <button
+              type="button"
+              class="role-pill"
+              [class.role-pill--admin]="user.role === 'admin'"
+              (click)="changeRole(user.id, user.role === 'admin' ? 'user' : 'admin')"
+            >
+              {{ roleLabel(user.role) }}
+            </button>
+            <button
+              type="button"
+              class="status-pill"
+              [class.status-pill--green]="user.status === 'activo'"
+              [class.status-pill--red]="user.status === 'bloqueado'"
+              (click)="changeStatus(user.id, user.status === 'activo' ? 'bloqueado' : 'activo')"
+            >
+              {{ statusLabel(user.status) }}
+            </button>
+            <div class="user-actions">
+              <button type="button" class="icon-action" (click)="startEdit(user)" aria-label="Editar">
+                <ion-icon name="create-outline"></ion-icon>
+              </button>
+              <button type="button" class="icon-action icon-action--danger" (click)="deleteUser(user.id)" aria-label="Eliminar">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="empty-state" *ngIf="users().length === 0">
+          <ion-icon name="people-outline"></ion-icon>
+          <span>No hay usuarios registrados.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</ion-content>
