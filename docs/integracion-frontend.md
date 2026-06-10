@@ -52,8 +52,8 @@ this.http.post<{access_token: string}>(`${API}/auth/login`, body, {
 
 ### `GET /auth/me`
 Devuelve el usuario autenticado (requiere `Authorization: Bearer`).
-- `200` → `{ "id", "email", "rol" }`
-- `401` → sin token / token inválido o expirado.
+- `200` → `{ "id", "email", "rol", "activo" }` *(`activo` añadido en #34)*
+- `401` → sin token / token inválido o expirado **o usuario desactivado** *(#34)*.
 
 ### Códigos de estado de autorización
 - `401 Unauthorized` → falta el token o no es válido/está expirado.
@@ -191,19 +191,44 @@ Agregados calculados desde la BD para el dashboard. **Requiere `Authorization: B
 
 ---
 
-## 👥 Gestión de usuarios y roles — *issue #27* (solo admin)
+## 👥 Gestión de usuarios y roles — *issues #27, #34* (solo admin)
 
 Todos requieren `Authorization: Bearer <token de admin>` (`401` sin token, `403` si el rol no es admin).
+
+`UserResponse` ahora incluye el campo **`activo`** (bool) *(#34)*:
+```json
+{ "id": 1, "email": "user@example.com", "rol": "ciudadano", "activo": true }
+```
 
 ### `GET /users`
 Lista usuarios paginada. Query: `limit` (1–100, def. 20), `offset` (≥0).
 ```json
-{ "items": [ { "id": 1, "email": "user@example.com", "rol": "ciudadano" } ], "total": 1, "limit": 20, "offset": 0 }
+{ "items": [ { "id": 1, "email": "user@example.com", "rol": "ciudadano", "activo": true } ], "total": 1, "limit": 20, "offset": 0 }
 ```
+
+### `POST /users` — *issue #34*
+Crea un usuario. **Body:** `{ "email", "password", "rol" }` (`rol` opcional, def. `ciudadano`; admite `ciudadano`|`admin`). `password` mín. 8 caracteres.
+- `201` → `UserResponse` (con `activo: true`) · `400` → email ya registrado · `403` → no admin.
+
+### `PATCH /users/{id}` — *issue #34*
+Edita el **email** de un usuario. **Body:** `{ "email": "nuevo@example.com" }`.
+- `200` → `UserResponse` actualizado · `400` → email ya en uso por otro / body vacío · `404` → no existe.
+
+### `DELETE /users/{id}` — *issue #34*
+Elimina un usuario.
+- `204` → eliminado (sin cuerpo) · `400` → intento de **eliminar tu propia cuenta** · `404` → no existe.
 
 ### `PATCH /users/{id}/rol`
 Cambia el rol de un usuario (p. ej. **promover a admin**). **Body:** `{ "rol": "admin" }` (o `"ciudadano"`).
 - `200` → `UserResponse` actualizado · `400` → intento de cambiar **tu propio** rol · `404` → no existe.
+
+### `PATCH /users/{id}/estado` — *issue #34*
+Activa/desactiva un usuario. **Body:** `{ "activo": false }` (o `true`).
+- `200` → `UserResponse` actualizado · `400` → intento de **desactivar tu propia cuenta** · `404` → no existe.
+
+> **Bloqueo de login:** un usuario con `activo: false` **no puede hacer login** → `POST /auth/login` devuelve `401`. Además, un token ya emitido para un usuario que luego se desactiva deja de valer (los endpoints autenticados responden `401`).
+
+> **Notas de contrato (el frontend se adapta):** el rol `"user"` del front mapea a **`ciudadano`** (los valores válidos del backend son `ciudadano`|`admin`); el estado `"bloqueado"` del front mapea a **`activo: false`**.
 
 > **Primer admin (bootstrap):** como el registro público crea `ciudadano`, el primer administrador se crea con `python scripts/crear_admin.py <email> <password>` (o vía `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD`).
 
@@ -253,6 +278,7 @@ Cambia el rol de un usuario (p. ej. **promover a admin**). **Body:** `{ "rol": "
 | Almacenamiento de imágenes (local/S3, persistente) | `POST /incidencias/{id}/imagenes` | #8 ✅ |
 | Gestión de usuarios y roles (solo admin) | `GET /users`, `PATCH /users/{id}/rol` | #27 ✅ |
 | Autor de incidencia + "mis incidencias" | `POST /incidencias` (auth opcional), `GET /incidencias/mias` | #33 ✅ |
+| CRUD admin de usuarios + estado activo/bloqueo de login | `POST /users`, `PATCH /users/{id}`, `DELETE /users/{id}`, `PATCH /users/{id}/estado` | #34 ✅ |
 | Crear / detalle / imágenes | `POST`/`GET /incidencias`, `/imagenes` | base ✅ |
 
 > Esta tabla y las secciones se ampliarán al completar nuevas issues del backend.

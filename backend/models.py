@@ -83,6 +83,10 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     rol = Column(SQLEnum(RolEnum), default=RolEnum.ciudadano, nullable=False)
+    # Estado del usuario (issue #34). Un usuario inactivo no puede hacer login.
+    # server_default="true" para que las filas existentes queden activas tras la
+    # migración.
+    activo = Column(Boolean, nullable=False, default=True, server_default="true")
     fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
 
     incidencias = relationship("Incidencia", back_populates="autor")

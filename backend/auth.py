@@ -40,6 +40,10 @@ def get_current_user(
     user = usuarios_service.get_user_by_email(db, email)
     if user is None:
         raise _credentials_exc
+    # Defensa en profundidad (issue #34): un token de un usuario desactivado
+    # deja de ser válido.
+    if not user.activo:
+        raise _credentials_exc
     return user
 
 
