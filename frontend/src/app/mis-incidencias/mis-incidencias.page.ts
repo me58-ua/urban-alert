@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { catchError, map, of, startWith } from 'rxjs';
+import { EMPTY, catchError, map, of, startWith } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
+import { AuthService } from '../services/auth.service';
 import { Estado, Incidencia, IncidenciasService, Prioridad } from '../services/incidencias.service';
 
 interface IncidenciasViewModel {
@@ -23,21 +24,33 @@ interface IncidenciasViewModel {
 })
 export class MisIncidenciasPage {
   private readonly incidencias = inject(IncidenciasService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly brandMarkUrl =
     'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
-  readonly vm$ = this.incidencias.listar().pipe(
-    map(({ items: incidents }): IncidenciasViewModel => ({ incidents, loading: false, error: null })),
-    startWith({ incidents: [], loading: true, error: null }),
-    catchError(() =>
-      of({
-        incidents: [],
-        loading: false,
-        error: 'No se pudieron cargar tus incidencias. Intentalo de nuevo en unos minutos.',
-      }),
-    ),
-  );
+  readonly vm$ = this.auth.isAuthenticated()
+    ? this.incidencias.misIncidencias().pipe(
+        map(({ items: incidents }): IncidenciasViewModel => ({ incidents, loading: false, error: null })),
+        startWith({ incidents: [], loading: true, error: null } as IncidenciasViewModel),
+        catchError(() =>
+          of<IncidenciasViewModel>({
+            incidents: [],
+            loading: false,
+            error: 'No se pudieron cargar tus incidencias. Intentalo de nuevo en unos minutos.',
+          }),
+        ),
+      )
+    : EMPTY;
+
+  constructor() {
+    // Sin sesión: no dispara la petición y redirige al login (la issue pide
+    // gestionar proactivamente la ausencia de sesión, además del 401 del interceptor).
+    if (!this.auth.isAuthenticated()) {
+      void this.router.navigateByUrl('/login');
+    }
+  }
 
   imageUrl(incident: Incidencia): string | null {
     const ruta = incident.imagenes?.[0]?.ruta;
