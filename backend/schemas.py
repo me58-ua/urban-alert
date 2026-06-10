@@ -83,6 +83,7 @@ class UserResponse(BaseModel):
     id: int
     email: str
     rol: RolEnum
+    activo: bool = True
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -92,6 +93,20 @@ class Token(BaseModel):
 
 class RolUpdate(BaseModel):
     rol: RolEnum
+
+class UsuarioAdminCreate(BaseModel):
+    """Alta de usuario por un admin: permite elegir el rol (issue #34)."""
+    email: str = Field(..., min_length=3, max_length=255)
+    password: str = Field(..., min_length=8, max_length=128)
+    rol: RolEnum = RolEnum.ciudadano
+
+class UserUpdate(BaseModel):
+    """Edición de datos de un usuario por un admin (issue #34)."""
+    email: Optional[str] = Field(default=None, min_length=3, max_length=255)
+
+class EstadoUsuarioUpdate(BaseModel):
+    """Activar/desactivar un usuario (issue #34)."""
+    activo: bool
 
 class UsuariosPage(BaseModel):
     """Respuesta paginada del listado de usuarios (admin)."""
