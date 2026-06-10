@@ -1,12 +1,20 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { catchError, map, of, startWith } from 'rxjs';
-import { Categoria, Incidencia, IncidenciasService } from '../services/incidencias.service';
 
-type OperationalCategory = 'Alumbrado' | 'Basura' | 'Baches' | 'Vandalismo' | 'Mobiliario';
+import { Categoria, Equipo, EquiposService } from '../services/equipos.service';
+import { Incidencia, IncidenciasService } from '../services/incidencias.service';
 
 interface AdminMenuItem {
   label: string;
@@ -14,26 +22,10 @@ interface AdminMenuItem {
   icon: string;
 }
 
-interface Worker {
-  id: number;
-  name: string;
-  role: string;
-  available: boolean;
-}
-
-interface Team {
-  id: string;
-  name: string;
-  category: OperationalCategory;
-  backendCategory: Categoria;
-  workerIds: number[];
-  assignedIncidentId?: number;
-}
-
-interface TeamsViewModel {
-  incidents: Incidencia[];
-  loading: boolean;
-  error: string | null;
+/** Las 6 categorías del backend con su etiqueta legible. */
+interface CategoriaOption {
+  value: Categoria;
+  label: string;
 }
 
 @Component({
@@ -44,15 +36,25 @@ interface TeamsViewModel {
   imports: [CommonModule, FormsModule, IonicModule, RouterModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EquiposManagementPage {
-  private readonly incidencias = inject(IncidenciasService);
+export class EquiposManagementPage implements OnInit {
+  private readonly equiposService = inject(EquiposService);
+  private readonly incidenciasService = inject(IncidenciasService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly brandMarkUrl =
     'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
   readonly isMenuOpen = signal(false);
   readonly popoverEvent = signal<Event | undefined>(undefined);
-  readonly selectedTeamId = signal('EQ-102');
+  readonly selectedTeamId = signal<number | null>(null);
+
+  readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
+
+  readonly incidentsLoading = signal(false);
+  readonly incidentsError = signal<string | null>(null);
+  readonly assignError = signal<string | null>(null);
+  readonly assignSuccess = signal<string | null>(null);
 
   readonly menuItems: AdminMenuItem[] = [
     { label: 'Dashboard', route: '/admin', icon: 'grid-outline' },
@@ -62,38 +64,97 @@ export class EquiposManagementPage {
     { label: 'Vista ciudadana', route: '/home', icon: 'people-outline' },
   ];
 
-  readonly categories: OperationalCategory[] = ['Alumbrado', 'Basura', 'Baches', 'Vandalismo', 'Mobiliario'];
+  /** Las 6 categorías del backend con su etiqueta bonita para mostrar. */
+  readonly categorias: CategoriaOption[] = [
+    { value: 'infraestructura', label: 'Infraestructura' },
+    { value: 'alumbrado', label: 'Alumbrado' },
+    { value: 'residuos', label: 'Residuos' },
+    { value: 'trafico', label: 'Tráfico' },
+    { value: 'zonas_verdes', label: 'Zonas verdes' },
+    { value: 'otro', label: 'Otro' },
+  ];
 
-  readonly workers = signal<Worker[]>([
-    { id: 1, name: 'Laura Martin', role: 'Electricista', available: true },
-    { id: 2, name: 'Hugo Vidal', role: 'Operario limpieza', available: true },
-    { id: 3, name: 'Nora Ruiz', role: 'Pavimentos', available: true },
-    { id: 4, name: 'Diego Cano', role: 'Mantenimiento', available: false },
-    { id: 5, name: 'Sara Molina', role: 'Jardineria urbana', available: true },
-  ]);
+  readonly equipos = signal<Equipo[]>([]);
+  readonly incidencias = signal<Incidencia[]>([]);
 
-  readonly teams = signal<Team[]>([
-    { id: 'EQ-101', name: 'Luz Norte', category: 'Alumbrado', backendCategory: 'alumbrado', workerIds: [1] },
-    { id: 'EQ-102', name: 'Calzada Rapida', category: 'Baches', backendCategory: 'infraestructura', workerIds: [3, 4] },
-    { id: 'EQ-103', name: 'Limpieza Centro', category: 'Basura', backendCategory: 'residuos', workerIds: [2] },
-    { id: 'EQ-104', name: 'Mobiliario Sur', category: 'Mobiliario', backendCategory: 'infraestructura', workerIds: [5] },
-    { id: 'EQ-105', name: 'Intervencion Urbana', category: 'Vandalismo', backendCategory: 'otro', workerIds: [] },
-  ]);
+  /** Formulario de creación de equipo. */
+  newTeam: { nombre: string; categoria: Categoria } = {
+    nombre: '',
+    categoria: 'infraestructura',
+  };
 
-  readonly selectedTeam = computed((): Team => this.teams().find((team) => team.id === this.selectedTeamId()) ?? this.teams()[0]);
-  readonly availableWorkersCount = computed(() => this.workers().filter((worker) => worker.available).length);
+  /** Formulario de creación de trabajador para el equipo seleccionado. */
+  newWorker: { nombre: string; puesto: string } = { nombre: '', puesto: '' };
 
-  readonly vm$ = this.incidencias.listar().pipe(
-    map(({ items: incidents }): TeamsViewModel => ({ incidents, loading: false, error: null })),
-    startWith({ incidents: [], loading: true, error: null }),
-    catchError(() =>
-      of({
-        incidents: [],
-        loading: false,
-        error: 'No se pudieron cargar incidencias. Puedes gestionar equipos igualmente.',
-      }),
+  /** Borradores de edición del equipo seleccionado. */
+  draftName = '';
+  draftCategory: Categoria = 'infraestructura';
+
+  readonly selectedTeam = computed<Equipo | null>(() => {
+    const id = this.selectedTeamId();
+    if (id === null) return null;
+    return this.equipos().find((team) => team.id === id) ?? null;
+  });
+
+  readonly totalWorkers = computed(() =>
+    this.equipos().reduce((acc, team) => acc + team.trabajadores.length, 0),
+  );
+  readonly availableWorkersCount = computed(() =>
+    this.equipos().reduce(
+      (acc, team) => acc + team.trabajadores.filter((w) => w.disponible).length,
+      0,
     ),
   );
+
+  ngOnInit(): void {
+    this.loadTeams();
+    this.loadIncidents();
+  }
+
+  loadTeams(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.equiposService.listarEquipos().subscribe({
+      next: (equipos) => {
+        this.equipos.set(equipos);
+        // Mantener selección válida tras recargar.
+        const current = this.selectedTeamId();
+        if (current === null || !equipos.some((t) => t.id === current)) {
+          this.selectTeam(equipos.length ? equipos[0].id : null);
+        } else {
+          this.syncDraftsFromSelection();
+        }
+        this.loading.set(false);
+        this.cdr.markForCheck();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.error.set(
+          this.messageFromError(err, 'No se pudieron cargar los equipos.'),
+        );
+        this.loading.set(false);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  loadIncidents(): void {
+    this.incidentsLoading.set(true);
+    this.incidentsError.set(null);
+    this.incidenciasService.listar().subscribe({
+      next: (page) => {
+        this.incidencias.set(page.items);
+        this.incidentsLoading.set(false);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.incidentsError.set(
+          'No se pudieron cargar las incidencias. Puedes gestionar equipos igualmente.',
+        );
+        this.incidentsLoading.set(false);
+        this.cdr.markForCheck();
+      },
+    });
+  }
 
   openMenu(event: Event) {
     this.popoverEvent.set(event);
@@ -105,100 +166,184 @@ export class EquiposManagementPage {
     this.popoverEvent.set(undefined);
   }
 
-  selectTeam(teamId: string) {
+  selectTeam(teamId: number | null) {
     this.selectedTeamId.set(teamId);
+    this.newWorker = { nombre: '', puesto: '' };
+    this.syncDraftsFromSelection();
   }
 
-  toggleWorker(workerId: number, checked: boolean) {
+  private syncDraftsFromSelection(): void {
     const team = this.selectedTeam();
-    if (!team) return;
-
-    this.teams.update((teams) =>
-      teams.map((item) => {
-        if (item.id !== team.id) return item;
-        const workerIds = checked
-          ? Array.from(new Set([...item.workerIds, workerId]))
-          : item.workerIds.filter((id) => id !== workerId);
-        return { ...item, workerIds };
-      }),
-    );
+    if (team) {
+      this.draftName = team.nombre;
+      this.draftCategory = team.categoria;
+    } else {
+      this.draftName = '';
+      this.draftCategory = 'infraestructura';
+    }
   }
 
-  updateTeamCategory(category: OperationalCategory) {
-    const team = this.selectedTeam();
-    if (!team) return;
+  // ── CRUD de equipos ───────────────────────────────────────────────────────
+  createTeam() {
+    const nombre = this.newTeam.nombre.trim();
+    if (!nombre) return;
 
-    this.teams.update((teams) =>
-      teams.map((item) =>
-        item.id === team.id ? { ...item, category, backendCategory: this.categoryFromLabel(category) } : item,
-      ),
-    );
+    this.error.set(null);
+    this.equiposService
+      .crearEquipo({ nombre, categoria: this.newTeam.categoria })
+      .subscribe({
+        next: (team) => {
+          this.newTeam = { nombre: '', categoria: 'infraestructura' };
+          this.selectedTeamId.set(team.id);
+          this.loadTeams();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.error.set(
+            this.messageFromError(err, 'No se pudo crear el equipo.'),
+          );
+          this.cdr.markForCheck();
+        },
+      });
   }
 
-  assignTeam(teamId: string, incidentId: number) {
-    this.teams.update((teams) =>
-      teams.map((team) => (team.id === teamId ? { ...team, assignedIncidentId: incidentId } : team)),
-    );
+  saveTeam(teamId: number) {
+    const nombre = this.draftName.trim();
+    if (!nombre) return;
+
+    this.error.set(null);
+    this.equiposService
+      .actualizarEquipo(teamId, { nombre, categoria: this.draftCategory })
+      .subscribe({
+        next: () => this.loadTeams(),
+        error: (err: HttpErrorResponse) => {
+          this.error.set(
+            this.messageFromError(err, 'No se pudo actualizar el equipo.'),
+          );
+          this.cdr.markForCheck();
+        },
+      });
   }
 
-  eligibleTeams(incident: Incidencia): Team[] {
-    const operationalCategory = this.incidentOperationalCategory(incident);
-    return this.teams().filter((team) => {
-      if (team.backendCategory !== incident.categoria) return false;
-      if (operationalCategory && incident.categoria === 'infraestructura') {
-        return team.category === operationalCategory;
-      }
-      return true;
+  deleteTeam(teamId: number) {
+    this.error.set(null);
+    this.equiposService.eliminarEquipo(teamId).subscribe({
+      next: () => {
+        if (this.selectedTeamId() === teamId) this.selectedTeamId.set(null);
+        this.loadTeams();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.error.set(
+          this.messageFromError(err, 'No se pudo eliminar el equipo.'),
+        );
+        this.cdr.markForCheck();
+      },
     });
   }
 
-  workerNames(team: Team): string {
-    const names = this.workers()
-      .filter((worker) => team.workerIds.includes(worker.id))
-      .map((worker) => worker.name);
-    return names.length ? names.join(', ') : 'Sin trabajadores asignados';
+  // ── Gestión de trabajadores ───────────────────────────────────────────────
+  addWorker() {
+    const team = this.selectedTeam();
+    if (!team) return;
+    const nombre = this.newWorker.nombre.trim();
+    if (!nombre) return;
+    const puesto = this.newWorker.puesto.trim();
+
+    this.error.set(null);
+    this.equiposService
+      .crearTrabajador(team.id, { nombre, puesto: puesto || null })
+      .subscribe({
+        next: () => {
+          this.newWorker = { nombre: '', puesto: '' };
+          this.loadTeams();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.error.set(
+            this.messageFromError(err, 'No se pudo añadir el trabajador.'),
+          );
+          this.cdr.markForCheck();
+        },
+      });
   }
 
-  isWorkerInSelectedTeam(workerId: number): boolean {
-    return this.selectedTeam()?.workerIds.includes(workerId) ?? false;
+  removeWorker(teamId: number, trabajadorId: number) {
+    this.error.set(null);
+    this.equiposService.quitarTrabajador(teamId, trabajadorId).subscribe({
+      next: () => this.loadTeams(),
+      error: (err: HttpErrorResponse) => {
+        this.error.set(
+          this.messageFromError(err, 'No se pudo quitar el trabajador.'),
+        );
+        this.cdr.markForCheck();
+      },
+    });
   }
 
-  formatCategory(category: string): string {
-    const labels: Record<string, string> = {
-      alumbrado: 'Alumbrado',
-      residuos: 'Basura',
-      infraestructura: 'Infraestructura',
-      otro: 'Vandalismo',
-    };
-    return labels[category] ?? category;
+  // ── Asignación de equipo a incidencia ─────────────────────────────────────
+  /** Equipos elegibles para una incidencia: misma categoría. */
+  eligibleTeams(incident: Incidencia): Equipo[] {
+    return this.equipos().filter((team) => team.categoria === incident.categoria);
   }
 
-  categoryFromLabel(category: OperationalCategory): Categoria {
-    const categoriaMap: Record<OperationalCategory, Categoria> = {
-      Alumbrado: 'alumbrado',
-      Basura: 'residuos',
-      Baches: 'infraestructura',
-      Vandalismo: 'otro',
-      Mobiliario: 'infraestructura',
-    };
-    return categoriaMap[category];
+  assignTeam(incident: Incidencia, equipoId: number | null) {
+    this.assignError.set(null);
+    this.assignSuccess.set(null);
+    this.equiposService
+      .asignarEquipoAIncidencia(incident.id, equipoId)
+      .subscribe({
+        next: () => {
+          this.assignSuccess.set(
+            equipoId === null
+              ? `Equipo desasignado de la incidencia #${incident.id}.`
+              : `Equipo asignado a la incidencia #${incident.id}.`,
+          );
+          this.cdr.markForCheck();
+        },
+        error: (err: HttpErrorResponse) => {
+          if (err.status === 409) {
+            this.assignError.set(
+              `Categoría incompatible: el equipo no coincide con la categoría de la incidencia #${incident.id}.`,
+            );
+          } else if (err.status === 404) {
+            this.assignError.set(
+              `No se encontró la incidencia o el equipo (#${incident.id}).`,
+            );
+          } else {
+            this.assignError.set(
+              this.messageFromError(err, 'No se pudo asignar el equipo.'),
+            );
+          }
+          this.cdr.markForCheck();
+        },
+      });
   }
 
-  private incidentOperationalCategory(incident: Incidencia): OperationalCategory | null {
-    const title = incident.titulo.toLowerCase();
-    if (title.includes('bache')) return 'Baches';
-    if (title.includes('mobiliario')) return 'Mobiliario';
-    if (title.includes('alumbrado') || title.includes('farola')) return 'Alumbrado';
-    if (title.includes('basura') || title.includes('residuo')) return 'Basura';
-    if (title.includes('vandal')) return 'Vandalismo';
-    return null;
+  // ── Helpers de presentación ───────────────────────────────────────────────
+  categoryLabel(categoria: Categoria | string): string {
+    return (
+      this.categorias.find((c) => c.value === categoria)?.label ??
+      String(categoria)
+    );
   }
 
-  trackByTeamId = (_index: number, item: Team) => item.id;
-  trackByWorkerId = (_index: number, item: Worker) => item.id;
+  /**
+   * Extrae un mensaje legible del error del backend.
+   * FastAPI suele devolver `{ detail: '…' }` (string) en los 4xx.
+   */
+  private messageFromError(err: HttpErrorResponse, fallback: string): string {
+    const detail = err?.error?.detail;
+    if (typeof detail === 'string' && detail.trim()) return detail;
+    if (Array.isArray(detail) && detail.length && detail[0]?.msg) {
+      return String(detail[0].msg);
+    }
+    if (typeof err?.error === 'string' && err.error.trim()) return err.error;
+    return fallback;
+  }
+
+  trackByTeamId = (_index: number, item: Equipo) => item.id;
+  trackByWorkerId = (_index: number, item: { id: number }) => item.id;
   trackByIncidentId = (_index: number, item: Incidencia) => item.id;
   trackByMenuLabel = (_index: number, item: AdminMenuItem) => item.label;
-  trackByCategory = (_index: number, item: OperationalCategory) => item;
+  trackByCategory = (_index: number, item: CategoriaOption) => item.value;
 }
 
 export default EquiposManagementPage;

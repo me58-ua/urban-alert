@@ -42,25 +42,25 @@
 </ion-header>
 
 <ion-content class="admin-page teams-page" fullscreen="true">
-  <main class="admin-shell" *ngIf="vm$ | async as vm">
+  <main class="admin-shell">
     <section class="hero-row teams-hero">
       <div>
         <p class="eyebrow">Gestion operativa</p>
         <h1>Equipos</h1>
-        <p class="hero-copy">Asigna trabajadores a equipos y vincula cada equipo solo con incidencias compatibles.</p>
+        <p class="hero-copy">Crea equipos por categoria, gestiona sus trabajadores y asigna cada equipo solo a incidencias compatibles.</p>
       </div>
     </section>
 
-    <section class="offline-banner" *ngIf="!vm.loading && vm.error">
+    <section class="offline-banner" *ngIf="error()">
       <ion-icon name="alert-circle-outline"></ion-icon>
-      <span>{{ vm.error }}</span>
+      <span>{{ error() }}</span>
     </section>
 
     <section class="teams-summary" aria-label="Resumen de equipos">
       <article class="metric-card metric-card--blue">
         <span class="metric-card__icon"><ion-icon name="people-circle-outline"></ion-icon></span>
         <span class="metric-card__label">Equipos activos</span>
-        <strong>{{ teams().length }}</strong>
+        <strong>{{ equipos().length }}</strong>
       </article>
 
       <article class="metric-card metric-card--green">
@@ -70,63 +70,158 @@
       </article>
     </section>
 
-    <section class="teams-layout">
+    <section class="panel team-create-panel">
+      <div class="panel__header">
+        <div>
+          <h2>Nuevo equipo</h2>
+          <p>Crea un equipo con nombre y categoria.</p>
+        </div>
+      </div>
+
+      <form class="team-create-form" (ngSubmit)="createTeam()">
+        <ion-input
+          fill="outline"
+          label="Nombre del equipo"
+          labelPlacement="floating"
+          [(ngModel)]="newTeam.nombre"
+          name="newTeamName"
+        ></ion-input>
+
+        <ion-select
+          fill="outline"
+          label="Categoria"
+          labelPlacement="floating"
+          [(ngModel)]="newTeam.categoria"
+          name="newTeamCategory"
+          interface="popover"
+        >
+          <ion-select-option *ngFor="let cat of categorias; trackBy: trackByCategory" [value]="cat.value">
+            {{ cat.label }}
+          </ion-select-option>
+        </ion-select>
+
+        <ion-button type="submit" [disabled]="!newTeam.nombre.trim()">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Crear equipo
+        </ion-button>
+      </form>
+    </section>
+
+    <section class="state-panel teams-loading" *ngIf="loading()">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>Cargando equipos...</span>
+    </section>
+
+    <section class="teams-layout" *ngIf="!loading()">
       <article class="panel teams-list-panel">
         <div class="panel__header">
           <div>
             <h2>Equipos</h2>
-            <p>Categoria operativa e id</p>
+            <p>Selecciona un equipo para gestionarlo</p>
           </div>
+        </div>
+
+        <div class="empty-state" *ngIf="equipos().length === 0">
+          <ion-icon name="people-outline"></ion-icon>
+          <span>Aun no hay equipos. Crea el primero arriba.</span>
         </div>
 
         <button
           class="team-card"
           type="button"
-          *ngFor="let team of teams(); trackBy: trackByTeamId"
-          [class.team-card--active]="team.id === selectedTeam().id"
+          *ngFor="let team of equipos(); trackBy: trackByTeamId"
+          [class.team-card--active]="team.id === selectedTeam()?.id"
           (click)="selectTeam(team.id)"
         >
           <span class="team-card__top">
-            <strong>{{ team.id }}</strong>
-            <span class="status-pill status-pill--slate">{{ team.category }}</span>
+            <strong>EQ-{{ team.id }}</strong>
+            <span class="status-pill status-pill--slate">{{ categoryLabel(team.categoria) }}</span>
           </span>
-          <span class="team-card__name">{{ team.name }}</span>
-          <span class="team-card__workers">{{ workerNames(team) }}</span>
+          <span class="team-card__name">{{ team.nombre }}</span>
+          <span class="team-card__workers">{{ team.trabajadores.length }} trabajador(es)</span>
         </button>
       </article>
 
       <article class="panel workers-panel" *ngIf="selectedTeam() as team">
         <div class="panel__header">
           <div>
-            <h2>{{ team.name }}</h2>
-            <p>{{ team.id }} · {{ team.category }} · {{ formatCategory(team.backendCategory) }}</p>
+            <h2>{{ team.nombre }}</h2>
+            <p>EQ-{{ team.id }} · {{ categoryLabel(team.categoria) }}</p>
           </div>
-        </div>
-
-        <div class="category-rules" aria-label="Categoria del equipo">
-          <button
-            type="button"
-            class="rule-chip"
-            *ngFor="let category of categories; trackBy: trackByCategory"
-            [class.rule-chip--active]="category === team.category"
-            (click)="updateTeamCategory(category)"
-          >
-            {{ category }}
+          <button class="danger-link" type="button" (click)="deleteTeam(team.id)">
+            <ion-icon name="trash-outline"></ion-icon>
+            Eliminar equipo
           </button>
         </div>
 
-        <div class="worker-list">
-          <label class="worker-row" *ngFor="let worker of workers(); trackBy: trackByWorkerId">
-            <ion-checkbox
-              [checked]="isWorkerInSelectedTeam(worker.id)"
-              [disabled]="!worker.available"
-              (ionChange)="toggleWorker(worker.id, $event.detail.checked)"
-            ></ion-checkbox>
-            <span>
-              <strong>{{ worker.name }}</strong>
-              <small>{{ worker.role }} · {{ worker.available ? 'Disponible' : 'No disponible' }}</small>
-            </span>
-          </label>
+        <form class="team-edit-form" (ngSubmit)="saveTeam(team.id)">
+          <ion-input
+            fill="outline"
+            label="Nombre"
+            labelPlacement="floating"
+            [(ngModel)]="draftName"
+            name="draftName"
+          ></ion-input>
+
+          <ion-select
+            fill="outline"
+            label="Categoria"
+            labelPlacement="floating"
+            [(ngModel)]="draftCategory"
+            name="draftCategory"
+            interface="popover"
+          >
+            <ion-select-option *ngFor="let cat of categorias; trackBy: trackByCategory" [value]="cat.value">
+              {{ cat.label }}
+            </ion-select-option>
+          </ion-select>
+
+          <ion-button type="submit" fill="outline" [disabled]="!draftName.trim()">
+            Guardar cambios
+          </ion-button>
+        </form>
+
+        <div class="workers-block">
+          <h3>Trabajadores</h3>
+
+          <div class="worker-list">
+            <div class="empty-state" *ngIf="team.trabajadores.length === 0">
+              <span>Sin trabajadores asignados.</span>
+            </div>
+
+            <div class="worker-row" *ngFor="let worker of team.trabajadores; trackBy: trackByWorkerId">
+              <span>
+                <strong>{{ worker.nombre }}</strong>
+                <small>
+                  {{ worker.puesto || 'Sin puesto' }} · {{ worker.disponible ? 'Disponible' : 'No disponible' }}
+                </small>
+              </span>
+              <button class="danger-link" type="button" (click)="removeWorker(team.id, worker.id)" aria-label="Quitar trabajador">
+                <ion-icon name="close-circle-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <form class="worker-create-form" (ngSubmit)="addWorker()">
+            <ion-input
+              fill="outline"
+              label="Nombre del trabajador"
+              labelPlacement="floating"
+              [(ngModel)]="newWorker.nombre"
+              name="newWorkerName"
+            ></ion-input>
+            <ion-input
+              fill="outline"
+              label="Puesto (opcional)"
+              labelPlacement="floating"
+              [(ngModel)]="newWorker.puesto"
+              name="newWorkerRole"
+            ></ion-input>
+            <ion-button type="submit" [disabled]="!newWorker.nombre.trim()">
+              <ion-icon slot="start" name="person-add-outline"></ion-icon>
+              Anadir
+            </ion-button>
+          </form>
         </div>
       </article>
     </section>
@@ -135,38 +230,63 @@
       <div class="panel__header">
         <div>
           <h2>Asignar equipo a incidencia</h2>
-          <p>Solo se muestran equipos con la misma categoria backend que la incidencia.</p>
+          <p>Solo se muestran equipos con la misma categoria que la incidencia.</p>
         </div>
       </div>
 
-      <section class="state-panel teams-loading" *ngIf="vm.loading">
+      <div class="offline-banner" *ngIf="incidentsError()">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>{{ incidentsError() }}</span>
+      </div>
+
+      <div class="assign-feedback assign-feedback--error" *ngIf="assignError()">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>{{ assignError() }}</span>
+      </div>
+
+      <div class="assign-feedback assign-feedback--success" *ngIf="assignSuccess()">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <span>{{ assignSuccess() }}</span>
+      </div>
+
+      <section class="state-panel teams-loading" *ngIf="incidentsLoading()">
         <ion-spinner name="crescent"></ion-spinner>
         <span>Cargando incidencias...</span>
       </section>
 
-      <div class="assignment-table" *ngIf="!vm.loading">
+      <div class="assignment-table" *ngIf="!incidentsLoading()">
         <div class="assignment-head">
           <span>Incidencia</span>
           <span>Categoria</span>
           <span>Equipo compatible</span>
         </div>
 
-        <div class="assignment-row" *ngFor="let incident of vm.incidents; trackBy: trackByIncidentId">
+        <div class="assignment-row" *ngFor="let incident of incidencias(); trackBy: trackByIncidentId">
           <strong>#{{ incident.id }} {{ incident.titulo }}</strong>
-          <span>{{ formatCategory(incident.categoria) }}</span>
+          <span>{{ categoryLabel(incident.categoria) }}</span>
           <div class="team-actions">
             <button
               type="button"
               *ngFor="let team of eligibleTeams(incident); trackBy: trackByTeamId"
-              (click)="assignTeam(team.id, incident.id)"
-              [class.team-action--assigned]="team.assignedIncidentId === incident.id"
+              (click)="assignTeam(incident, team.id)"
             >
-              {{ team.id }}
+              EQ-{{ team.id }} · {{ team.nombre }}
+            </button>
+            <span class="no-teams" *ngIf="eligibleTeams(incident).length === 0">
+              Sin equipos compatibles
+            </span>
+            <button
+              class="unassign-button"
+              type="button"
+              *ngIf="eligibleTeams(incident).length > 0"
+              (click)="assignTeam(incident, null)"
+            >
+              Desasignar
             </button>
           </div>
         </div>
 
-        <div class="empty-state" *ngIf="vm.incidents.length === 0">
+        <div class="empty-state" *ngIf="incidencias().length === 0">
           <ion-icon name="folder-open-outline"></ion-icon>
           <span>No hay incidencias para asignar todavia.</span>
         </div>
