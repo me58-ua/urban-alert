@@ -152,8 +152,8 @@ Marca la notificación como leída.
 
 ## 📊 Métricas / Dashboard — *issue #9*
 
-### `GET /stats`
-Agregados calculados desde la BD (público, ideal para el dashboard / contadores de la home).
+### `GET /stats` — **solo admin**
+Agregados calculados desde la BD para el dashboard. **Requiere `Authorization: Bearer <token de admin>`** *(issue #26)*: `401` sin token, `403` si el rol no es admin.
 ```json
 {
   "total": 42,
@@ -209,7 +209,7 @@ Agregados calculados desde la BD (público, ideal para el dashboard / contadores
 | Historial de estado **y prioridad** | `historial` en el detalle / tras `PATCH` | #6 ✅ |
 | Notificaciones de cambio de estado | `GET /notificaciones`, `PATCH /notificaciones/{id}/leer` | #7 ✅ |
 | Validación/moderación de inputs e imágenes | `POST /incidencias`, `POST /incidencias/{id}/imagenes` | #10 ✅ |
-| Métricas / dashboard | `GET /stats` | #9 ✅ |
+| Métricas / dashboard (solo admin) | `GET /stats` | #9, #26 ✅ |
 | Almacenamiento de imágenes (local/S3, persistente) | `POST /incidencias/{id}/imagenes` | #8 ✅ |
 | Crear / detalle / imágenes | `POST`/`GET /incidencias`, `/imagenes` | base ✅ |
 
