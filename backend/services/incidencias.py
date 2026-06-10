@@ -149,6 +149,38 @@ def actualizar_incidencia(db: Session, incidencia_id: int, update_data, admin_us
     db.refresh(incidencia)
     return incidencia
 
+def asignar_equipo(db: Session, incidencia_id: int, equipo_id) -> Incidencia:
+    """Asigna o desasigna un equipo a una incidencia (issue #36, solo admin).
+
+    - 404 si la incidencia no existe.
+    - ``equipo_id is None`` -> desasigna el equipo (equipo_id = NULL).
+    - En caso contrario carga el equipo (404 si no existe) y valida la
+      compatibilidad de categoría: el equipo SOLO puede asignarse a
+      incidencias de su MISMA categoría; si no, 409.
+    """
+    from fastapi import HTTPException
+    from models import Equipo
+
+    incidencia = get_incidencia(db, incidencia_id)
+
+    if equipo_id is None:
+        # Desasignar.
+        incidencia.equipo_id = None
+    else:
+        equipo = db.query(Equipo).filter(Equipo.id == equipo_id).first()
+        if not equipo:
+            raise HTTPException(status_code=404, detail="Equipo no encontrado")
+        if equipo.categoria != incidencia.categoria:
+            raise HTTPException(
+                status_code=409,
+                detail="El equipo no es compatible con la categoria de la incidencia",
+            )
+        incidencia.equipo_id = equipo_id
+
+    db.commit()
+    db.refresh(incidencia)
+    return incidencia
+
 from fastapi import UploadFile, HTTPException
 from storage import get_storage
 

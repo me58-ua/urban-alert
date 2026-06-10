@@ -44,10 +44,17 @@ class Incidencia(Base):
     # incidencia se conserva pero queda sin autor.
     user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
 
+    # Equipo asignado a la incidencia (issue #36). NULLABLE: una incidencia
+    # puede no tener equipo. ON DELETE SET NULL: si se borra el equipo, la
+    # incidencia se conserva pero queda sin equipo. Un equipo solo puede
+    # asignarse a incidencias de su MISMA categoria (validado en el servicio).
+    equipo_id = Column(Integer, ForeignKey("equipos.id", ondelete="SET NULL"), nullable=True, index=True)
+
     fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
     fecha_actualizacion = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
     autor = relationship("User", back_populates="incidencias")
+    equipo = relationship("Equipo")
     imagenes = relationship("Imagen", back_populates="incidencia", cascade="all, delete-orphan")
     historial = relationship("HistorialEstado", back_populates="incidencia", cascade="all, delete-orphan")
     notificaciones = relationship("Notificacion", back_populates="incidencia", cascade="all, delete-orphan")

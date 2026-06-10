@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, Query, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from database import get_db
-from schemas import IncidenciaCreate, IncidenciaResponse, EstadoUpdate, ImagenResponse, IncidenciaPage
+from schemas import IncidenciaCreate, IncidenciaResponse, EstadoUpdate, ImagenResponse, IncidenciaPage, AsignarEquipoUpdate
 import services.incidencias as incidencias_service
 from auth import require_admin, get_current_user, get_current_user_optional
 from models import User
@@ -71,6 +71,21 @@ def actualizar_incidencia(
     current_user: User = Depends(require_admin)
 ):
     return incidencias_service.actualizar_incidencia(db=db, incidencia_id=id, update_data=update_data, admin_user=current_user.email)
+
+@router.patch("/{id}/equipo", response_model=IncidenciaResponse)
+def asignar_equipo(
+    id: int,
+    update_data: AsignarEquipoUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    """Asigna o desasigna un equipo a una incidencia (issue #36, solo admin).
+
+    Body `{ "equipo_id": <int> }` asigna; `{ "equipo_id": null }` desasigna.
+    El equipo solo puede asignarse a incidencias de su MISMA categoría
+    (`409` si no coincide). `404` si la incidencia o el equipo no existen.
+    """
+    return incidencias_service.asignar_equipo(db=db, incidencia_id=id, equipo_id=update_data.equipo_id)
 
 @router.post("/{id}/imagenes", response_model=ImagenResponse, status_code=status.HTTP_201_CREATED)
 def subir_imagen(id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
