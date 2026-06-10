@@ -234,6 +234,82 @@ Activa/desactiva un usuario. **Body:** `{ "activo": false }` (o `true`).
 
 ---
 
+## 👷 Equipos y trabajadores — *issue #35* (solo admin)
+
+Gestión de **equipos operativos** y sus **trabajadores**. Todos los endpoints requieren `Authorization: Bearer <token de admin>` (`401` sin token, `403` si el rol no es admin).
+
+La **`categoria`** de un equipo usa las **6 categorías del backend** (las mismas que las incidencias): `infraestructura`, `alumbrado`, `residuos`, `trafico`, `zonas_verdes`, `otro`.
+
+Al **borrar un equipo**, sus trabajadores **NO se borran**: quedan con `equipo_id: null` (desasignados).
+
+### Modelos de respuesta
+
+`EquipoResponse` (incluye sus trabajadores anidados):
+```json
+{
+  "id": 1,
+  "nombre": "Brigada de alumbrado",
+  "categoria": "alumbrado",
+  "trabajadores": [
+    { "id": 5, "nombre": "Ana", "puesto": "Técnica", "disponible": true, "equipo_id": 1 }
+  ]
+}
+```
+
+`TrabajadorResponse`:
+```json
+{ "id": 5, "nombre": "Ana", "puesto": "Técnica | null", "disponible": true, "equipo_id": 1 }
+```
+> `equipo_id` es `null` cuando el trabajador no está asignado a ningún equipo.
+
+### Equipos (CRUD)
+
+#### `GET /equipos`
+Lista todos los equipos (con sus trabajadores anidados). Lista simple, sin paginar.
+- `200` → `[ EquipoResponse, … ]`
+
+#### `POST /equipos`
+Crea un equipo. **Body:** `{ "nombre": "Brigada A", "categoria": "infraestructura" }`.
+- `201` → `EquipoResponse` (con `trabajadores: []`) · `422` → `categoria` fuera del enum / `nombre` vacío.
+
+#### `GET /equipos/{id}`
+Detalle de un equipo.
+- `200` → `EquipoResponse` · `404` → no existe.
+
+#### `PATCH /equipos/{id}`
+Edita `nombre` y/o `categoria` (ambos opcionales; solo se aplican los campos presentes). **Body:** `{ "nombre": "Nuevo", "categoria": "trafico" }`.
+- `200` → `EquipoResponse` · `404` → no existe.
+
+#### `DELETE /equipos/{id}`
+Borra un equipo. Sus trabajadores quedan con `equipo_id: null` (no se borran).
+- `204` → eliminado (sin cuerpo) · `404` → no existe.
+
+### Trabajadores dentro de un equipo
+
+#### `POST /equipos/{id}/trabajadores`
+Crea un trabajador y lo **asigna** al equipo `{id}`. **Body:** `{ "nombre": "Ana", "puesto": "Técnica", "disponible": true }` (`puesto` opcional, `disponible` por defecto `true`).
+- `201` → `TrabajadorResponse` (con `equipo_id = {id}`) · `404` → el equipo no existe.
+
+#### `DELETE /equipos/{id}/trabajadores/{trabajador_id}`
+**Desasigna** un trabajador del equipo (le pone `equipo_id: null`). **No lo borra.**
+- `204` → desasignado (sin cuerpo) · `404` → el equipo o el trabajador no existen, o el trabajador no pertenece a ese equipo.
+
+### Trabajadores (CRUD independiente)
+
+#### `GET /trabajadores`
+Lista todos los trabajadores (asignados y sin asignar).
+- `200` → `[ TrabajadorResponse, … ]`
+
+#### `PATCH /trabajadores/{id}`
+Edita `nombre`, `puesto` y/o `disponible` (todos opcionales; solo se aplican los campos presentes).
+- `200` → `TrabajadorResponse` · `404` → no existe.
+
+#### `DELETE /trabajadores/{id}`
+Borra un trabajador.
+- `204` → eliminado (sin cuerpo) · `404` → no existe.
+
+---
+
 ## 🧱 Modelo de respuesta `IncidenciaResponse`
 ```json
 {
@@ -279,6 +355,7 @@ Activa/desactiva un usuario. **Body:** `{ "activo": false }` (o `true`).
 | Gestión de usuarios y roles (solo admin) | `GET /users`, `PATCH /users/{id}/rol` | #27 ✅ |
 | Autor de incidencia + "mis incidencias" | `POST /incidencias` (auth opcional), `GET /incidencias/mias` | #33 ✅ |
 | CRUD admin de usuarios + estado activo/bloqueo de login | `POST /users`, `PATCH /users/{id}`, `DELETE /users/{id}`, `PATCH /users/{id}/estado` | #34 ✅ |
+| Equipos y trabajadores (solo admin) | `GET`/`POST`/`PATCH`/`DELETE /equipos`, `POST`/`DELETE /equipos/{id}/trabajadores`, `GET`/`PATCH`/`DELETE /trabajadores` | #35 ✅ |
 | Crear / detalle / imágenes | `POST`/`GET /incidencias`, `/imagenes` | base ✅ |
 
 > Esta tabla y las secciones se ampliarán al completar nuevas issues del backend.

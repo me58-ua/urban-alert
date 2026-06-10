@@ -91,6 +91,31 @@ class User(Base):
 
     incidencias = relationship("Incidencia", back_populates="autor")
 
+class Equipo(Base):
+    """Equipo operativo (issue #35). Su `categoria` reutiliza el CategoriaEnum
+    del backend (las 6 categorías existentes). Solo lo gestiona un admin."""
+    __tablename__ = "equipos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String(120), nullable=False)
+    categoria = Column(SQLEnum(CategoriaEnum), nullable=False)
+
+    trabajadores = relationship("Trabajador", back_populates="equipo")
+
+class Trabajador(Base):
+    """Trabajador asignable a un equipo (issue #35). Al borrar un equipo, sus
+    trabajadores quedan con `equipo_id = NULL` (ON DELETE SET NULL): NO se
+    borran."""
+    __tablename__ = "trabajadores"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String(120), nullable=False)
+    puesto = Column(String(120), nullable=True)
+    disponible = Column(Boolean, nullable=False, default=True)
+    equipo_id = Column(Integer, ForeignKey("equipos.id", ondelete="SET NULL"), nullable=True, index=True)
+
+    equipo = relationship("Equipo", back_populates="trabajadores")
+
 class Notificacion(Base):
     __tablename__ = "notificaciones"
 
