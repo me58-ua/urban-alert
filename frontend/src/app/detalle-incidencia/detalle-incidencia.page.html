@@ -99,6 +99,10 @@
                 <p>{{ item.description }}</p>
               </div>
             </div>
+
+            <p class="timeline-empty" *ngIf="timeline.length === 0">
+              Aún no hay cambios de estado registrados.
+            </p>
           </ion-card-content>
         </ion-card>
 
@@ -121,46 +125,6 @@
           </ion-card-content>
         </ion-card>
 
-        <ion-card class="panel community-panel">
-          <ion-card-header>
-            <ion-card-title>Comunidad</ion-card-title>
-            <ion-card-subtitle>Comentarios y aportes de vecinos</ion-card-subtitle>
-          </ion-card-header>
-
-          <ion-card-content>
-            <div class="comment-list">
-              <article class="comment-item" *ngFor="let comment of comments; trackBy: trackByAuthor">
-                <div class="comment-item__avatar" aria-hidden="true">
-                  {{ comment.author.charAt(0) }}
-                </div>
-
-                <div class="comment-item__body">
-                  <div class="comment-item__top">
-                    <strong>{{ comment.author }}</strong>
-                    <span>{{ comment.date }}</span>
-                  </div>
-                  <p>{{ comment.message }}</p>
-                </div>
-              </article>
-            </div>
-
-            <form class="comment-form">
-              <label for="community-comment">Deja un comentario</label>
-              <textarea
-                id="community-comment"
-                rows="4"
-                placeholder="Añade información útil para el equipo municipal o para otros vecinos..."
-              ></textarea>
-
-              <div class="comment-form__actions">
-                <ion-button class="comment-button" fill="solid" type="button">
-                  <ion-icon slot="start" name="chatbubble-ellipses-outline"></ion-icon>
-                  Publicar comentario
-                </ion-button>
-              </div>
-            </form>
-          </ion-card-content>
-        </ion-card>
       </div>
 
       <aside class="side-column">
