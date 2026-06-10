@@ -1,26 +1,24 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
-type UserRole = 'ciudadano' | 'admin';
-type UserStatus = 'activo' | 'bloqueado';
+import { Rol, Usuario, UsersService } from '../services/users.service';
 
 interface AdminMenuItem {
   label: string;
   route: string;
   icon: string;
-}
-
-interface PlatformUser {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  role: UserRole;
-  status: UserStatus;
-  registeredAt: string;
 }
 
 @Component({
@@ -31,13 +29,19 @@ interface PlatformUser {
   imports: [CommonModule, FormsModule, IonicModule, RouterModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UsersManagementPage {
+export class UsersManagementPage implements OnInit {
+  private readonly usersService = inject(UsersService);
+  private readonly cdr = inject(ChangeDetectorRef);
+
   readonly brandMarkUrl =
     'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
   readonly isMenuOpen = signal(false);
   readonly popoverEvent = signal<Event | undefined>(undefined);
   readonly editingUserId = signal<number | null>(null);
+
+  readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
 
   readonly menuItems: AdminMenuItem[] = [
     { label: 'Dashboard', route: '/admin', icon: 'grid-outline' },
@@ -47,48 +51,43 @@ export class UsersManagementPage {
     { label: 'Vista ciudadana', route: '/home', icon: 'people-outline' },
   ];
 
-  readonly users = signal<PlatformUser[]>([
-    {
-      id: 1,
-      name: 'Maha Admin',
-      email: 'admin@urban-alert.local',
-      phone: '+34 600 100 200',
-      role: 'admin',
-      status: 'activo',
-      registeredAt: '2026-05-28',
-    },
-    {
-      id: 2,
-      name: 'Laura Martin',
-      email: 'laura@example.com',
-      phone: '+34 600 200 300',
-      role: 'ciudadano',
-      status: 'activo',
-      registeredAt: '2026-06-01',
-    },
-    {
-      id: 3,
-      name: 'Diego Cano',
-      email: 'diego@example.com',
-      phone: '+34 600 300 400',
-      role: 'ciudadano',
-      status: 'bloqueado',
-      registeredAt: '2026-06-04',
-    },
-  ]);
+  readonly users = signal<Usuario[]>([]);
 
-  newUser: Omit<PlatformUser, 'id' | 'registeredAt'> = {
-    name: '',
+  newUser: { email: string; password: string; rol: Rol } = {
     email: '',
-    phone: '',
-    role: 'ciudadano',
-    status: 'activo',
+    password: '',
+    rol: 'ciudadano',
   };
 
-  draftUser: PlatformUser | null = null;
+  draftEmail = '';
 
-  readonly adminCount = computed(() => this.users().filter((user) => user.role === 'admin').length);
-  readonly activeCount = computed(() => this.users().filter((user) => user.status === 'activo').length);
+  readonly adminCount = computed(
+    () => this.users().filter((user) => user.rol === 'admin').length,
+  );
+  readonly activeCount = computed(
+    () => this.users().filter((user) => user.activo).length,
+  );
+
+  ngOnInit(): void {
+    this.loadUsers();
+  }
+
+  loadUsers(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.usersService.listar().subscribe({
+      next: (page) => {
+        this.users.set(page.items);
+        this.loading.set(false);
+        this.cdr.markForCheck();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.error.set(this.messageFromError(err, 'No se pudieron cargar los usuarios.'));
+        this.loading.set(false);
+        this.cdr.markForCheck();
+      },
+    });
+  }
 
   openMenu(event: Event) {
     this.popoverEvent.set(event);
@@ -101,78 +100,111 @@ export class UsersManagementPage {
   }
 
   createUser() {
-    const name = this.newUser.name.trim();
     const email = this.newUser.email.trim();
-    if (!name || !email) return;
+    const password = this.newUser.password;
+    if (!email || !password) return;
 
-    const nextId = Math.max(0, ...this.users().map((user) => user.id)) + 1;
-    this.users.update((users) => [
-      ...users,
-      {
-        ...this.newUser,
-        id: nextId,
-        name,
-        email,
-        phone: this.newUser.phone.trim(),
-        registeredAt: new Date().toISOString().slice(0, 10),
-      },
-    ]);
-
-    this.newUser = {
-      name: '',
-      email: '',
-      phone: '',
-      role: 'ciudadano',
-      status: 'activo',
-    };
+    this.error.set(null);
+    this.usersService
+      .crear({ email, password, rol: this.newUser.rol })
+      .subscribe({
+        next: () => {
+          this.newUser = { email: '', password: '', rol: 'ciudadano' };
+          this.loadUsers();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.error.set(this.messageFromError(err, 'No se pudo crear el usuario.'));
+          this.cdr.markForCheck();
+        },
+      });
   }
 
-  startEdit(user: PlatformUser) {
+  startEdit(user: Usuario) {
     this.editingUserId.set(user.id);
-    this.draftUser = { ...user };
+    this.draftEmail = user.email;
   }
 
   cancelEdit() {
     this.editingUserId.set(null);
-    this.draftUser = null;
+    this.draftEmail = '';
   }
 
-  saveEdit() {
-    if (!this.draftUser) return;
-    const updated = {
-      ...this.draftUser,
-      name: this.draftUser.name.trim(),
-      email: this.draftUser.email.trim(),
-      phone: this.draftUser.phone.trim(),
-    };
-    if (!updated.name || !updated.email) return;
+  saveEdit(userId: number) {
+    const email = this.draftEmail.trim();
+    if (!email) return;
 
-    this.users.update((users) => users.map((user) => (user.id === updated.id ? updated : user)));
-    this.cancelEdit();
+    this.error.set(null);
+    this.usersService.actualizarEmail(userId, email).subscribe({
+      next: () => {
+        this.cancelEdit();
+        this.loadUsers();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.error.set(this.messageFromError(err, 'No se pudo actualizar el email.'));
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   deleteUser(userId: number) {
-    this.users.update((users) => users.filter((user) => user.id !== userId));
-    if (this.editingUserId() === userId) this.cancelEdit();
+    this.error.set(null);
+    this.usersService.eliminar(userId).subscribe({
+      next: () => {
+        if (this.editingUserId() === userId) this.cancelEdit();
+        this.loadUsers();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.error.set(this.messageFromError(err, 'No se pudo eliminar el usuario.'));
+        this.cdr.markForCheck();
+      },
+    });
   }
 
-  changeRole(userId: number, role: UserRole) {
-    this.users.update((users) => users.map((user) => (user.id === userId ? { ...user, role } : user)));
+  changeRole(userId: number, rol: Rol) {
+    this.error.set(null);
+    this.usersService.cambiarRol(userId, rol).subscribe({
+      next: () => this.loadUsers(),
+      error: (err: HttpErrorResponse) => {
+        this.error.set(this.messageFromError(err, 'No se pudo cambiar el rol.'));
+        this.cdr.markForCheck();
+      },
+    });
   }
 
-  changeStatus(userId: number, status: UserStatus) {
-    this.users.update((users) => users.map((user) => (user.id === userId ? { ...user, status } : user)));
+  changeEstado(userId: number, activo: boolean) {
+    this.error.set(null);
+    this.usersService.cambiarEstado(userId, activo).subscribe({
+      next: () => this.loadUsers(),
+      error: (err: HttpErrorResponse) => {
+        this.error.set(this.messageFromError(err, 'No se pudo cambiar el estado.'));
+        this.cdr.markForCheck();
+      },
+    });
   }
 
-  roleLabel(role: UserRole): string {
-    return role === 'admin' ? 'Admin' : 'Ciudadano';
+  roleLabel(rol: Rol): string {
+    return rol === 'admin' ? 'Admin' : 'Ciudadano';
   }
 
-  statusLabel(status: UserStatus): string {
-    return status === 'activo' ? 'Activo' : 'Bloqueado';
+  estadoLabel(activo: boolean): string {
+    return activo ? 'Activo' : 'Inactivo';
   }
 
-  trackByUserId = (_index: number, item: PlatformUser) => item.id;
+  /**
+   * Extrae un mensaje legible del error del backend.
+   * FastAPI suele devolver `{ detail: '…' }` (string) en los 400.
+   */
+  private messageFromError(err: HttpErrorResponse, fallback: string): string {
+    const detail = err?.error?.detail;
+    if (typeof detail === 'string' && detail.trim()) return detail;
+    if (Array.isArray(detail) && detail.length && detail[0]?.msg) {
+      return String(detail[0].msg);
+    }
+    if (typeof err?.error === 'string' && err.error.trim()) return err.error;
+    return fallback;
+  }
+
+  trackByUserId = (_index: number, item: Usuario) => item.id;
   trackByMenuLabel = (_index: number, item: AdminMenuItem) => item.label;
 }
 

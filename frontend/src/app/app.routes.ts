@@ -65,6 +65,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'notificaciones',
+    loadComponent: () =>
+      import('./notificaciones/notificaciones.page').then(
+        (m) => m.NotificacionesPage
+      ),
+  },
+  {
     path: 'login',
     loadComponent: () => import('./auth/login.page').then((m) => m.LoginPage),
   },

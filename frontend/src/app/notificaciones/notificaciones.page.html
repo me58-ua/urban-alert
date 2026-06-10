@@ -1,0 +1,112 @@
+<ion-header class="notifs-header" translucent="true">
+  <ion-toolbar class="notifs-toolbar">
+    <div class="toolbar-layout">
+      <a class="brand" routerLink="/home" aria-label="Urban Alert">
+        <span class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="" />
+        </span>
+
+        <span class="brand__text">
+          <span class="brand__title">Urban Alert</span>
+          <span class="brand__subtitle">Notificaciones</span>
+        </span>
+      </a>
+
+      <app-menu></app-menu>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="notifs-page" fullscreen="true">
+  <main class="page-shell">
+    <section class="page-intro">
+      <div>
+        <ion-chip class="eyebrow">
+          <ion-icon name="notifications-outline"></ion-icon>
+          <ion-label>Avisos de seguimiento</ion-label>
+        </ion-chip>
+        <h1>Notificaciones</h1>
+        <p>Revisa los cambios de estado de las incidencias y marca como leidas las que ya hayas visto.</p>
+      </div>
+
+      <ion-button class="refresh-button" fill="outline" (click)="cargar()">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        Actualizar
+      </ion-button>
+    </section>
+
+    <section class="status-panel" *ngIf="loading()">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando notificaciones...</p>
+    </section>
+
+    <section class="status-panel status-panel--error" *ngIf="!loading() && error()">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ error() }}</p>
+    </section>
+
+    <section
+      class="status-panel"
+      *ngIf="!loading() && !error() && items().length === 0"
+    >
+      <ion-icon name="notifications-off-outline"></ion-icon>
+      <p>No tienes notificaciones por el momento.</p>
+    </section>
+
+    <section
+      class="notifs-list"
+      *ngIf="!loading() && !error() && items().length > 0"
+      aria-label="Lista de notificaciones"
+    >
+      <article
+        class="notif-card"
+        *ngFor="let notif of items(); trackBy: trackById"
+        [class.notif-card--unread]="!notif.leida"
+      >
+        <div class="notif-card__indicator" aria-hidden="true"></div>
+
+        <div class="notif-card__body">
+          <div class="notif-card__top">
+            <span
+              class="notif-card__status"
+              [class.notif-card__status--read]="notif.leida"
+            >
+              {{ formatStatus(notif.estado_nuevo) }}
+            </span>
+            <span class="notif-card__badge" *ngIf="!notif.leida">No leida</span>
+          </div>
+
+          <p class="notif-card__message">{{ notif.mensaje }}</p>
+
+          <div class="notif-card__meta">
+            <span>
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              Incidencia #{{ notif.incidencia_id }}
+            </span>
+            <span>
+              <ion-icon name="calendar-outline"></ion-icon>
+              {{ formatDate(notif.fecha_creacion) }}
+            </span>
+          </div>
+
+          <ion-button
+            *ngIf="!notif.leida"
+            class="notif-card__action"
+            size="small"
+            fill="solid"
+            [disabled]="isMarking(notif.id)"
+            (click)="marcarLeida(notif.id)"
+          >
+            <ion-spinner
+              *ngIf="isMarking(notif.id)"
+              slot="start"
+              name="crescent"
+            ></ion-spinner>
+            <ion-icon *ngIf="!isMarking(notif.id)" slot="start" name="checkmark-outline"></ion-icon>
+            Marcar como leida
+          </ion-button>
+        </div>
+      </article>
+    </section>
+  </main>
+</ion-content>

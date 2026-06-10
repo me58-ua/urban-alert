@@ -1,1 +1,38 @@
+// Banner de error (alta duplicada, autoaccion 400, etc.).
+.users-page .users-error {
+  align-items: center;
+  background: #ffe9e7;
+  border: 1px solid #f5b5b0;
+  border-radius: 0.65rem;
+  color: #8f1d17;
+  display: flex;
+  font-weight: 700;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
 
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 1.2rem;
+  }
+}
+
+// El modelo del backend solo tiene id/email/rol/activo: 5 columnas de tabla
+// (ID, Email, Rol, Estado, Acciones) en vez de las 6 del mock original.
+:host ::ng-deep .users-page .users-head,
+:host ::ng-deep .users-page .users-row {
+  grid-template-columns:
+    4rem
+    minmax(14rem, 1.4fr)
+    minmax(7rem, 0.7fr)
+    minmax(7rem, 0.7fr)
+    minmax(6rem, 0.6fr);
+  min-width: 48rem;
+}
+
+// El formulario de alta pasa a 4 controles: Email, Password, Rol, Crear.
+@media (min-width: 760px) {
+  :host ::ng-deep .users-page .user-form {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(8rem, 0.7fr) auto;
+  }
+}
