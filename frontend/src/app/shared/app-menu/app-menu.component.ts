@@ -26,6 +26,7 @@ export class AppMenuComponent {
     { label: 'Mapa', route: '/mapa-incidencias', icon: 'map-outline' },
     { label: 'Reportar', route: '/crear-incidencia', icon: 'add-circle-outline' },
     { label: 'Mis incidencias', route: '/mis-incidencias', icon: 'document-text-outline' },
+    { label: 'Notificaciones', route: '/notificaciones', icon: 'notifications-outline' },
   ];
 
   constructor(private readonly router: Router) {}
