@@ -84,7 +84,7 @@ export class EquiposManagementPage {
   readonly availableWorkersCount = computed(() => this.workers().filter((worker) => worker.available).length);
 
   readonly vm$ = this.incidencias.listar().pipe(
-    map((incidents): TeamsViewModel => ({ incidents, loading: false, error: null })),
+    map(({ items: incidents }): TeamsViewModel => ({ incidents, loading: false, error: null })),
     startWith({ incidents: [], loading: true, error: null }),
     catchError(() =>
       of({

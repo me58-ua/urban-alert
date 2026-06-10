@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
-type UserRole = 'user' | 'admin';
+type UserRole = 'ciudadano' | 'admin';
 type UserStatus = 'activo' | 'bloqueado';
 
 interface AdminMenuItem {
@@ -62,7 +62,7 @@ export class UsersManagementPage {
       name: 'Laura Martin',
       email: 'laura@example.com',
       phone: '+34 600 200 300',
-      role: 'user',
+      role: 'ciudadano',
       status: 'activo',
       registeredAt: '2026-06-01',
     },
@@ -71,7 +71,7 @@ export class UsersManagementPage {
       name: 'Diego Cano',
       email: 'diego@example.com',
       phone: '+34 600 300 400',
-      role: 'user',
+      role: 'ciudadano',
       status: 'bloqueado',
       registeredAt: '2026-06-04',
     },
@@ -81,7 +81,7 @@ export class UsersManagementPage {
     name: '',
     email: '',
     phone: '',
-    role: 'user',
+    role: 'ciudadano',
     status: 'activo',
   };
 
@@ -122,7 +122,7 @@ export class UsersManagementPage {
       name: '',
       email: '',
       phone: '',
-      role: 'user',
+      role: 'ciudadano',
       status: 'activo',
     };
   }
@@ -165,7 +165,7 @@ export class UsersManagementPage {
   }
 
   roleLabel(role: UserRole): string {
-    return role === 'admin' ? 'Admin' : 'Usuario';
+    return role === 'admin' ? 'Admin' : 'Ciudadano';
   }
 
   statusLabel(status: UserStatus): string {

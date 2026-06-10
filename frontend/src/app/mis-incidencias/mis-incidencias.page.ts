@@ -28,7 +28,7 @@ export class MisIncidenciasPage {
     'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
   readonly vm$ = this.incidencias.listar().pipe(
-    map((incidents): IncidenciasViewModel => ({ incidents, loading: false, error: null })),
+    map(({ items: incidents }): IncidenciasViewModel => ({ incidents, loading: false, error: null })),
     startWith({ incidents: [], loading: true, error: null }),
     catchError(() =>
       of({

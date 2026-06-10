@@ -52,6 +52,8 @@ export class CrearIncidenciaPage {
     { label: 'Baches', icon: 'construct-outline' },
     { label: 'Vandalismo', icon: 'alert-circle-outline' },
     { label: 'Mobiliario', icon: 'business-outline' },
+    { label: 'Trafico', icon: 'map-outline' },
+    { label: 'Zonas verdes', icon: 'location-outline' },
   ];
 
   readonly priorities: Priority[] = ['Baja', 'Media', 'Alta'];
@@ -63,6 +65,8 @@ export class CrearIncidenciaPage {
     Baches: 'infraestructura',
     Vandalismo: 'otro',
     Mobiliario: 'infraestructura',
+    Trafico: 'trafico',
+    'Zonas verdes': 'zonas_verdes',
   };
 
   goTo(stepNum: number) {
