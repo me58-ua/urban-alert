@@ -6,7 +6,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
-import { Estado, Incidencia, IncidenciasService, Prioridad } from '../services/incidencias.service';
+import { Estado, Historial, Incidencia, IncidenciasService, Prioridad } from '../services/incidencias.service';
 
 interface TimelineItem {
   title: string;
@@ -23,12 +23,6 @@ interface DetailItem {
 interface EvidenceItem {
   label: string;
   type: string;
-}
-
-interface CommentItem {
-  author: string;
-  date: string;
-  message: string;
 }
 
 @Component({
@@ -86,51 +80,10 @@ export class DetalleIncidenciaPage {
     { label: 'Referencia', type: 'Ubicación exacta' },
   ];
 
-  readonly comments: CommentItem[] = [
-    {
-      author: 'María G.',
-      date: 'Hoy, 19:12',
-      message:
-        'Confirmo que la zona queda muy oscura al cruzar. También afecta a la parada cercana.',
-    },
-    {
-      author: 'Carlos R.',
-      date: 'Hoy, 19:28',
-      message:
-        'Hay otra farola intermitente unos metros más adelante, junto al paso de peatones.',
-    },
-  ];
-
-  readonly timeline: TimelineItem[] = [
-    {
-      title: 'Reporte recibido',
-      date: '09 Jun, 18:40',
-      description: 'La incidencia fue registrada correctamente.',
-      active: true,
-    },
-    {
-      title: 'En revisión municipal',
-      date: '09 Jun, 19:05',
-      description: 'El equipo de alumbrado está validando la ubicación.',
-      active: true,
-    },
-    {
-      title: 'Asignación de cuadrilla',
-      date: 'Pendiente',
-      description: 'Se notificará al ciudadano cuando el trabajo sea asignado.',
-      active: false,
-    },
-    {
-      title: 'Resuelta',
-      date: 'Pendiente',
-      description: 'Cierre y confirmacion final de la reparacion.',
-      active: false,
-    },
-  ];
+  timeline: TimelineItem[] = [];
 
   trackByTitle = (_index: number, item: { title: string }) => item.title;
   trackByLabel = (_index: number, item: { label: string }) => item.label;
-  trackByAuthor = (_index: number, item: { author: string }) => item.author;
 
   private async loadIncident() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -180,10 +133,27 @@ export class DetalleIncidenciaPage {
         }))
       : [{ label: 'Sin fotos', type: 'No hay evidencias adjuntas' }];
 
+    this.timeline = this.buildTimeline(incident.historial);
+
     this.photoUrl = this.imageUrl(incident);
     this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
       `https://www.openstreetmap.org/export/embed.html?bbox=${incident.longitud - 0.006}%2C${incident.latitud - 0.004}%2C${incident.longitud + 0.006}%2C${incident.latitud + 0.004}&layer=mapnik&marker=${incident.latitud}%2C${incident.longitud}`,
     );
+  }
+
+  private buildTimeline(historial: Historial[]): TimelineItem[] {
+    return [...historial]
+      .sort(
+        (a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime(),
+      )
+      .map((entry) => ({
+        title: entry.estado_anterior
+          ? `${this.formatStatus(entry.estado_anterior)} -> ${this.formatStatus(entry.estado_nuevo)}`
+          : this.formatStatus(entry.estado_nuevo),
+        date: this.formatTimelineDate(entry.fecha),
+        description: `Cambiado por ${entry.cambiado_por}`,
+        active: true,
+      }));
   }
 
   private imageUrl(incident: Incidencia): string | null {
@@ -252,6 +222,17 @@ export class DetalleIncidenciaPage {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
+    }).format(date);
+  }
+
+  private formatTimelineDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
     }).format(date);
   }
 }

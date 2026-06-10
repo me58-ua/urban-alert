@@ -3,8 +3,9 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { catchError, map, of, startWith } from 'rxjs';
+import { catchError, forkJoin, map, of, startWith } from 'rxjs';
 import { Estado, Incidencia, IncidenciasService } from '../services/incidencias.service';
+import { Estadisticas, StatsService } from '../services/stats.service';
 
 interface AdminMetric {
   label: string;
@@ -13,7 +14,7 @@ interface AdminMetric {
   tone: 'blue' | 'amber' | 'green' | 'red';
 }
 
-interface AdminViewModel {
+export interface AdminViewModel {
   incidents: Incidencia[];
   metrics: AdminMetric[];
   loading: boolean;
@@ -36,6 +37,7 @@ interface AdminMenuItem {
 })
 export class AdminDashboardPage {
   private readonly incidencias = inject(IncidenciasService);
+  private readonly stats = inject(StatsService);
   private readonly sanitizer = inject(DomSanitizer);
 
   readonly isMenuOpen = signal(false);
@@ -58,25 +60,28 @@ export class AdminDashboardPage {
     { label: 'Vista ciudadana', route: '/home', icon: 'people-outline' },
   ];
 
-  readonly vm$ = this.incidencias.listar().pipe(
-    map(({ items: incidents }): AdminViewModel => ({
-      incidents,
-      metrics: this.buildMetrics(incidents),
+  readonly vm$ = forkJoin({
+    stats: this.stats.obtener(),
+    page: this.incidencias.listar(),
+  }).pipe(
+    map(({ stats, page }): AdminViewModel => ({
+      incidents: page.items,
+      metrics: this.buildMetrics(stats),
       loading: false,
       error: null,
     })),
     startWith({
       incidents: [],
-      metrics: this.buildMetrics([]),
+      metrics: this.buildMetrics(null),
       loading: true,
       error: null,
     }),
     catchError(() =>
       of({
         incidents: [],
-        metrics: this.buildMetrics([]),
+        metrics: this.buildMetrics(null),
         loading: false,
-        error: 'No se pudieron cargar las incidencias del panel.',
+        error: 'No se pudieron cargar las métricas del panel.',
       }),
     ),
   );
@@ -159,12 +164,13 @@ export class AdminDashboardPage {
   trackByStatus = (_index: number, item: Estado) => item;
   trackByMenuLabel = (_index: number, item: AdminMenuItem) => item.label;
 
-  private buildMetrics(incidents: Incidencia[]): AdminMetric[] {
+  private buildMetrics(stats: Estadisticas | null): AdminMetric[] {
+    const porEstado = stats?.por_estado;
     return [
-      { label: 'Incidencias totales', value: incidents.length, icon: 'albums-outline', tone: 'blue' },
-      { label: 'Abiertas', value: this.countByStatus(incidents, 'abierta'), icon: 'alert-circle-outline', tone: 'red' },
-      { label: 'En progreso', value: this.countByStatus(incidents, 'en_progreso'), icon: 'construct-outline', tone: 'amber' },
-      { label: 'Resueltas', value: this.countByStatus(incidents, 'resuelta'), icon: 'checkmark-circle-outline', tone: 'green' },
+      { label: 'Incidencias totales', value: stats?.total ?? 0, icon: 'albums-outline', tone: 'blue' },
+      { label: 'Abiertas', value: porEstado?.abierta ?? 0, icon: 'alert-circle-outline', tone: 'red' },
+      { label: 'En progreso', value: porEstado?.en_progreso ?? 0, icon: 'construct-outline', tone: 'amber' },
+      { label: 'Resueltas', value: porEstado?.resuelta ?? 0, icon: 'checkmark-circle-outline', tone: 'green' },
     ];
   }
 }
