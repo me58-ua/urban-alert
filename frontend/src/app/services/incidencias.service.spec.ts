@@ -91,6 +91,37 @@ describe('IncidenciasService', () => {
     req.flush({ items: [], total: 0, limit: 5, offset: 10 } as IncidenciaPage);
   });
 
+  it('misIncidencias() hace GET a {apiUrl}/incidencias/mias y espera la forma paginada { items, total, limit, offset }', () => {
+    const page: IncidenciaPage = {
+      items: [incidencia],
+      total: 1,
+      limit: 20,
+      offset: 0,
+    };
+
+    let received: IncidenciaPage | undefined;
+    service.misIncidencias().subscribe((res) => {
+      received = res;
+    });
+
+    const req = httpMock.expectOne(`${base}/incidencias/mias`);
+    expect(req.request.method).toBe('GET');
+    req.flush(page);
+
+    expect(received).toEqual(page);
+    expect(received?.items.length).toBe(1);
+  });
+
+  it('misIncidencias() propaga limit/offset como query params', () => {
+    service.misIncidencias({ limit: 5, offset: 10 }).subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === `${base}/incidencias/mias`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('limit')).toBe('5');
+    expect(req.request.params.get('offset')).toBe('10');
+    req.flush({ items: [], total: 0, limit: 5, offset: 10 } as IncidenciaPage);
+  });
+
   it('obtener() hace GET a {apiUrl}/incidencias/:id', () => {
     service.obtener(7).subscribe((res) => {
       expect(res).toEqual(incidencia);

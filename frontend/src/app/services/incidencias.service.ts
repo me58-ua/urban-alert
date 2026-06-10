@@ -104,6 +104,21 @@ export class IncidenciasService {
     return this.http.get<IncidenciaPage>(`${this.base}/incidencias`, { params });
   }
 
+  /**
+   * Lista SOLO las incidencias del usuario autenticado (`GET /incidencias/mias`).
+   * Requiere sesión: el interceptor de auth añade el `Authorization: Bearer …`.
+   * Devuelve la respuesta paginada del backend: `{ items, total, limit, offset }`.
+   */
+  misIncidencias(filtros: { limit?: number; offset?: number } = {}): Observable<IncidenciaPage> {
+    let params = new HttpParams();
+    for (const [key, value] of Object.entries(filtros)) {
+      if (value !== undefined && value !== null) {
+        params = params.set(key, String(value));
+      }
+    }
+    return this.http.get<IncidenciaPage>(`${this.base}/incidencias/mias`, { params });
+  }
+
   /** Obtiene el detalle de una incidencia (incluye imágenes e historial). */
   obtener(id: number): Observable<Incidencia> {
     return this.http.get<Incidencia>(`${this.base}/incidencias/${id}`);
