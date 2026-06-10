@@ -170,6 +170,24 @@ Agregados calculados desde la BD para el dashboard. **Requiere `Authorization: B
 
 ---
 
+## 👥 Gestión de usuarios y roles — *issue #27* (solo admin)
+
+Todos requieren `Authorization: Bearer <token de admin>` (`401` sin token, `403` si el rol no es admin).
+
+### `GET /users`
+Lista usuarios paginada. Query: `limit` (1–100, def. 20), `offset` (≥0).
+```json
+{ "items": [ { "id": 1, "email": "user@example.com", "rol": "ciudadano" } ], "total": 1, "limit": 20, "offset": 0 }
+```
+
+### `PATCH /users/{id}/rol`
+Cambia el rol de un usuario (p. ej. **promover a admin**). **Body:** `{ "rol": "admin" }` (o `"ciudadano"`).
+- `200` → `UserResponse` actualizado · `400` → intento de cambiar **tu propio** rol · `404` → no existe.
+
+> **Primer admin (bootstrap):** como el registro público crea `ciudadano`, el primer administrador se crea con `python scripts/crear_admin.py <email> <password>` (o vía `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD`).
+
+---
+
 ## 🧱 Modelo de respuesta `IncidenciaResponse`
 ```json
 {
@@ -211,6 +229,7 @@ Agregados calculados desde la BD para el dashboard. **Requiere `Authorization: B
 | Validación/moderación de inputs e imágenes | `POST /incidencias`, `POST /incidencias/{id}/imagenes` | #10 ✅ |
 | Métricas / dashboard (solo admin) | `GET /stats` | #9, #26 ✅ |
 | Almacenamiento de imágenes (local/S3, persistente) | `POST /incidencias/{id}/imagenes` | #8 ✅ |
+| Gestión de usuarios y roles (solo admin) | `GET /users`, `PATCH /users/{id}/rol` | #27 ✅ |
 | Crear / detalle / imágenes | `POST`/`GET /incidencias`, `/imagenes` | base ✅ |
 
 > Esta tabla y las secciones se ampliarán al completar nuevas issues del backend.

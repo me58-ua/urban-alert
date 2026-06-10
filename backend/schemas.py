@@ -89,6 +89,18 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
+class RolUpdate(BaseModel):
+    rol: RolEnum
+
+class UsuariosPage(BaseModel):
+    """Respuesta paginada del listado de usuarios (admin)."""
+    items: List[UserResponse]
+    total: int
+    limit: int
+    offset: int
+
+    model_config = ConfigDict(from_attributes=True)
+
 # ── Notificaciones ───────────────────────────────────────────────────────────
 class NotificacionResponse(BaseModel):
     id: int

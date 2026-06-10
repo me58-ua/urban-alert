@@ -38,5 +38,10 @@ class Settings(BaseSettings):
     s3_access_key: Optional[str] = None
     s3_secret_key: Optional[str] = None
 
+    # Bootstrap del primer administrador (issue #27): crea/promueve un admin con
+    # estas credenciales (vía el script scripts/crear_admin.py).
+    bootstrap_admin_email: Optional[str] = None
+    bootstrap_admin_password: Optional[str] = None
+
 
 settings = Settings()

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import incidencias, auth, notificaciones, stats
+from routers import incidencias, auth, notificaciones, stats, users
 from config import settings
 import os
 
@@ -40,6 +40,7 @@ app.include_router(auth.router)
 app.include_router(incidencias.router)
 app.include_router(notificaciones.router)
 app.include_router(stats.router)
+app.include_router(users.router)
 
 @app.get("/ping")
 def ping():
