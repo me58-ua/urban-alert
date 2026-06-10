@@ -1,10 +1,22 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { CrearIncidenciaPage } from './crear-incidencia/crear-incidencia.page';
+
+const redirectAdminHome = () => {
+  const router = inject(Router);
+  return localStorage.getItem('urban-alert-role') === 'admin' ? router.parseUrl('/admin') : true;
+};
 
 export const routes: Routes = [
   {
     path: 'home',
+    canActivate: [redirectAdminHome],
     loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
+  },
+  {
+    path: 'admin',
+    loadComponent: () =>
+      import('./admin/admin-dashboard.page').then((m) => m.AdminDashboardPage),
   },
   {
     path: 'crear-incidencia',
