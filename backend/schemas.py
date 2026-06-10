@@ -48,6 +48,23 @@ class EstadoUpdate(BaseModel):
     estado: Optional[EstadoEnum] = None
     prioridad: Optional[PrioridadEnum] = None
 
+class EquipoResumen(BaseModel):
+    """Resumen ligero del equipo asignado a una incidencia (issue #36).
+
+    Se expone anidado en ``IncidenciaResponse`` para evitar arrastrar los
+    trabajadores del equipo en el detalle de la incidencia.
+    """
+    id: int
+    nombre: str
+    categoria: CategoriaEnum
+
+    model_config = ConfigDict(from_attributes=True)
+
+class AsignarEquipoUpdate(BaseModel):
+    """Body del PATCH para asignar/desasignar un equipo a una incidencia
+    (issue #36). ``equipo_id = null`` desasigna el equipo."""
+    equipo_id: Optional[int] = None
+
 class IncidenciaResponse(BaseModel):
     id: int
     titulo: str
@@ -58,6 +75,8 @@ class IncidenciaResponse(BaseModel):
     latitud: float
     longitud: float
     user_id: Optional[int] = None
+    equipo_id: Optional[int] = None
+    equipo: Optional[EquipoResumen] = None
     fecha_creacion: datetime
     fecha_actualizacion: datetime
     imagenes: List[ImagenResponse] = []

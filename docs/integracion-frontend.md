@@ -138,6 +138,19 @@ Requiere `Authorization: Bearer <token de admin>` (sustituye a la antigua cabece
 - `200` → `IncidenciaResponse` actualizada. Se registra una entrada en `historial` ante **cualquier** cambio real de **estado y/o prioridad** (con sus valores anterior/nuevo); un PATCH sin cambios reales no genera entrada. *(issue #6)*
 - `401` sin token · `403` si el rol no es admin · `404` si no existe.
 
+### `PATCH /incidencias/{id}/equipo` — asignar/desasignar equipo — **solo admin** — *issue #36*
+Asigna (o desasigna) un **equipo** a una incidencia. Requiere `Authorization: Bearer <token de admin>`.
+**Body JSON:**
+```json
+{ "equipo_id": 3 }    // asignar el equipo 3
+{ "equipo_id": null } // desasignar (la incidencia queda sin equipo)
+```
+- **Validación de compatibilidad de categoría:** un equipo **solo** puede asignarse a incidencias de su **misma `categoria`**. Si la categoría del equipo no coincide con la de la incidencia → `409`.
+- `200` → `IncidenciaResponse` actualizada (con `equipo_id` y el resumen `equipo`).
+- `401` sin token · `403` si el rol no es admin · `404` si **la incidencia o el equipo** no existen · `409` si la categoría del equipo no coincide con la de la incidencia.
+
+> Al desasignar (`equipo_id: null`), `equipo_id` y `equipo` quedan `null`. Si se borra el equipo (DELETE /equipos/{id}), las incidencias que lo tenían quedan automáticamente con `equipo_id: null` (ON DELETE SET NULL).
+
 ### `POST /incidencias/{id}/imagenes` — subir imagen
 `multipart/form-data` con campo **`file`**. Validación robusta *(issue #10)*:
 - Solo **JPEG** o **PNG**, verificado por el **contenido real** (*magic bytes*), no solo por el `content_type` → un archivo que falsee el `content_type` se rechaza.
@@ -322,12 +335,17 @@ Borra un trabajador.
   "latitud": 38.477,
   "longitud": -0.791,
   "user_id": 1,                            // autor (issue #33); null si anónima
+  "equipo_id": 3,                          // equipo asignado (issue #36); null si sin equipo
+  "equipo": {                              // resumen del equipo (issue #36); null si sin equipo
+    "id": 3, "nombre": "Brigada de alumbrado", "categoria": "alumbrado"
+  },
   "fecha_creacion": "2026-06-09T20:00:00Z",
   "fecha_actualizacion": "2026-06-09T20:00:00Z",
   "imagenes": [ { "id", "ruta", "fecha_subida" } ],
   "historial": [ { "id", "estado_anterior", "estado_nuevo", "prioridad_anterior", "prioridad_nueva", "cambiado_por", "fecha" } ]
 }
 ```
+> *(issue #36)* El detalle de la incidencia ahora expone `equipo_id` (id del equipo asignado, o `null`) y `equipo` (resumen `{ id, nombre, categoria }` del equipo, o `null`).
 
 ## 🔢 Enums
 - **categoria**: `infraestructura`, `alumbrado`, `residuos`, `trafico`, `zonas_verdes`, `otro`
@@ -356,6 +374,7 @@ Borra un trabajador.
 | Autor de incidencia + "mis incidencias" | `POST /incidencias` (auth opcional), `GET /incidencias/mias` | #33 ✅ |
 | CRUD admin de usuarios + estado activo/bloqueo de login | `POST /users`, `PATCH /users/{id}`, `DELETE /users/{id}`, `PATCH /users/{id}/estado` | #34 ✅ |
 | Equipos y trabajadores (solo admin) | `GET`/`POST`/`PATCH`/`DELETE /equipos`, `POST`/`DELETE /equipos/{id}/trabajadores`, `GET`/`PATCH`/`DELETE /trabajadores` | #35 ✅ |
+| Asignar equipo a incidencia con validación de categoría (solo admin) | `PATCH /incidencias/{id}/equipo`; `equipo`/`equipo_id` en `IncidenciaResponse` | #36 ✅ |
 | Crear / detalle / imágenes | `POST`/`GET /incidencias`, `/imagenes` | base ✅ |
 
 > Esta tabla y las secciones se ampliarán al completar nuevas issues del backend.
