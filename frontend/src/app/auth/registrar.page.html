@@ -67,7 +67,9 @@
           <span>Acepto las condiciones de uso y la política de privacidad.</span>
         </label>
 
-        <ion-button class="primary-action" type="submit" expand="block">
+        <p class="form-error" role="alert" *ngIf="error">{{ error }}</p>
+
+        <ion-button class="primary-action" type="submit" expand="block" [disabled]="loading">
           Registrarme
         </ion-button>
       </form>
