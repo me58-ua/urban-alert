@@ -1,6 +1,6 @@
-def test_estadisticas_sin_datos(client):
+def test_estadisticas_sin_datos(client, admin_headers):
     # Debe ir primero: la BD del módulo aún está vacía (sin incidencias).
-    res = client.get("/stats")
+    res = client.get("/stats", headers=admin_headers)
     assert res.status_code == 200
     data = res.json()
     assert data["total"] == 0
@@ -10,6 +10,13 @@ def test_estadisticas_sin_datos(client):
     # Las claves de los conteos existen aunque todo esté a 0
     assert set(data["por_estado"].keys()) == {"abierta", "en_progreso", "resuelta", "rechazada"}
     assert sum(data["por_estado"].values()) == 0
+
+
+def test_stats_requiere_admin(client, ciudadano_headers):
+    # Sin token -> 401
+    assert client.get("/stats").status_code == 401
+    # Rol ciudadano (insuficiente) -> 403
+    assert client.get("/stats", headers=ciudadano_headers).status_code == 403
 
 
 def test_estadisticas(client, admin_headers):
@@ -26,7 +33,7 @@ def test_estadisticas(client, admin_headers):
     # Resolver una (cambia estado -> resuelta)
     client.patch(f"/incidencias/{ids[0]}", json={"estado": "resuelta"}, headers=admin_headers)
 
-    res = client.get("/stats")
+    res = client.get("/stats", headers=admin_headers)
     assert res.status_code == 200
     data = res.json()
 
