@@ -9,6 +9,7 @@ import {
 import { IonicModule } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { NotificacionesService } from '../../services/notificaciones.service';
 
 interface AppMenuItem {
   label: string;
@@ -26,9 +27,17 @@ interface AppMenuItem {
 })
 export class AppMenuComponent {
   private readonly auth = inject(AuthService);
+  private readonly notificaciones = inject(NotificacionesService);
 
   readonly isOpen = signal(false);
   readonly popoverEvent = signal<Event | undefined>(undefined);
+
+  /**
+   * Nº de notificaciones NO leídas. Se refresca al abrir el menú, igual que el
+   * estado de sesión. Es independiente de la reactividad de los signals de
+   * sesión: se rellena vía HTTP (`listar({ leida: false })`).
+   */
+  readonly unreadCount = signal(0);
 
   /**
    * Contador que se incrementa en cada cambio de sesión para forzar el
@@ -71,8 +80,24 @@ export class AppMenuComponent {
   toggle(event: Event) {
     // Releer el estado de sesión cada vez que se abre el menú.
     this.sessionVersion.update((v) => v + 1);
+    // Refrescar el contador de no leídas al abrir (no al cerrar).
+    if (!this.isOpen()) {
+      this.refreshUnreadCount();
+    }
     this.popoverEvent.set(event);
     this.isOpen.update((isOpen) => !isOpen);
+  }
+
+  /**
+   * Recalcula el nº de notificaciones no leídas pidiendo
+   * `GET /notificaciones?leida=false`. Si la petición falla, el contador se
+   * pone a 0 para no mostrar un badge obsoleto.
+   */
+  refreshUnreadCount() {
+    this.notificaciones.listar({ leida: false }).subscribe({
+      next: (items) => this.unreadCount.set(items.length),
+      error: () => this.unreadCount.set(0),
+    });
   }
 
   goTo(route: string, event: Event) {

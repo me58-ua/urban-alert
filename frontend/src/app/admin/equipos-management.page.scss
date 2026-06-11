@@ -1,1 +1,64 @@
+.workers-management-panel {
+  .workers-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 
+  .worker-manage-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--ion-color-step-100, rgba(0, 0, 0, 0.08));
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  .worker-manage-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    small {
+      opacity: 0.7;
+    }
+  }
+
+  .worker-manage-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .worker-manage-edit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+
+    ion-input {
+      flex: 1 1 12rem;
+    }
+  }
+
+  .worker-manage-edit__actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .icon-link {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    color: var(--ion-color-primary, #3880ff);
+    font-size: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+  }
+}

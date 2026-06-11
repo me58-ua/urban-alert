@@ -46,6 +46,13 @@ export interface TrabajadorCreate {
   disponible?: boolean;
 }
 
+/** Cuerpo de edición de trabajador (`PATCH /trabajadores/{id}`). */
+export interface TrabajadorUpdate {
+  nombre?: string;
+  puesto?: string | null;
+  disponible?: boolean;
+}
+
 /**
  * Cliente HTTP de la API de gestión de equipos y trabajadores (solo admin).
  * La URL base se toma de `environment.apiUrl`.
@@ -103,6 +110,35 @@ export class EquiposService {
     return this.http.delete<void>(
       `${this.base}/equipos/${equipoId}/trabajadores/${trabajadorId}`,
     );
+  }
+
+  // ── CRUD independiente de trabajadores ────────────────────────────────────
+
+  /**
+   * Lista TODOS los trabajadores (`GET /trabajadores`), incluidos los que no
+   * pertenecen a ningún equipo (`equipo_id === null`).
+   */
+  listarTrabajadores(): Observable<Trabajador[]> {
+    return this.http.get<Trabajador[]>(`${this.base}/trabajadores`);
+  }
+
+  /**
+   * Actualiza nombre, puesto y/o disponibilidad de un trabajador
+   * (`PATCH /trabajadores/{id}`). Devuelve el trabajador actualizado.
+   */
+  actualizarTrabajador(
+    id: number,
+    cambios: TrabajadorUpdate,
+  ): Observable<Trabajador> {
+    return this.http.patch<Trabajador>(
+      `${this.base}/trabajadores/${id}`,
+      cambios,
+    );
+  }
+
+  /** Elimina un trabajador de forma permanente (`DELETE /trabajadores/{id}`). */
+  eliminarTrabajador(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/trabajadores/${id}`);
   }
 
   /**

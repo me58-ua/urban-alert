@@ -10,6 +10,15 @@ import { environment } from '../../environments/environment';
 import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
 import { AuthService } from '../services/auth.service';
 import { Estado, Historial, Incidencia, IncidenciasService, Prioridad } from '../services/incidencias.service';
+import { Notificacion, NotificacionesService } from '../services/notificaciones.service';
+
+interface AvisoView {
+  id: number;
+  mensaje: string;
+  estadoLabel: string;
+  fecha: string;
+  leida: boolean;
+}
 
 interface TimelineItem {
   title: string;
@@ -56,6 +65,7 @@ export class DetalleIncidenciaPage {
   private readonly route = inject(ActivatedRoute);
   private readonly incidencias = inject(IncidenciasService);
   private readonly auth = inject(AuthService);
+  private readonly notificaciones = inject(NotificacionesService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   readonly brandMarkUrl =
@@ -76,6 +86,14 @@ export class DetalleIncidenciaPage {
   saving = false;
   adminError: string | null = null;
   adminSuccess: string | null = null;
+
+  // ── Avisos por incidencia (#64) ───────────────────────────────────────────
+  /** Avisos (notificaciones) asociados a la incidencia cargada. */
+  avisos: AvisoView[] = [];
+  avisosLoading = false;
+  avisosError: string | null = null;
+  /** Ids de avisos cuyo PATCH /leer está en vuelo. */
+  private readonly markingAvisos = new Set<number>();
 
   readonly estadoOptions: { value: Estado; label: string }[] = [
     { value: 'abierta', label: 'Abierta' },
@@ -125,6 +143,7 @@ export class DetalleIncidenciaPage {
 
   trackByTitle = (_index: number, item: { title: string }) => item.title;
   trackByLabel = (_index: number, item: { label: string }) => item.label;
+  trackByAvisoId = (_index: number, item: AvisoView) => item.id;
 
   private async loadIncident() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -143,12 +162,86 @@ export class DetalleIncidenciaPage {
       const incident = await firstValueFrom(this.incidencias.obtener(id));
       this.applyIncident(incident);
       this.loaded = true;
+      // Cargar los avisos de esta incidencia (no bloquea el detalle si falla).
+      this.loadAvisos(id);
     } catch {
       this.error = 'No se pudo cargar el detalle de esta incidencia.';
     } finally {
       this.loading = false;
       this.cdr.markForCheck();
     }
+  }
+
+  /**
+   * Carga los avisos (notificaciones) de la incidencia con
+   * `GET /notificaciones?incidencia_id=`. Es independiente del detalle: su
+   * error se muestra en la propia sección sin romper la página.
+   */
+  private loadAvisos(id: number): void {
+    this.avisosLoading = true;
+    this.avisosError = null;
+    this.cdr.markForCheck();
+
+    this.notificaciones.listar({ incidencia_id: id }).subscribe({
+      next: (items) => {
+        this.avisos = items.map((n) => this.toAvisoView(n));
+        this.avisosLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.avisosError = 'No se pudieron cargar los avisos de esta incidencia.';
+        this.avisosLoading = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  /** Marca un aviso como leído y actualiza el item en la lista. */
+  marcarAvisoLeido(id: number): void {
+    if (this.markingAvisos.has(id)) return;
+    this.markingAvisos.add(id);
+    this.cdr.markForCheck();
+
+    this.notificaciones.marcarLeida(id).subscribe({
+      next: (actualizada) => {
+        this.avisos = this.avisos.map((a) =>
+          a.id === id ? { ...this.toAvisoView(actualizada), leida: true } : a,
+        );
+        this.markingAvisos.delete(id);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.avisosError = 'No se pudo marcar el aviso como leído. Inténtalo de nuevo.';
+        this.markingAvisos.delete(id);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  isMarkingAviso(id: number): boolean {
+    return this.markingAvisos.has(id);
+  }
+
+  private toAvisoView(n: Notificacion): AvisoView {
+    return {
+      id: n.id,
+      mensaje: n.mensaje,
+      estadoLabel: this.formatStatus(n.estado_nuevo as Estado),
+      fecha: this.formatAvisoDate(n.fecha_creacion),
+      leida: n.leida,
+    };
+  }
+
+  private formatAvisoDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
   }
 
   /**

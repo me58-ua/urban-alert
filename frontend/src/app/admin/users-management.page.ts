@@ -46,6 +46,23 @@ export class UsersManagementPage implements OnInit {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
+  // ── Paginación (#62) ───────────────────────────────────────────────────────
+  readonly limit = 20;
+  readonly offset = signal(0);
+  readonly total = signal(0);
+
+  /** Texto "X-Y de total" para el pie de paginación (1-based, vacío si no hay datos). */
+  readonly rangeLabel = computed(() => {
+    const total = this.total();
+    if (total === 0) return '0 de 0';
+    const start = this.offset() + 1;
+    const end = Math.min(this.offset() + this.limit, total);
+    return `${start}-${end} de ${total}`;
+  });
+
+  readonly canPrev = computed(() => this.offset() > 0);
+  readonly canNext = computed(() => this.offset() + this.limit < this.total());
+
   readonly menuItems: AdminMenuItem[] = [
     { label: 'Dashboard', route: '/admin', icon: 'grid-outline' },
     { label: 'Incidencias', route: '/admin/incidencias', icon: 'document-text-outline' },
@@ -79,9 +96,10 @@ export class UsersManagementPage implements OnInit {
   loadUsers(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.usersService.listar().subscribe({
+    this.usersService.listar(this.limit, this.offset()).subscribe({
       next: (page) => {
         this.users.set(page.items);
+        this.total.set(page.total);
         this.loading.set(false);
         this.cdr.markForCheck();
       },
@@ -91,6 +109,20 @@ export class UsersManagementPage implements OnInit {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  /** Página anterior: retrocede un bloque de `limit` y recarga. */
+  prevPage(): void {
+    if (!this.canPrev()) return;
+    this.offset.set(Math.max(0, this.offset() - this.limit));
+    this.loadUsers();
+  }
+
+  /** Página siguiente: avanza un bloque de `limit` y recarga. */
+  nextPage(): void {
+    if (!this.canNext()) return;
+    this.offset.set(this.offset() + this.limit);
+    this.loadUsers();
   }
 
   openMenu(event: Event) {

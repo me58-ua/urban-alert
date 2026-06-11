@@ -99,6 +99,66 @@ describe('AdminDashboardPage', () => {
     expect(vm.metrics[3].value).toBe(10); // resueltas
     expect(vm.incidents.length).toBe(1);
     expect(vm.incidents[0].titulo).toBe('Farola fundida');
+    // El view model ahora expone las estadísticas completas de /stats.
+    expect(vm.stats).toEqual(stats);
+  });
+
+  it('activityByDay agrupa incidencias reales por día (7 cubos, sin valores fijos)', () => {
+    const hoy = new Date();
+    hoy.setHours(12, 0, 0, 0);
+    const ayer = new Date(hoy);
+    ayer.setDate(hoy.getDate() - 1);
+
+    const incidents: any[] = [
+      { ...page.items[0], id: 10, fecha_creacion: hoy.toISOString() },
+      { ...page.items[0], id: 11, fecha_creacion: hoy.toISOString() },
+      { ...page.items[0], id: 12, fecha_creacion: ayer.toISOString() },
+    ];
+
+    const bars = component.activityByDay(incidents);
+    expect(bars.length).toBe(7);
+    // Último cubo = hoy con 2 reportes (el día más activo → size 100).
+    expect(bars[6].count).toBe(2);
+    expect(bars[6].size).toBe(100);
+    // Penúltimo = ayer con 1 reporte (mitad → size 50).
+    expect(bars[5].count).toBe(1);
+    expect(bars[5].size).toBe(50);
+    expect(component.activityTotal(bars)).toBe(3);
+  });
+
+  it('activityByDay sin incidencias devuelve 7 cubos a cero', () => {
+    const bars = component.activityByDay([]);
+    expect(bars.length).toBe(7);
+    expect(bars.every((bar) => bar.count === 0 && bar.size === 0)).toBeTrue();
+    expect(component.activityTotal(bars)).toBe(0);
+  });
+
+  it('categoryBreakdown y priorityBreakdown ordenan y escalan desde /stats', () => {
+    const categorias = component.categoryBreakdown(stats);
+    expect(categorias.length).toBe(6);
+    // alumbrado (12) es el máximo → primero y al 100%.
+    expect(categorias[0].key).toBe('alumbrado');
+    expect(categorias[0].size).toBe(100);
+
+    const prioridades = component.priorityBreakdown(stats);
+    expect(prioridades[0].key).toBe('media'); // 18, el máximo
+    expect(prioridades[0].size).toBe(100);
+
+    // Sin stats no peta y devuelve listas vacías.
+    expect(component.categoryBreakdown(null)).toEqual([]);
+    expect(component.priorityBreakdown(null)).toEqual([]);
+  });
+
+  it('formatea tiempo de resolución (— si null) y porcentajes', () => {
+    expect(component.formatResolutionTime(14.53)).toBe('14.5 h');
+    expect(component.formatResolutionTime(null)).toBe('—');
+    expect(component.formatPercent(23.81)).toBe('23.8%');
+    expect(component.formatPercent(null)).toBe('—');
+  });
+
+  it('hasIncidents distingue el estado "sin datos" del donut', () => {
+    expect(component.hasIncidents([])).toBeFalse();
+    expect(component.hasIncidents(page.items)).toBeTrue();
   });
 
   it('logout() cierra sesión y navega a /login', () => {

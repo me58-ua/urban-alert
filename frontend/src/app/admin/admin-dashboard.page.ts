@@ -15,9 +15,30 @@ interface AdminMetric {
   tone: 'blue' | 'amber' | 'green' | 'red';
 }
 
+/** Una barra del gráfico de actividad real (reportes por día). */
+export interface ActivityBar {
+  /** Etiqueta corta del día (L, M, X, J, V, S, D). */
+  label: string;
+  /** Número de incidencias creadas ese día. */
+  count: number;
+  /** Altura relativa de la barra respecto al día más activo (0–100). */
+  size: number;
+}
+
+/** Fila de un desglose (categoría o prioridad) con barra proporcional. */
+export interface BreakdownRow {
+  key: string;
+  label: string;
+  count: number;
+  /** Porcentaje respecto al valor máximo del desglose (0–100). */
+  size: number;
+}
+
 export interface AdminViewModel {
   incidents: Incidencia[];
   metrics: AdminMetric[];
+  /** Estadísticas agregadas de `/stats` (null mientras carga o si falla). */
+  stats: Estadisticas | null;
   loading: boolean;
   error: string | null;
 }
@@ -71,12 +92,14 @@ export class AdminDashboardPage {
     map(({ stats, page }): AdminViewModel => ({
       incidents: page.items,
       metrics: this.buildMetrics(stats),
+      stats,
       loading: false,
       error: null,
     })),
     startWith({
       incidents: [],
       metrics: this.buildMetrics(null),
+      stats: null,
       loading: true,
       error: null,
     }),
@@ -84,6 +107,7 @@ export class AdminDashboardPage {
       of({
         incidents: [],
         metrics: this.buildMetrics(null),
+        stats: null,
         loading: false,
         error: 'No se pudieron cargar las métricas del panel.',
       }),
@@ -153,6 +177,96 @@ export class AdminDashboardPage {
     return Math.round((this.countByStatus(incidents, 'resuelta') / incidents.length) * 100);
   }
 
+  /** Hay datos reales para pintar el donut (evita un anillo al 0% que parece roto). */
+  hasIncidents(incidents: Incidencia[]): boolean {
+    return incidents.length > 0;
+  }
+
+  /**
+   * Construye el gráfico de actividad REAL agrupando las incidencias por día de
+   * `fecha_creacion` durante los últimos 7 días (de más antiguo a hoy). La altura
+   * de cada barra es proporcional al día con más reportes. Sin valores fijos.
+   */
+  activityByDay(incidents: Incidencia[]): ActivityBar[] {
+    const dayLabels = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const buckets: ActivityBar[] = [];
+    const counts: Record<string, number> = {};
+
+    for (const incident of incidents) {
+      const created = new Date(incident.fecha_creacion);
+      if (Number.isNaN(created.getTime())) continue;
+      created.setHours(0, 0, 0, 0);
+      const key = created.getTime().toString();
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+
+    for (let offset = 6; offset >= 0; offset--) {
+      const day = new Date(today);
+      day.setDate(today.getDate() - offset);
+      const key = day.getTime().toString();
+      buckets.push({
+        label: dayLabels[day.getDay()],
+        count: counts[key] ?? 0,
+        size: 0,
+      });
+    }
+
+    const max = buckets.reduce((peak, bar) => Math.max(peak, bar.count), 0);
+    if (max > 0) {
+      for (const bar of buckets) {
+        bar.size = Math.round((bar.count / max) * 100);
+      }
+    }
+    return buckets;
+  }
+
+  /** Total de reportes de los últimos 7 días según el gráfico de actividad. */
+  activityTotal(bars: ActivityBar[]): number {
+    return bars.reduce((sum, bar) => sum + bar.count, 0);
+  }
+
+  /** Desglose ordenado de `por_categoria` con barras proporcionales. */
+  categoryBreakdown(stats: Estadisticas | null): BreakdownRow[] {
+    return this.toBreakdown(stats?.por_categoria, (key) => this.formatCategory(key));
+  }
+
+  /** Desglose ordenado de `por_prioridad` con barras proporcionales. */
+  priorityBreakdown(stats: Estadisticas | null): BreakdownRow[] {
+    return this.toBreakdown(stats?.por_prioridad, (key) => this.formatPriority(key));
+  }
+
+  /** Formatea el tiempo medio de resolución; muestra "—" si el backend devuelve null. */
+  formatResolutionTime(hours: number | null | undefined): string {
+    if (hours == null) return '—';
+    return `${Math.round(hours * 10) / 10} h`;
+  }
+
+  /** Formatea un porcentaje (0–100) con un decimal como máximo. */
+  formatPercent(value: number | null | undefined): string {
+    if (value == null) return '—';
+    return `${Math.round(value * 10) / 10}%`;
+  }
+
+  private toBreakdown(
+    source: Record<string, number> | undefined,
+    label: (key: string) => string,
+  ): BreakdownRow[] {
+    if (!source) return [];
+    const entries = Object.entries(source);
+    const max = entries.reduce((peak, [, value]) => Math.max(peak, value), 0);
+    return entries
+      .map(([key, count]) => ({
+        key,
+        label: label(key),
+        count,
+        size: max > 0 ? Math.round((count / max) * 100) : 0,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }
+
   openMenu(event: Event) {
     this.popoverEvent.set(event);
     this.isMenuOpen.set(true);
@@ -174,6 +288,8 @@ export class AdminDashboardPage {
   trackByLabel = (_index: number, item: { label: string }) => item.label;
   trackByStatus = (_index: number, item: Estado) => item;
   trackByMenuLabel = (_index: number, item: AdminMenuItem) => item.label;
+  trackByBarIndex = (index: number) => index;
+  trackByKey = (_index: number, item: BreakdownRow) => item.key;
 
   private buildMetrics(stats: Estadisticas | null): AdminMetric[] {
     const porEstado = stats?.por_estado;

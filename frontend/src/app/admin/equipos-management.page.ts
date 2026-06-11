@@ -14,7 +14,12 @@ import { Router, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
 import { AuthService } from '../services/auth.service';
-import { Categoria, Equipo, EquiposService } from '../services/equipos.service';
+import {
+  Categoria,
+  Equipo,
+  EquiposService,
+  Trabajador,
+} from '../services/equipos.service';
 import { Incidencia, IncidenciasService } from '../services/incidencias.service';
 
 interface AdminMenuItem {
@@ -58,6 +63,15 @@ export class EquiposManagementPage implements OnInit {
   readonly incidentsError = signal<string | null>(null);
   readonly assignError = signal<string | null>(null);
   readonly assignSuccess = signal<string | null>(null);
+
+  // ── Estado de la gestión global de trabajadores (#63) ──────────────────────
+  readonly workers = signal<Trabajador[]>([]);
+  readonly workersLoading = signal(false);
+  readonly workersError = signal<string | null>(null);
+  /** Id del trabajador que se está editando inline (o null). */
+  readonly editingWorkerId = signal<number | null>(null);
+  /** Borrador de edición inline del trabajador. */
+  workerDraft: { nombre: string; puesto: string } = { nombre: '', puesto: '' };
 
   readonly menuItems: AdminMenuItem[] = [
     { label: 'Dashboard', route: '/admin', icon: 'grid-outline' },
@@ -110,9 +124,15 @@ export class EquiposManagementPage implements OnInit {
     ),
   );
 
+  /** Trabajadores sin equipo asignado (`equipo_id === null`). */
+  readonly unassignedWorkersCount = computed(
+    () => this.workers().filter((w) => w.equipo_id === null).length,
+  );
+
   ngOnInit(): void {
     this.loadTeams();
     this.loadIncidents();
+    this.loadWorkers();
   }
 
   loadTeams(): void {
@@ -266,6 +286,7 @@ export class EquiposManagementPage implements OnInit {
         next: () => {
           this.newWorker = { nombre: '', puesto: '' };
           this.loadTeams();
+          this.loadWorkers();
         },
         error: (err: HttpErrorResponse) => {
           this.error.set(
@@ -279,7 +300,10 @@ export class EquiposManagementPage implements OnInit {
   removeWorker(teamId: number, trabajadorId: number) {
     this.error.set(null);
     this.equiposService.quitarTrabajador(teamId, trabajadorId).subscribe({
-      next: () => this.loadTeams(),
+      next: () => {
+        this.loadTeams();
+        this.loadWorkers();
+      },
       error: (err: HttpErrorResponse) => {
         this.error.set(
           this.messageFromError(err, 'No se pudo quitar el trabajador.'),
@@ -287,6 +311,112 @@ export class EquiposManagementPage implements OnInit {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  // ── CRUD global de trabajadores (#63) ─────────────────────────────────────
+  loadWorkers(): void {
+    this.workersLoading.set(true);
+    this.workersError.set(null);
+    this.equiposService.listarTrabajadores().subscribe({
+      next: (workers) => {
+        this.workers.set(workers);
+        this.workersLoading.set(false);
+        this.cdr.markForCheck();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.workersError.set(
+          this.messageFromError(err, 'No se pudieron cargar los trabajadores.'),
+        );
+        this.workersLoading.set(false);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  /** Comienza la edición inline de nombre/puesto de un trabajador. */
+  startEditWorker(worker: Trabajador): void {
+    this.editingWorkerId.set(worker.id);
+    this.workerDraft = {
+      nombre: worker.nombre,
+      puesto: worker.puesto ?? '',
+    };
+  }
+
+  cancelEditWorker(): void {
+    this.editingWorkerId.set(null);
+    this.workerDraft = { nombre: '', puesto: '' };
+  }
+
+  /** Guarda nombre/puesto editados inline (`PATCH /trabajadores/{id}`). */
+  saveWorker(workerId: number): void {
+    const nombre = this.workerDraft.nombre.trim();
+    if (!nombre) return;
+    const puesto = this.workerDraft.puesto.trim();
+
+    this.workersError.set(null);
+    this.equiposService
+      .actualizarTrabajador(workerId, { nombre, puesto: puesto || null })
+      .subscribe({
+        next: () => {
+          this.cancelEditWorker();
+          this.loadWorkers();
+          // El nombre/puesto también aparece embebido en los equipos.
+          this.loadTeams();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.workersError.set(
+            this.messageFromError(err, 'No se pudo actualizar el trabajador.'),
+          );
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  /** Alterna la disponibilidad de un trabajador (`PATCH /trabajadores/{id}`). */
+  toggleWorkerAvailability(worker: Trabajador): void {
+    this.workersError.set(null);
+    this.equiposService
+      .actualizarTrabajador(worker.id, { disponible: !worker.disponible })
+      .subscribe({
+        next: () => {
+          this.loadWorkers();
+          this.loadTeams();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.workersError.set(
+            this.messageFromError(
+              err,
+              'No se pudo cambiar la disponibilidad del trabajador.',
+            ),
+          );
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  /** Borra un trabajador de forma permanente (`DELETE /trabajadores/{id}`). */
+  deleteWorker(workerId: number): void {
+    this.workersError.set(null);
+    this.equiposService.eliminarTrabajador(workerId).subscribe({
+      next: () => {
+        if (this.editingWorkerId() === workerId) this.cancelEditWorker();
+        this.loadWorkers();
+        this.loadTeams();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.workersError.set(
+          this.messageFromError(err, 'No se pudo eliminar el trabajador.'),
+        );
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  /** Nombre del equipo de un trabajador, o "Sin asignar" si no tiene. */
+  workerTeamLabel(worker: Trabajador): string {
+    if (worker.equipo_id === null) return 'Sin asignar';
+    const team = this.equipos().find((t) => t.id === worker.equipo_id);
+    return team ? `${team.nombre} (EQ-${team.id})` : `EQ-${worker.equipo_id}`;
   }
 
   // ── Asignación de equipo a incidencia ─────────────────────────────────────

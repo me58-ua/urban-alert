@@ -18,7 +18,7 @@
 </ion-header>
 
 <ion-content class="incidents-page" fullscreen="true">
-  <main class="page-shell" *ngIf="vm$ | async as vm">
+  <main class="page-shell">
     <section class="page-intro">
       <div>
         <ion-chip class="eyebrow">
@@ -35,29 +35,29 @@
       </ion-button>
     </section>
 
-    <section class="status-panel" *ngIf="vm.loading">
+    <section class="status-panel" *ngIf="loading()">
       <ion-spinner name="crescent"></ion-spinner>
       <p>Cargando incidencias...</p>
     </section>
 
-    <section class="status-panel status-panel--error" *ngIf="!vm.loading && vm.error">
+    <section class="status-panel status-panel--error" *ngIf="!loading() && error()">
       <ion-icon name="alert-circle-outline"></ion-icon>
-      <p>{{ vm.error }}</p>
+      <p>{{ error() }}</p>
     </section>
 
-    <section class="status-panel" *ngIf="!vm.loading && !vm.error && vm.incidents.length === 0">
+    <section class="status-panel" *ngIf="!loading() && !error() && incidents().length === 0">
       <ion-icon name="folder-open-outline"></ion-icon>
       <p>Todavia no tienes incidencias registradas.</p>
     </section>
 
     <section
       class="incidents-list"
-      *ngIf="!vm.loading && !vm.error && vm.incidents.length > 0"
+      *ngIf="!loading() && !error() && incidents().length > 0"
       aria-label="Lista de mis incidencias"
     >
       <a
         class="incident-card"
-        *ngFor="let incident of vm.incidents; trackBy: trackById"
+        *ngFor="let incident of incidents(); trackBy: trackById"
         [routerLink]="['/detalle-incidencia', incident.id]"
       >
         <div class="incident-card__photo">
@@ -100,5 +100,33 @@
         <ion-icon class="incident-card__arrow" name="chevron-forward-outline"></ion-icon>
       </a>
     </section>
+
+    <nav
+      class="pagination"
+      *ngIf="!loading() && !error() && total() > 0"
+      aria-label="Paginacion de incidencias"
+    >
+      <span class="pagination__info">{{ rangeLabel() }}</span>
+      <div class="pagination__controls">
+        <button
+          type="button"
+          class="pagination__button"
+          (click)="prevPage()"
+          [disabled]="!canPrev()"
+        >
+          <ion-icon name="chevron-back-outline"></ion-icon>
+          Anterior
+        </button>
+        <button
+          type="button"
+          class="pagination__button"
+          (click)="nextPage()"
+          [disabled]="!canNext()"
+        >
+          Siguiente
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </button>
+      </div>
+    </nav>
   </main>
 </ion-content>

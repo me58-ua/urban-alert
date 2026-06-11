@@ -201,6 +201,30 @@
           <span>No hay usuarios registrados.</span>
         </div>
       </div>
+
+      <nav class="pagination" *ngIf="total() > 0" aria-label="Paginacion de usuarios">
+        <span class="pagination__info">{{ rangeLabel() }}</span>
+        <div class="pagination__controls">
+          <button
+            type="button"
+            class="pagination__button"
+            (click)="prevPage()"
+            [disabled]="!canPrev()"
+          >
+            <ion-icon name="chevron-back-outline"></ion-icon>
+            Anterior
+          </button>
+          <button
+            type="button"
+            class="pagination__button"
+            (click)="nextPage()"
+            [disabled]="!canNext()"
+          >
+            Siguiente
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </button>
+        </div>
+      </nav>
     </section>
   </main>
 </ion-content>

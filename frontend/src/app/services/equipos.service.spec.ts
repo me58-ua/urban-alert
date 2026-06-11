@@ -127,6 +127,57 @@ describe('EquiposService', () => {
     req.flush(null);
   });
 
+  it('listarTrabajadores() hace GET a {apiUrl}/trabajadores y devuelve Trabajador[]', () => {
+    const sinEquipo: Trabajador = {
+      id: 20,
+      nombre: 'Marta Solo',
+      puesto: null,
+      disponible: false,
+      equipo_id: null,
+    };
+    let received: Trabajador[] | undefined;
+    service.listarTrabajadores().subscribe((res) => {
+      received = res;
+    });
+
+    const req = httpMock.expectOne(`${base}/trabajadores`);
+    expect(req.request.method).toBe('GET');
+    req.flush([trabajador, sinEquipo]);
+
+    expect(received).toEqual([trabajador, sinEquipo]);
+    expect(received?.length).toBe(2);
+    expect(received?.[1].equipo_id).toBeNull();
+  });
+
+  it('actualizarTrabajador() hace PATCH a {apiUrl}/trabajadores/:id', () => {
+    let received: Trabajador | undefined;
+    service
+      .actualizarTrabajador(10, { nombre: 'Laura M.', puesto: 'Jefa', disponible: false })
+      .subscribe((res) => {
+        received = res;
+      });
+
+    const req = httpMock.expectOne(`${base}/trabajadores/10`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({
+      nombre: 'Laura M.',
+      puesto: 'Jefa',
+      disponible: false,
+    });
+    req.flush({ ...trabajador, nombre: 'Laura M.', puesto: 'Jefa', disponible: false });
+
+    expect(received?.nombre).toBe('Laura M.');
+    expect(received?.disponible).toBeFalse();
+  });
+
+  it('eliminarTrabajador() hace DELETE a {apiUrl}/trabajadores/:id', () => {
+    service.eliminarTrabajador(10).subscribe();
+
+    const req = httpMock.expectOne(`${base}/trabajadores/10`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+  });
+
   it('asignarEquipoAIncidencia() hace PATCH a {apiUrl}/incidencias/:id/equipo con {equipo_id}', () => {
     let ok = false;
     service.asignarEquipoAIncidencia(7, 1).subscribe(() => {

@@ -43,6 +43,14 @@ describe('EquiposManagementPage', () => {
     equipo_id: 1,
   };
 
+  const trabajadorSinEquipo: Trabajador = {
+    id: 20,
+    nombre: 'Marta Solo',
+    puesto: null,
+    disponible: false,
+    equipo_id: null,
+  };
+
   const equipoAlumbrado: Equipo = {
     id: 1,
     nombre: 'Luz Norte',
@@ -76,12 +84,16 @@ describe('EquiposManagementPage', () => {
       'crearTrabajador',
       'quitarTrabajador',
       'asignarEquipoAIncidencia',
+      'listarTrabajadores',
+      'actualizarTrabajador',
+      'eliminarTrabajador',
     ]);
     incidenciasSpy = jasmine.createSpyObj<IncidenciasService>('IncidenciasService', [
       'listar',
     ]);
 
     equiposSpy.listarEquipos.and.returnValue(of([equipoAlumbrado, equipoResiduos]));
+    equiposSpy.listarTrabajadores.and.returnValue(of([trabajador, trabajadorSinEquipo]));
     incidenciasSpy.listar.and.returnValue(of(incidenciasPage));
 
     TestBed.configureTestingModule({
@@ -301,5 +313,136 @@ describe('EquiposManagementPage', () => {
     expect(component.categoryLabel('trafico')).toBe('Tráfico');
     expect(component.categoryLabel('zonas_verdes')).toBe('Zonas verdes');
     expect(component.categoryLabel('otro')).toBe('Otro');
+  });
+
+  // ── CRUD global de trabajadores (#63) ─────────────────────────────────────
+
+  it('ngOnInit carga todos los trabajadores, incluidos los sin equipo', () => {
+    component.ngOnInit();
+
+    expect(equiposSpy.listarTrabajadores).toHaveBeenCalledTimes(1);
+    expect(component.workers().length).toBe(2);
+    expect(component.unassignedWorkersCount()).toBe(1);
+    expect(component.workersLoading()).toBeFalse();
+  });
+
+  it('loadWorkers() con error rellena workersError() y no rompe', () => {
+    equiposSpy.listarTrabajadores.and.returnValue(
+      throwError(() => new HttpErrorResponse({ status: 500, statusText: 'Server' })),
+    );
+    component.loadWorkers();
+    expect(component.workersError()).toBe('No se pudieron cargar los trabajadores.');
+    expect(component.workersLoading()).toBeFalse();
+    expect(component.workers().length).toBe(0);
+  });
+
+  it('workerTeamLabel() muestra el equipo o "Sin asignar"', () => {
+    component.ngOnInit();
+    expect(component.workerTeamLabel(trabajador)).toBe('Luz Norte (EQ-1)');
+    expect(component.workerTeamLabel(trabajadorSinEquipo)).toBe('Sin asignar');
+  });
+
+  it('startEditWorker() / cancelEditWorker() gestionan el borrador inline', () => {
+    component.startEditWorker(trabajador);
+    expect(component.editingWorkerId()).toBe(10);
+    expect(component.workerDraft).toEqual({ nombre: 'Laura Martin', puesto: 'Electricista' });
+
+    component.startEditWorker(trabajadorSinEquipo);
+    expect(component.workerDraft.puesto).toBe('');
+
+    component.cancelEditWorker();
+    expect(component.editingWorkerId()).toBeNull();
+    expect(component.workerDraft.nombre).toBe('');
+  });
+
+  it('saveWorker() hace PATCH con nombre/puesto y refresca', () => {
+    component.ngOnInit();
+    equiposSpy.actualizarTrabajador.and.returnValue(
+      of({ ...trabajador, nombre: 'Laura M.', puesto: 'Jefa' }),
+    );
+
+    component.startEditWorker(trabajador);
+    component.workerDraft = { nombre: '  Laura M.  ', puesto: '  Jefa  ' };
+    component.saveWorker(10);
+
+    expect(equiposSpy.actualizarTrabajador).toHaveBeenCalledWith(10, {
+      nombre: 'Laura M.',
+      puesto: 'Jefa',
+    });
+    expect(component.editingWorkerId()).toBeNull();
+    // init (1) + tras guardar (1)
+    expect(equiposSpy.listarTrabajadores).toHaveBeenCalledTimes(2);
+  });
+
+  it('saveWorker() envía puesto null cuando se deja vacío', () => {
+    component.ngOnInit();
+    equiposSpy.actualizarTrabajador.and.returnValue(of(trabajador));
+
+    component.startEditWorker(trabajador);
+    component.workerDraft = { nombre: 'Laura', puesto: '   ' };
+    component.saveWorker(10);
+
+    expect(equiposSpy.actualizarTrabajador).toHaveBeenCalledWith(10, {
+      nombre: 'Laura',
+      puesto: null,
+    });
+  });
+
+  it('saveWorker() no llama al backend con nombre vacío', () => {
+    component.ngOnInit();
+    component.workerDraft = { nombre: '   ', puesto: 'Operario' };
+    component.saveWorker(10);
+    expect(equiposSpy.actualizarTrabajador).not.toHaveBeenCalled();
+  });
+
+  it('toggleWorkerAvailability() invierte disponible vía PATCH', () => {
+    component.ngOnInit();
+    equiposSpy.actualizarTrabajador.and.returnValue(
+      of({ ...trabajador, disponible: false }),
+    );
+
+    component.toggleWorkerAvailability(trabajador); // estaba true
+    expect(equiposSpy.actualizarTrabajador).toHaveBeenCalledWith(10, {
+      disponible: false,
+    });
+
+    component.toggleWorkerAvailability(trabajadorSinEquipo); // estaba false
+    expect(equiposSpy.actualizarTrabajador).toHaveBeenCalledWith(20, {
+      disponible: true,
+    });
+  });
+
+  it('deleteWorker() llama eliminarTrabajador y refresca trabajadores y equipos', () => {
+    component.ngOnInit();
+    equiposSpy.eliminarTrabajador.and.returnValue(of(void 0));
+
+    component.deleteWorker(10);
+
+    expect(equiposSpy.eliminarTrabajador).toHaveBeenCalledWith(10);
+    // listarTrabajadores: init (1) + tras borrar (1)
+    expect(equiposSpy.listarTrabajadores).toHaveBeenCalledTimes(2);
+    // listarEquipos: init (1) + tras borrar (1)
+    expect(equiposSpy.listarEquipos).toHaveBeenCalledTimes(2);
+  });
+
+  it('deleteWorker() cancela la edición inline si era el trabajador editado', () => {
+    component.ngOnInit();
+    equiposSpy.eliminarTrabajador.and.returnValue(of(void 0));
+
+    component.startEditWorker(trabajador);
+    expect(component.editingWorkerId()).toBe(10);
+
+    component.deleteWorker(10);
+    expect(component.editingWorkerId()).toBeNull();
+  });
+
+  it('deleteWorker() con error rellena workersError()', () => {
+    component.ngOnInit();
+    equiposSpy.eliminarTrabajador.and.returnValue(
+      throwError(() => new HttpErrorResponse({ status: 500, statusText: 'Server' })),
+    );
+
+    component.deleteWorker(10);
+    expect(component.workersError()).toBe('No se pudo eliminar el trabajador.');
   });
 });

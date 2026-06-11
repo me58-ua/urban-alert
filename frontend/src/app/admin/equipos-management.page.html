@@ -300,5 +300,109 @@
         </div>
       </div>
     </section>
+
+    <section class="panel workers-management-panel">
+      <div class="panel__header">
+        <div>
+          <h2>Trabajadores</h2>
+          <p>
+            Gestiona todos los trabajadores ({{ workers().length }} en total ·
+            {{ unassignedWorkersCount() }} sin asignar). Edita nombre y puesto,
+            cambia su disponibilidad o eliminalos.
+          </p>
+        </div>
+      </div>
+
+      <div class="offline-banner" *ngIf="workersError()">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>{{ workersError() }}</span>
+      </div>
+
+      <section class="state-panel teams-loading" *ngIf="workersLoading()">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Cargando trabajadores...</span>
+      </section>
+
+      <div class="workers-table" *ngIf="!workersLoading()">
+        <div class="empty-state" *ngIf="workers().length === 0">
+          <ion-icon name="person-outline"></ion-icon>
+          <span>Aun no hay trabajadores registrados.</span>
+        </div>
+
+        <div
+          class="worker-manage-row"
+          *ngFor="let worker of workers(); trackBy: trackByWorkerId"
+        >
+          <ng-container *ngIf="editingWorkerId() === worker.id; else workerView">
+            <div class="worker-manage-edit">
+              <ion-input
+                fill="outline"
+                label="Nombre"
+                labelPlacement="floating"
+                [(ngModel)]="workerDraft.nombre"
+                name="workerDraftName"
+              ></ion-input>
+              <ion-input
+                fill="outline"
+                label="Puesto (opcional)"
+                labelPlacement="floating"
+                [(ngModel)]="workerDraft.puesto"
+                name="workerDraftRole"
+              ></ion-input>
+              <div class="worker-manage-edit__actions">
+                <ion-button
+                  size="small"
+                  (click)="saveWorker(worker.id)"
+                  [disabled]="!workerDraft.nombre.trim()"
+                >
+                  Guardar
+                </ion-button>
+                <ion-button size="small" fill="outline" (click)="cancelEditWorker()">
+                  Cancelar
+                </ion-button>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-template #workerView>
+            <div class="worker-manage-info">
+              <strong>{{ worker.nombre }}</strong>
+              <small>{{ worker.puesto || 'Sin puesto' }}</small>
+              <span class="status-pill status-pill--slate">
+                {{ workerTeamLabel(worker) }}
+              </span>
+            </div>
+
+            <div class="worker-manage-actions">
+              <ion-toggle
+                [checked]="worker.disponible"
+                (ionChange)="toggleWorkerAvailability(worker)"
+                aria-label="Disponible"
+              >
+                {{ worker.disponible ? 'Disponible' : 'No disponible' }}
+              </ion-toggle>
+
+              <button
+                class="icon-link"
+                type="button"
+                (click)="startEditWorker(worker)"
+                aria-label="Editar trabajador"
+              >
+                <ion-icon name="create-outline"></ion-icon>
+              </button>
+
+              <button
+                class="danger-link"
+                type="button"
+                (click)="deleteWorker(worker.id)"
+                aria-label="Eliminar trabajador"
+              >
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </section>
   </main>
 </ion-content>
