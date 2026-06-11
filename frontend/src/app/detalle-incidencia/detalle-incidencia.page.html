@@ -255,6 +255,7 @@
                 class="evidence-item"
                 type="button"
                 *ngFor="let item of evidence; trackBy: trackByLabel"
+                [attr.aria-label]="'Evidencia: ' + item.label + ' (' + item.type + ')'"
               >
                 <span class="evidence-item__image" [class.evidence-item__image--empty]="!item.imageUrl">
                   <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.label" loading="lazy" />

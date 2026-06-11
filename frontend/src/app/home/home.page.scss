@@ -5,13 +5,10 @@
   --surface: #ffffff;
   --surface-soft: #e4e9ed;
   --ink: #00152a;
-  --ink-strong: #0f172a;
   --ink-muted: #43474d;
-  --ink-faint: #64748b;
   --primary: #004ccb;
   --primary-strong: #0262ff;
   --navy: #00152a;
-  --navy-deep: #102a43;
   --shadow-soft: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
 }
 
@@ -19,109 +16,9 @@
   --background: var(--page-bg);
 }
 
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-.site-toolbar {
-  --background: rgba(248, 250, 252, 0.82);
-  --border-width: 0;
-  --padding-top: 0;
-  --padding-bottom: 0;
-  backdrop-filter: blur(12px);
-}
-
-.toolbar-layout {
-  align-items: center;
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-  margin: 0 auto;
-  max-width: 1200px;
-  padding: 0.9rem 1rem;
-  width: 100%;
-}
-
-.brand {
-  align-items: center;
-  display: flex;
-  gap: 0.75rem;
-  min-width: 0;
-}
-
-.brand__mark {
-  align-items: center;
-  background: #102a43;
-  border-radius: 0.75rem;
-  display: flex;
-  height: 2.5rem;
-  justify-content: center;
-  width: 2.5rem;
-
-  img {
-    display: block;
-    height: 1.25rem;
-    width: 1rem;
-    object-fit: contain;
-  }
-}
-
-.brand__text {
-  display: grid;
-  gap: 0.1rem;
-  min-width: 0;
-}
-
-.brand__title {
-  color: var(--ink-strong);
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-}
-
-.brand__subtitle {
-  color: var(--ink-muted);
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1.2;
-}
-
-.header-nav {
-  display: none;
-  gap: 1.75rem;
-}
-
-.header-nav__link {
-  color: #475569;
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  padding-bottom: 0.375rem;
-  text-decoration: none;
-
-  &--active {
-    border-bottom: 2px solid #2563eb;
-    color: #2563eb;
-  }
-}
-
-.login-button {
-  --background: #102a43;
-  --background-activated: #0c2238;
-  --background-focused: #0c2238;
-  --background-hover: #0c2238;
-  --border-radius: 0.5rem;
-  --color: #ffffff;
-  --box-shadow: none;
-  --padding-start: 1rem;
-  --padding-end: 1rem;
-  --padding-top: 0.45rem;
-  --padding-bottom: 0.45rem;
-  font-weight: 600;
-}
+// Cabecera (.site-header / .site-toolbar / .toolbar-layout / .brand* /
+// .header-nav / .login-button) y pie (.site-footer*) viven en global.scss (#67),
+// junto con la cabecera de marca compartida por las páginas ciudadanas.
 
 .page-shell {
   margin: 0 auto;
@@ -209,126 +106,10 @@
   justify-items: center;
 }
 
-.preview-card {
-  background: rgba(255, 255, 255, 0.72);
-  border-radius: 0.9rem;
-  box-shadow: var(--shadow-soft);
-  margin: 0;
-  max-width: 30rem;
-  overflow: hidden;
-  width: 100%;
-}
-
-.preview-card-link {
-  color: inherit;
-  display: block;
-  text-decoration: none;
-}
-
-.map-canvas {
-  background:
-    radial-gradient(circle at 50% 48%, rgba(186, 26, 26, 0.95) 0 0.9rem, transparent 0.95rem),
-    linear-gradient(180deg, rgba(15, 23, 42, 0.2), rgba(15, 23, 42, 0.55)),
-    linear-gradient(135deg, #6b7280 0%, #222831 45%, #0f172a 100%);
-  border-radius: 0.8rem;
-  height: 14rem;
-  margin: 1rem 1rem 0;
-  overflow: hidden;
-  position: relative;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-
-  &::before {
-    background-image:
-      linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px),
-      linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-      linear-gradient(180deg, transparent 72%, rgba(2, 6, 23, 0.55) 72%, rgba(2, 6, 23, 0.85) 100%);
-    background-size: 22px 22px, 22px 22px, 100% 100%;
-    mix-blend-mode: screen;
-    opacity: 0.25;
-  }
-
-  &::after {
-    background:
-      linear-gradient(180deg, transparent 0 74%, rgba(255, 255, 255, 0.06) 74% 76%, transparent 76%),
-      linear-gradient(135deg, transparent 0 24%, rgba(255, 255, 255, 0.1) 24% 26%, transparent 26%),
-      linear-gradient(90deg, transparent 0 34%, rgba(255, 255, 255, 0.08) 34% 35%, transparent 35% 100%);
-    opacity: 0.5;
-  }
-}
-
-.map-canvas__grid,
-.map-canvas__streets,
-.map-canvas__skyline {
-  position: absolute;
-  inset: 0;
-}
-
-.map-canvas__streets {
-  background:
-    linear-gradient(90deg, transparent 0 14%, rgba(255, 255, 255, 0.08) 14% 15%, transparent 15% 44%, rgba(255, 255, 255, 0.06) 44% 45%, transparent 45% 100%),
-    linear-gradient(180deg, transparent 0 28%, rgba(255, 255, 255, 0.1) 28% 29%, transparent 29% 64%, rgba(255, 255, 255, 0.08) 64% 65%, transparent 65% 100%);
-  opacity: 0.75;
-}
-
-.map-canvas__skyline {
-  background:
-    linear-gradient(180deg, transparent 0 70%, rgba(2, 6, 23, 0.2) 70% 100%),
-    linear-gradient(90deg, transparent 0 7%, rgba(2, 6, 23, 0.45) 7% 11%, transparent 11% 16%, rgba(2, 6, 23, 0.7) 16% 21%, transparent 21% 25%, rgba(2, 6, 23, 0.5) 25% 32%, transparent 32% 40%, rgba(2, 6, 23, 0.72) 40% 48%, transparent 48% 55%, rgba(2, 6, 23, 0.62) 55% 61%, transparent 61% 100%);
-  opacity: 0.72;
-}
-
-.map-canvas__pin {
-  background: #ba1a1a;
-  border: 4px solid #ffffff;
-  border-radius: 999px;
-  box-shadow: 0 0 0 10px rgb(255 255 255 / 0.08), 0 10px 24px rgb(0 0 0 / 0.25);
-  height: 1.9rem;
-  left: 56%;
-  position: absolute;
-  top: 48%;
-  transform: translate(-50%, -50%);
-  width: 1.9rem;
-  z-index: 1;
-}
-
-.preview-card__footer {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  padding: 0.9rem 1rem 1rem;
-}
-
-.preview-card__label {
-  color: #43474d;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.preview-card__status {
-  align-items: center;
-  color: var(--primary);
-  display: inline-flex;
-  font-size: 0.75rem;
-  font-weight: 700;
-  gap: 0.35rem;
-}
-
-.status-dot {
-  background: var(--primary);
-  border-radius: 999px;
-  display: inline-block;
-  height: 0.5rem;
-  width: 0.5rem;
-}
+// La tarjeta de previsualización del mapa del hero (.preview-card*, .map-canvas*,
+// .status-dot) es decorativa y exclusiva de la home; sus estilos viven ahora en
+// global.scss acotados a .urban-alert-page (#67), igual que admin movió su
+// decoración a global.
 
 .section {
   padding: 3rem 0;
@@ -588,45 +369,6 @@
   line-height: 1.6;
 }
 
-.site-footer {
-  background: #f1f5f9;
-}
-
-.site-footer__inner {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin: 0 auto;
-  max-width: 1200px;
-  padding: 1.5rem 1rem 2rem;
-}
-
-.site-footer__title {
-  color: var(--ink-strong);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-}
-
-.site-footer__copy {
-  color: var(--ink-faint);
-  font-size: 0.9rem;
-  margin-top: 0.4rem;
-}
-
-.site-footer__links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem 1.5rem;
-
-  a,
-  .site-footer__link {
-    color: var(--ink-faint);
-    font-size: 0.9rem;
-    text-decoration: none;
-  }
-}
-
 @media (min-width: 640px) {
   .hero__actions {
     flex-direction: row;
@@ -646,10 +388,6 @@
   .page-shell {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
-  }
-
-  .header-nav {
-    display: flex;
   }
 
   .hero {
@@ -682,13 +420,6 @@
   .trust-panel {
     padding: 2rem;
   }
-
-  .site-footer__inner {
-    align-items: center;
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 2rem 2rem 2.5rem;
-  }
 }
 
 @media (min-width: 1024px) {
@@ -707,14 +438,6 @@
 
   .hero__visual {
     align-self: center;
-  }
-
-  .preview-card {
-    max-width: 37rem;
-  }
-
-  .map-canvas {
-    height: 16.5rem;
   }
 
   .trust-panel {

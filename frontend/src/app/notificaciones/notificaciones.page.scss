@@ -5,7 +5,6 @@
   --ink: #00152a;
   --muted: #64748b;
   --primary: #004ccb;
-  --navy: #00152a;
   --shadow: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
 }
 
@@ -25,63 +24,14 @@
   backdrop-filter: blur(12px);
 }
 
-.toolbar-layout,
+// Cabecera de marca (.toolbar-layout / .brand / .brand__*) compartida en
+// global.scss (#67).
+
 .page-shell {
   margin: 0 auto;
   max-width: 1120px;
-  width: 100%;
-}
-
-.toolbar-layout {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  padding: 0.85rem 1rem;
-}
-
-.brand {
-  align-items: center;
-  color: inherit;
-  display: flex;
-  gap: 0.75rem;
-  text-decoration: none;
-}
-
-.brand__mark {
-  align-items: center;
-  background: var(--navy);
-  border-radius: 0.75rem;
-  display: flex;
-  height: 2.5rem;
-  justify-content: center;
-  width: 2.5rem;
-}
-
-.brand__mark img {
-  height: 1.25rem;
-  width: 1rem;
-}
-
-.brand__title,
-.brand__subtitle {
-  display: block;
-  line-height: 1.15;
-}
-
-.brand__title {
-  color: #0f172a;
-  font-size: 1.05rem;
-  font-weight: 800;
-}
-
-.brand__subtitle {
-  color: #43474d;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.page-shell {
   padding: 1rem 1rem calc(5rem + env(safe-area-inset-bottom));
+  width: 100%;
 }
 
 .page-intro {

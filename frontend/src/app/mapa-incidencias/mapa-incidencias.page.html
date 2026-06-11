@@ -73,6 +73,7 @@
             class="incident-card"
             *ngFor="let incident of vm.incidents; trackBy: trackById"
             [routerLink]="['/detalle-incidencia', incident.id]"
+            [attr.aria-label]="'Ver detalle de la incidencia: ' + incident.title"
           >
             <ion-card-content>
               <div class="incident-card__top">
