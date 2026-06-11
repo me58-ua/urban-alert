@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { catchError, forkJoin, map, of, startWith } from 'rxjs';
+import { AuthService } from '../services/auth.service';
 import { Estado, Incidencia, IncidenciasService } from '../services/incidencias.service';
 import { Estadisticas, StatsService } from '../services/stats.service';
 
@@ -39,6 +40,8 @@ export class AdminDashboardPage {
   private readonly incidencias = inject(IncidenciasService);
   private readonly stats = inject(StatsService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly isMenuOpen = signal(false);
   readonly popoverEvent = signal<Event | undefined>(undefined);
@@ -54,6 +57,7 @@ export class AdminDashboardPage {
 
   readonly menuItems: AdminMenuItem[] = [
     { label: 'Dashboard', route: '/admin', icon: 'grid-outline' },
+    { label: 'Incidencias', route: '/admin/incidencias', icon: 'document-text-outline' },
     { label: 'Equipos', route: '/admin/equipos', icon: 'people-circle-outline' },
     { label: 'Usuarios', route: '/admin/usuarios', icon: 'person-circle-outline' },
     { label: 'Mapa ciudadano', route: '/mapa-incidencias', icon: 'map-outline' },
@@ -157,6 +161,13 @@ export class AdminDashboardPage {
   closeMenu() {
     this.isMenuOpen.set(false);
     this.popoverEvent.set(undefined);
+  }
+
+  /** Cierra la sesión y redirige al login. */
+  logout() {
+    this.closeMenu();
+    this.auth.logout();
+    void this.router.navigateByUrl('/login');
   }
 
   trackById = (_index: number, item: Incidencia) => item.id;

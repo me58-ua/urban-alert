@@ -1,0 +1,170 @@
+<ion-header class="admin-header" translucent="true">
+  <ion-toolbar class="admin-toolbar">
+    <div class="toolbar-layout">
+      <a class="brand" routerLink="/admin" aria-label="Urban Alert Admin">
+        <span class="brand__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="" />
+        </span>
+        <span class="brand__text">
+          <span class="brand__title">Urban Alert</span>
+          <span class="brand__subtitle">Gestion de incidencias</span>
+        </span>
+      </a>
+
+      <button class="admin-menu-button" type="button" (click)="openMenu($event)" aria-label="Abrir menu">
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+
+      <ion-popover
+        class="admin-menu-popover"
+        [isOpen]="isMenuOpen()"
+        [event]="popoverEvent()"
+        (didDismiss)="closeMenu()"
+        side="bottom"
+        alignment="end"
+      >
+        <ng-template>
+          <nav class="admin-menu-panel" aria-label="Administracion">
+            <a
+              class="admin-menu-panel__link"
+              *ngFor="let item of menuItems; trackBy: trackByMenuLabel"
+              [routerLink]="item.route"
+              (click)="closeMenu()"
+            >
+              <ion-icon [name]="item.icon"></ion-icon>
+              <span>{{ item.label }}</span>
+            </a>
+            <button
+              type="button"
+              class="admin-menu-panel__link admin-menu-panel__link--logout"
+              (click)="logout()"
+            >
+              <ion-icon name="log-out-outline"></ion-icon>
+              <span>Cerrar sesion</span>
+            </button>
+          </nav>
+        </ng-template>
+      </ion-popover>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="admin-page incidencias-page" fullscreen="true">
+  <main class="admin-shell">
+    <section class="hero-row incidencias-hero">
+      <div>
+        <p class="eyebrow">Administracion de plataforma</p>
+        <h1>Incidencias</h1>
+        <p class="hero-copy">Filtra las incidencias y abre cada una para cambiar su estado o prioridad.</p>
+      </div>
+    </section>
+
+    <section class="panel filters-panel">
+      <div class="panel__header">
+        <div>
+          <h2>Filtros</h2>
+          <p>Combina estado, categoria y prioridad para acotar el listado.</p>
+        </div>
+      </div>
+
+      <div class="filters-grid">
+        <label class="filter-field">
+          <span>Estado</span>
+          <ion-select
+            name="filtroEstado"
+            [(ngModel)]="filtroEstado"
+            (ionChange)="applyFilters()"
+            interface="popover"
+          >
+            <ion-select-option *ngFor="let opt of estadoOptions" [value]="opt.value">
+              {{ opt.label }}
+            </ion-select-option>
+          </ion-select>
+        </label>
+
+        <label class="filter-field">
+          <span>Categoria</span>
+          <ion-select
+            name="filtroCategoria"
+            [(ngModel)]="filtroCategoria"
+            (ionChange)="applyFilters()"
+            interface="popover"
+          >
+            <ion-select-option *ngFor="let opt of categoriaOptions" [value]="opt.value">
+              {{ opt.label }}
+            </ion-select-option>
+          </ion-select>
+        </label>
+
+        <label class="filter-field">
+          <span>Prioridad</span>
+          <ion-select
+            name="filtroPrioridad"
+            [(ngModel)]="filtroPrioridad"
+            (ionChange)="applyFilters()"
+            interface="popover"
+          >
+            <ion-select-option *ngFor="let opt of prioridadOptions" [value]="opt.value">
+              {{ opt.label }}
+            </ion-select-option>
+          </ion-select>
+        </label>
+      </div>
+    </section>
+
+    <div class="incidencias-error" *ngIf="error()" role="alert">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <span>{{ error() }}</span>
+    </div>
+
+    <section class="panel incidencias-table-panel">
+      <div class="panel__header">
+        <div>
+          <h2>Listado</h2>
+          <p>{{ incidencias().length }} incidencia(s) con los filtros actuales.</p>
+        </div>
+      </div>
+
+      <div class="status-panel" *ngIf="loading()">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Cargando incidencias...</span>
+      </div>
+
+      <div class="incidencias-table" *ngIf="!loading() && !error()">
+        <div class="incidencias-head">
+          <span>ID</span>
+          <span>Titulo</span>
+          <span>Categoria</span>
+          <span>Estado</span>
+          <span>Prioridad</span>
+          <span>Fecha</span>
+        </div>
+
+        <a
+          class="incidencias-row"
+          *ngFor="let inc of incidencias(); trackBy: trackByIncidentId"
+          [routerLink]="['/detalle-incidencia', inc.id]"
+        >
+          <span>#{{ inc.id }}</span>
+          <strong>{{ inc.titulo }}</strong>
+          <span>{{ categoriaLabel(inc.categoria) }}</span>
+          <span
+            class="status-pill"
+            [class.status-pill--red]="estadoTone(inc.estado) === 'red'"
+            [class.status-pill--amber]="estadoTone(inc.estado) === 'amber'"
+            [class.status-pill--green]="estadoTone(inc.estado) === 'green'"
+          >
+            {{ estadoLabel(inc.estado) }}
+          </span>
+          <span>{{ prioridadLabel(inc.prioridad) }}</span>
+          <span>{{ formatDate(inc.fecha_creacion) }}</span>
+        </a>
+
+        <div class="empty-state" *ngIf="incidencias().length === 0">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <span>No hay incidencias que coincidan con los filtros.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</ion-content>

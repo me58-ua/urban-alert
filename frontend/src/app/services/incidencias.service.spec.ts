@@ -132,6 +132,21 @@ describe('IncidenciasService', () => {
     req.flush(incidencia);
   });
 
+  it('actualizar() hace PATCH a {apiUrl}/incidencias/:id SIN cabecera X-Role', () => {
+    service
+      .actualizar(7, { estado: 'resuelta', prioridad: 'alta' })
+      .subscribe((res) => {
+        expect(res).toEqual(incidencia);
+      });
+
+    const req = httpMock.expectOne(`${base}/incidencias/7`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ estado: 'resuelta', prioridad: 'alta' });
+    // El interceptor de auth añade el Bearer; aquí ya NO se envía X-Role.
+    expect(req.request.headers.has('X-Role')).toBeFalse();
+    req.flush(incidencia);
+  });
+
   it('crear() hace POST JSON a {apiUrl}/incidencias', () => {
     service
       .crear({

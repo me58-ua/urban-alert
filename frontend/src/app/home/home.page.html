@@ -12,7 +12,7 @@
         </div>
       </div>
 
-      <nav class="header-nav" aria-label="Primary">
+      <nav class="header-nav" aria-label="Principal">
         <a
           *ngFor="let link of headerLinks; trackBy: trackByLabel"
           [class.header-nav__link--active]="link.active"
@@ -60,7 +60,7 @@
         </div>
       </div>
 
-      <div class="hero__visual" aria-label="Incident preview">
+      <div class="hero__visual" aria-label="Vista previa del mapa de incidencias">
         <a class="preview-card preview-card-link" [routerLink]="['/mapa-incidencias']">
           <div class="map-canvas" aria-hidden="true">
             <div class="map-canvas__grid"></div>
@@ -71,24 +71,12 @@
 
           <ion-card-content class="preview-card__footer">
             <div class="preview-card__label">Mapa en tiempo real</div>
-            <div class="preview-card__status">
+            <div class="preview-card__status" *ngIf="incidenciasAbiertas$ | async as abiertas">
               <span class="status-dot"></span>
-              <span>124 Activas</span>
+              <span>{{ abiertas.value }} Activas</span>
             </div>
           </ion-card-content>
         </a>
-
-        <ion-card class="incident-card">
-          <div class="incident-card__icon" aria-hidden="true">
-            <ion-icon name="radio-outline"></ion-icon>
-          </div>
-
-          <div class="incident-card__body">
-            <div class="incident-card__title">Farola fundida</div>
-            <div class="incident-card__meta">Calle Mayor, 14. Hace 10 min.</div>
-            <ion-chip class="incident-card__chip" color="danger">Pendiente</ion-chip>
-          </div>
-        </ion-card>
       </div>
     </section>
 
@@ -161,26 +149,6 @@
             </div>
           </div>
         </div>
-
-        <ion-card class="stats-card">
-          <ion-card-content>
-            <div class="stats-card__heading">
-              <ion-icon name="stats-chart-outline"></ion-icon>
-              <h3>Impacto en cifras</h3>
-            </div>
-
-            <div class="stats-grid">
-              <div class="stats-grid__item" *ngFor="let metric of metrics; trackBy: trackByValue">
-                <div class="stats-grid__value">{{ metric.value }}</div>
-                <div class="stats-grid__label">{{ metric.label }}</div>
-              </div>
-            </div>
-
-            <ion-button class="report-button" fill="outline" expand="block">
-              Leer informe de gestión anual
-            </ion-button>
-          </ion-card-content>
-        </ion-card>
       </div>
     </section>
   </main>
@@ -188,14 +156,14 @@
   <footer class="site-footer">
     <div class="site-footer__inner">
       <div class="site-footer__brand">
-        <div class="site-footer__title">Urban Incident</div>
-        <div class="site-footer__copy">© 2024 Urban Incident Management. All rights reserved.</div>
+        <div class="site-footer__title">Urban Alert</div>
+        <div class="site-footer__copy">© 2026 Urban Alert. Todos los derechos reservados.</div>
       </div>
 
-      <nav class="site-footer__links" aria-label="Footer">
-        <a *ngFor="let link of footerLinks; trackBy: trackByLabel" [href]="link.href">
+      <nav class="site-footer__links" aria-label="Pie de página">
+        <span class="site-footer__link" *ngFor="let link of footerLinks; trackBy: trackByLabel">
           {{ link.label }}
-        </a>
+        </span>
       </nav>
     </div>
   </footer>

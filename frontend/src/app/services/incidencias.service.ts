@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -35,8 +35,16 @@ export interface Historial {
   id: number;
   estado_anterior?: Estado | null;
   estado_nuevo: Estado;
+  prioridad_anterior?: Prioridad | null;
+  prioridad_nueva?: Prioridad | null;
   cambiado_por: string;
   fecha: string;
+}
+
+export interface Equipo {
+  id: number;
+  nombre: string;
+  categoria: Categoria;
 }
 
 export interface Incidencia {
@@ -50,6 +58,9 @@ export interface Incidencia {
   longitud: number;
   fecha_creacion: string;
   fecha_actualizacion: string;
+  user_id?: number | null;
+  equipo_id?: number | null;
+  equipo?: Equipo | null;
   imagenes: Imagen[];
   historial: Historial[];
 }
@@ -129,14 +140,15 @@ export class IncidenciasService {
     return this.http.post<Incidencia>(`${this.base}/incidencias`, data);
   }
 
-  /** Actualiza estado y/o prioridad (requiere rol admin → cabecera X-Role). */
+  /**
+   * Actualiza estado y/o prioridad de una incidencia.
+   * Requiere sesión admin: el interceptor de auth añade el `Authorization: Bearer …`.
+   */
   actualizar(
     id: number,
     cambios: { estado?: Estado; prioridad?: Prioridad },
-    role = 'admin',
   ): Observable<Incidencia> {
-    const headers = new HttpHeaders({ 'X-Role': role });
-    return this.http.patch<Incidencia>(`${this.base}/incidencias/${id}`, cambios, { headers });
+    return this.http.patch<Incidencia>(`${this.base}/incidencias/${id}`, cambios);
   }
 
   /** Sube una imagen (multipart) asociada a una incidencia. */

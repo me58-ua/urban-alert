@@ -10,9 +10,10 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
+import { AuthService } from '../services/auth.service';
 import { Categoria, Equipo, EquiposService } from '../services/equipos.service';
 import { Incidencia, IncidenciasService } from '../services/incidencias.service';
 
@@ -40,6 +41,8 @@ export class EquiposManagementPage implements OnInit {
   private readonly equiposService = inject(EquiposService);
   private readonly incidenciasService = inject(IncidenciasService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly brandMarkUrl =
     'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
@@ -58,6 +61,7 @@ export class EquiposManagementPage implements OnInit {
 
   readonly menuItems: AdminMenuItem[] = [
     { label: 'Dashboard', route: '/admin', icon: 'grid-outline' },
+    { label: 'Incidencias', route: '/admin/incidencias', icon: 'document-text-outline' },
     { label: 'Equipos', route: '/admin/equipos', icon: 'people-circle-outline' },
     { label: 'Usuarios', route: '/admin/usuarios', icon: 'person-circle-outline' },
     { label: 'Mapa ciudadano', route: '/mapa-incidencias', icon: 'map-outline' },
@@ -164,6 +168,13 @@ export class EquiposManagementPage implements OnInit {
   closeMenu() {
     this.isMenuOpen.set(false);
     this.popoverEvent.set(undefined);
+  }
+
+  /** Cierra la sesión y redirige al login. */
+  logout() {
+    this.closeMenu();
+    this.auth.logout();
+    void this.router.navigateByUrl('/login');
   }
 
   selectTeam(teamId: number | null) {

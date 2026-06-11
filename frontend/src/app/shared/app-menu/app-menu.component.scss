@@ -35,6 +35,42 @@
   width: min(18rem, calc(100vw - 2rem));
 }
 
+.menu-panel__session {
+  align-items: center;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.16);
+  color: #00152a;
+  display: flex;
+  gap: 0.65rem;
+  margin-bottom: 0.25rem;
+  padding: 0.35rem 0.8rem 0.7rem;
+
+  ion-icon {
+    color: #004ccb;
+    flex: 0 0 auto;
+    font-size: 1.85rem;
+  }
+}
+
+.menu-panel__session-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.menu-panel__session-email {
+  font-size: 0.9rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-panel__session-role {
+  color: #5b6b7d;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .menu-panel__link {
   align-items: center;
   border-radius: 0.75rem;
@@ -55,6 +91,18 @@
 
   &:active {
     background: #f6fafe;
+  }
+}
+
+.menu-panel__link--logout {
+  color: #b91c1c;
+
+  ion-icon {
+    color: #b91c1c;
+  }
+
+  &:active {
+    background: #fef2f2;
   }
 }
 

@@ -7,6 +7,7 @@ import { TestBed } from '@angular/core/testing';
 import { environment } from '../../environments/environment';
 import {
   AuthService,
+  EMAIL_KEY,
   ROLE_KEY,
   TOKEN_KEY,
   TokenResponse,
@@ -72,7 +73,7 @@ describe('AuthService', () => {
     req.flush(fake);
   });
 
-  it('me hace GET /auth/me y persiste el rol real', () => {
+  it('me hace GET /auth/me y persiste el rol y el email reales', () => {
     const fake: Usuario = { id: 2, email: 'admin@test.com', rol: 'admin' };
 
     service.me().subscribe((res) => {
@@ -85,18 +86,23 @@ describe('AuthService', () => {
 
     expect(service.role()).toBe('admin');
     expect(localStorage.getItem(ROLE_KEY)).toBe('admin');
+    expect(service.email()).toBe('admin@test.com');
+    expect(localStorage.getItem(EMAIL_KEY)).toBe('admin@test.com');
   });
 
-  it('logout limpia token y rol del almacenamiento', () => {
+  it('logout limpia token, rol y email del almacenamiento', () => {
     localStorage.setItem(TOKEN_KEY, 'jwt-123');
     localStorage.setItem(ROLE_KEY, 'admin');
+    localStorage.setItem(EMAIL_KEY, 'admin@test.com');
 
     service.logout();
 
     expect(localStorage.getItem(TOKEN_KEY)).toBeNull();
     expect(localStorage.getItem(ROLE_KEY)).toBeNull();
+    expect(localStorage.getItem(EMAIL_KEY)).toBeNull();
     expect(service.isAuthenticated()).toBeFalse();
     expect(service.role()).toBeNull();
+    expect(service.email()).toBeNull();
   });
 
   it('token() / isAuthenticated() reflejan el estado de sesión', () => {
@@ -106,5 +112,12 @@ describe('AuthService', () => {
     localStorage.setItem(TOKEN_KEY, 'abc');
     expect(service.isAuthenticated()).toBeTrue();
     expect(service.token()).toBe('abc');
+  });
+
+  it('email() devuelve el email persistido o null', () => {
+    expect(service.email()).toBeNull();
+
+    localStorage.setItem(EMAIL_KEY, 'user@test.com');
+    expect(service.email()).toBe('user@test.com');
   });
 });

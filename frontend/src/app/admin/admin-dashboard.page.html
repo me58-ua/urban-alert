@@ -34,6 +34,14 @@
               <ion-icon [name]="item.icon"></ion-icon>
               <span>{{ item.label }}</span>
             </a>
+            <button
+              type="button"
+              class="admin-menu-panel__link admin-menu-panel__link--logout"
+              (click)="logout()"
+            >
+              <ion-icon name="log-out-outline"></ion-icon>
+              <span>Cerrar sesion</span>
+            </button>
           </nav>
         </ng-template>
       </ion-popover>
@@ -104,12 +112,6 @@
               loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
             ></iframe>
-
-            <div class="map-overlay">
-              <a class="map-pin map-pin--main" routerLink="/detalle-incidencia" aria-label="Incidencia principal"></a>
-              <a class="map-pin map-pin--second" routerLink="/detalle-incidencia" aria-label="Incidencia secundaria"></a>
-              <a class="map-pin map-pin--third" routerLink="/detalle-incidencia" aria-label="Incidencia terciaria"></a>
-            </div>
           </div>
         </article>
 

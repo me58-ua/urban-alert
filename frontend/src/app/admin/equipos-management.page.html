@@ -34,6 +34,14 @@
               <ion-icon [name]="item.icon"></ion-icon>
               <span>{{ item.label }}</span>
             </a>
+            <button
+              type="button"
+              class="admin-menu-panel__link admin-menu-panel__link--logout"
+              (click)="logout()"
+            >
+              <ion-icon name="log-out-outline"></ion-icon>
+              <span>Cerrar sesion</span>
+            </button>
           </nav>
         </ng-template>
       </ion-popover>

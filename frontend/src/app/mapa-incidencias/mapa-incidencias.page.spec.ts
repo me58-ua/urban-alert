@@ -34,7 +34,7 @@ describe('MapaIncidenciasPage', () => {
       },
     ],
     total: 1,
-    limit: 20,
+    limit: 100,
     offset: 0,
   };
 
@@ -58,14 +58,18 @@ describe('MapaIncidenciasPage', () => {
     expect(component).toBeTruthy();
   });
 
-  it('carga incidencias geofiltradas (lat/lng/radio) y las mapea', () => {
+  it('carga TODAS las incidencias sin geofiltro (limit alto, sin lat/lng/radio) y las mapea', () => {
     const emissions: { incidents: { id: number; title: string; category: string; status: string; tone: string }[]; loading: boolean; error: string | null }[] = [];
     component.vm$.subscribe((vm) => emissions.push(vm));
 
     const req = httpMock.expectOne((r) => r.url === `${base}/incidencias`);
-    expect(req.request.params.get('lat')).toBe('40.4168');
-    expect(req.request.params.get('lng')).toBe('-3.7038');
-    expect(req.request.params.get('radio')).toBe('5000');
+    // Sin geofiltro fijo de Madrid: nada de lat/lng/radio.
+    expect(req.request.params.get('lat')).toBeNull();
+    expect(req.request.params.get('lng')).toBeNull();
+    expect(req.request.params.get('radio')).toBeNull();
+    // Filtro "Todas" no envía estado, pero sí un limit alto.
+    expect(req.request.params.get('estado')).toBeNull();
+    expect(req.request.params.get('limit')).toBe('100');
     req.flush(page);
 
     expect(emissions[0].loading).toBeTrue();
@@ -79,5 +83,38 @@ describe('MapaIncidenciasPage', () => {
     expect(vm.incidents[0].category).toBe('Infraestructura');
     expect(vm.incidents[0].status).toBe('Abierta');
     expect(vm.incidents[0].tone).toBe('danger');
+  });
+
+  it('al pulsar un chip reconstruye la consulta con el query param estado y recarga', () => {
+    component.vm$.subscribe();
+
+    // Carga inicial "Todas".
+    httpMock.expectOne((r) => r.url === `${base}/incidencias`).flush(page);
+
+    // Selecciona "En revisión" -> estado=en_progreso.
+    component.selectFilter(2);
+    const req = httpMock.expectOne((r) => r.url === `${base}/incidencias`);
+    expect(req.request.params.get('estado')).toBe('en_progreso');
+    expect(req.request.params.get('limit')).toBe('100');
+    req.flush({ ...page, items: [] });
+  });
+
+  it('mapea los estados a los query params correctos por cada chip', () => {
+    const esperado: Record<number, string | null> = {
+      0: null, // Todas
+      1: 'abierta', // Pendientes
+      2: 'en_progreso', // En revisión
+      3: 'resuelta', // Resueltas
+    };
+
+    component.vm$.subscribe();
+    httpMock.expectOne((r) => r.url === `${base}/incidencias`).flush(page);
+
+    for (const index of [1, 2, 3]) {
+      component.selectFilter(index);
+      const req = httpMock.expectOne((r) => r.url === `${base}/incidencias`);
+      expect(req.request.params.get('estado')).toBe(esperado[index]);
+      req.flush(page);
+    }
   });
 });

@@ -167,9 +167,27 @@
   text-decoration: none;
 }
 
+button.admin-menu-panel__link {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+
 .admin-menu-panel__link:hover {
   background: #e8f0fb;
   color: #0457d3;
+}
+
+.admin-menu-panel__link--logout {
+  color: #b91c1c;
+}
+
+.admin-menu-panel__link--logout:hover {
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .admin-shell {
@@ -944,4 +962,49 @@
     align-items: end;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr) minmax(8rem, 0.7fr) auto;
   }
+}
+
+// ── Acciones admin en el detalle de incidencia (#58) ────────────────────────
+.admin-actions-panel {
+  .admin-actions-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    margin-bottom: 1rem;
+  }
+
+  .admin-field {
+    display: grid;
+    gap: 0.35rem;
+
+    > span {
+      font-size: 0.8rem;
+      font-weight: 600;
+      opacity: 0.75;
+    }
+
+    ion-select {
+      --background: rgba(15, 23, 42, 0.05);
+      border-radius: 0.65rem;
+    }
+  }
+
+  .primary-action {
+    width: 100%;
+  }
+
+  .admin-feedback {
+    align-items: center;
+    display: flex;
+    font-size: 0.85rem;
+    gap: 0.4rem;
+    margin: 0.75rem 0 0;
+
+    &--error { color: #b42318; }
+    &--success { color: #027a48; }
+  }
+}
+
+@media (max-width: 540px) {
+  .admin-actions-panel .admin-actions-grid { grid-template-columns: 1fr; }
 }
