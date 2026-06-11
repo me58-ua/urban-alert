@@ -106,6 +106,62 @@
           </ion-card-content>
         </ion-card>
 
+        <ion-card class="panel avisos-panel">
+          <ion-card-header>
+            <ion-card-title>Avisos de esta incidencia</ion-card-title>
+            <ion-card-subtitle>Notificaciones generadas para este reporte</ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <div class="avisos-status" *ngIf="avisosLoading">
+              <ion-spinner name="crescent"></ion-spinner>
+              <span>Cargando avisos...</span>
+            </div>
+
+            <p class="avisos-feedback avisos-feedback--error" *ngIf="avisosError" role="alert">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              {{ avisosError }}
+            </p>
+
+            <div
+              class="aviso-item"
+              *ngFor="let aviso of avisos; trackBy: trackByAvisoId"
+              [class.aviso-item--read]="aviso.leida"
+            >
+              <div class="aviso-item__body">
+                <div class="aviso-item__top">
+                  <ion-chip class="aviso-chip">
+                    <ion-label>{{ aviso.estadoLabel }}</ion-label>
+                  </ion-chip>
+                  <span class="aviso-item__date">{{ aviso.fecha }}</span>
+                </div>
+                <p class="aviso-item__message">{{ aviso.mensaje }}</p>
+              </div>
+
+              <ion-button
+                *ngIf="!aviso.leida"
+                class="aviso-item__action"
+                size="small"
+                fill="outline"
+                type="button"
+                [disabled]="isMarkingAviso(aviso.id)"
+                (click)="marcarAvisoLeido(aviso.id)"
+              >
+                {{ isMarkingAviso(aviso.id) ? 'Marcando...' : 'Marcar como leída' }}
+              </ion-button>
+
+              <span class="aviso-item__badge" *ngIf="aviso.leida">
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                Leída
+              </span>
+            </div>
+
+            <p class="avisos-empty" *ngIf="!avisosLoading && !avisosError && avisos.length === 0">
+              No hay avisos para esta incidencia.
+            </p>
+          </ion-card-content>
+        </ion-card>
+
         <ion-card class="panel admin-actions-panel" *ngIf="isAdmin">
           <ion-card-header>
             <ion-card-title>Acciones de administración</ion-card-title>

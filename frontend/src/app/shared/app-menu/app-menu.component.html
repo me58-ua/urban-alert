@@ -39,6 +39,12 @@
         >
           <ion-icon [name]="item.icon"></ion-icon>
           <span>{{ item.label }}</span>
+          <ion-badge
+            *ngIf="item.route === '/notificaciones' && unreadCount() > 0"
+            class="menu-panel__badge"
+            color="danger"
+            [attr.aria-label]="unreadCount() + ' notificaciones sin leer'"
+          >{{ unreadCount() }}</ion-badge>
         </a>
 
         <a
