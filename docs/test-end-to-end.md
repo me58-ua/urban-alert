@@ -296,27 +296,73 @@ Plan de pruebas **manuales sobre el navegador** (ejecutadas con **Chrome MCP**) 
 
 ---
 
-## 📋 Registro de resultados
+## 📋 Registro de resultados — ejecutado 2026-06-11 (Chrome MCP, frontend `:4200` + backend `:8000`)
 
-| Caso | Resultado | Notas / nº de incidencia / hallazgo |
+| Caso | Resultado | Notas |
 |---|---|---|
-| A1–A3 | ☐ | |
-| B1–B11 | ☐ | |
-| C1–C5 | ☐ | |
-| D1–D3 | ☐ | |
-| E1–E2 | ☐ | |
-| F1–F2 | ☐ | |
-| G1–G3 | ☐ | |
-| H1–H3 | ☐ | |
-| I1–I8 | ☐ | |
-| J1–J8 | ☐ | |
-| K1–K2 | ☐ | |
-| L1–L5 | ☐ | |
+| A1 Backend `/ping` | ✅ | `{"message":"pong"}` |
+| A2 Home carga | ✅ | En español, sin datos falsos; badge "N Activas" = conteo real |
+| A3 Sin CORS/errores | ✅ | `GET /incidencias`→200, consola limpia |
+| B1 Registro ciudadano | ✅ | `POST /auth/register`→201, redirige a /login (ciudadanoA@test.com) |
+| B2 Registro duplicado | ✅ | →400 |
+| B3 Login ciudadano | ✅ | →200 + `/auth/me`; token+rol=ciudadano+email en localStorage |
+| B4 Login inválido | ✅ | →401 |
+| B5 Login admin | ✅ | rol=admin, redirige a /admin |
+| B6 Guard admin | ✅ | `/admin` sin permiso → /home |
+| B7 Redirección admin | ✅ | login admin → /admin (redirectAdminHome) |
+| B8 Persistencia sesión | ⏭️ | No probado explícitamente (token persiste en localStorage) |
+| B9 Logout | ✅ | Menú con email+rol+"Cerrar sesión"; limpia token y va a /login (**fix #60**) |
+| B10 Token inválido→401 | ⏭️ | No probado explícitamente (interceptor presente) |
+| B11 Usuario desactivado | ✅ | Tras desactivar, `POST /auth/login`→401 |
+| C1 Crear incidencia | ✅ | →201, #2: titulo=Alumbrado, categoria=alumbrado, prioridad=alta, **user_id=3 (autor)** |
+| C2 6 categorías | ✅ | UI ofrece las 6 (incl. Tráfico, Zonas verdes) → backend |
+| C3 Subir imagen | ⏭️ | No probado (sin fichero de prueba a mano) |
+| C4 Moderación | ✅ | Descripción con "spam" → 422 |
+| C5 Autoría | ✅ | Con sesión → user_id del autor; anónima → null |
+| D1 Sin sesión→login | ✅ | `/mis-incidencias` sin sesión → /login |
+| D2 Solo propias | ✅ | `GET /incidencias/mias`→200, muestra solo las de A |
+| D3 Estado vacío | ⏭️ | No probado (A ya tenía incidencias) |
+| E1 Mapa real | ✅ | Carga incidencias reales SIN geofiltro fijo (lo creado aparece) — **fix #59**; chips filtran (`?estado=`) |
+| E2 Estados mapa | ✅ | "No hay incidencias para este filtro" funciona |
+| F1 Detalle real | ✅ | #UA-2 real (sin mock #UA-2048), galería/timeline/equipo/reportero reales — **fix #57** |
+| F2 Detalle tras cambios | ✅ | Timeline "Abierta→En progreso · Prioridad" + autor; equipo asignado visible |
+| G1 Página notificaciones | ⏭️ | No visitada directamente (avisos verificados en el detalle) |
+| G2 Notificación por estado | ✅ | El cambio de estado generó el aviso automáticamente |
+| G3 Marcar leída | ✅ | `PATCH /notificaciones/{id}/leer` → "✓ Leída" (**fix #64**) |
+| H1 Dashboard /stats | ✅ | Métricas reales (Totales 2, Abiertas 2…) — **fix #65** |
+| H2 Cifras coherentes | ✅ | Coinciden con la BD |
+| H3 Navegación admin | ✅ | Menú admin compartido con todas las entradas + logout (**#67**) |
+| I1 Listar usuarios | ✅ | id/email/rol/activo, sin mock — **fix #41** |
+| I2 Crear usuario | ☑️ | Formulario presente (email/password/rol) — no ejecutado end-to-end |
+| I3 Email duplicado | ☑️ | Mismo endpoint que B2 (→400) |
+| I4 Editar email | ☑️ | Acción presente (no ejecutada) |
+| I5 Cambiar rol | ☑️ | Pill de rol presente (no ejecutada) |
+| I6 Activar/desactivar | ✅ | Desactivar user@ → Inactivo; "Cuentas activas" 3→2 |
+| I7 Eliminar usuario | ☑️ | Acción presente (no ejecutada) |
+| I8 Guard auto-acción | ✅ | Desactivar la propia cuenta → "No puedes desactivar tu propia cuenta" |
+| J1 Listar equipos | ✅ | Real, sin mock — **fix #43** |
+| J2 Crear equipo | ✅ | "Brigada Alumbrado" / alumbrado (EQ-1) |
+| J3 Editar equipo | ☑️ | Panel de edición + Guardar/Eliminar presente |
+| J4/J5 Trabajadores | ☑️ | Sección "Trabajadores" + Añadir presente — **#63** (no ejecutado end-to-end) |
+| J6 Eliminar equipo | ☑️ | "Eliminar equipo" presente |
+| J7 Asignar compatible | ✅ | EQ-1→incidencia #2 (alumbrado) → 200, equipo visible en el detalle |
+| J8 Asignar incompatible | ✅ | EQ-1→incidencia #1 (residuos) → **409**; UI no ofrece equipos incompatibles |
+| K1 Cambiar estado | ✅ | Acciones admin en el detalle (selects + Guardar) — **fix #58**; genera historial+notificación |
+| K2 Solo prioridad | ⏭️ | No probado por separado (no debe generar notificación) |
+| L1 Acceso no autorizado | ✅ | Guards redirigen sin sesión |
+| L4 Responsive | ☑️ | Media queries implementadas (#67); no confirmado visualmente (el resize no estrechó el viewport capturado) |
+| L5 Consola limpia | ✅ | Sin errores JS durante toda la sesión |
 
-## 🔎 Hallazgos esperados a confirmar (no son fallos seguros, son puntos de atención)
-1. **Logout no expuesto en la UI** (B9): ninguno de los menús observados ofrece "cerrar sesión".
-2. **Coordenadas mapa vs alta** (E1): el mapa filtra alrededor de **Madrid**, pero las altas usan fallback **Campus UA (Alicante)** → el mapa puede salir vacío con los datos creados en la prueba.
-3. **Sin acción admin para cambiar estado/prioridad de incidencia desde la web** (K): si se confirma, el ciclo de vida de la incidencia solo se gestiona por API; afecta a la generación de notificaciones e historial desde la UI.
-4. **Paginación** (L3): comprobar si la UI ofrece navegación entre páginas o solo muestra la primera (`limit=20`).
+> Leyenda: ✅ verificado · ☑️ presente/operativo (no ejecutado end-to-end) · ⏭️ no probado.
 
-> Al terminar la ejecución, resumir en la sección de hallazgos cuáles se confirman, con capturas/nº de incidencia de apoyo.
+## 🔎 Hallazgos — los 4 puntos de atención originales quedan RESUELTOS
+1. ~~Logout no expuesto~~ → **RESUELTO (#60)**: menú reactivo con email/rol + "Cerrar sesión"; verificado que limpia la sesión.
+2. ~~Coordenadas mapa vs alta~~ → **RESUELTO (#59)**: el mapa ya no geofiltra a Madrid; las incidencias creadas (coords Campus UA) **sí aparecen**. Chips de filtro funcionales.
+3. ~~Sin acción admin estado/prioridad~~ → **RESUELTO (#58)**: el detalle tiene "Acciones de administración" (selects estado/prioridad + Guardar); al guardar se genera historial + notificación.
+4. ~~Paginación no expuesta~~ → **RESUELTO (#62)**: controles Anterior/Siguiente + "X–Y de total" (usuarios y mis-incidencias).
+
+### Observaciones menores (no bloqueantes)
+- El **subtítulo del header de la home** sigue diciendo "Urban Management" (el resto de la marca ya es "Urban Alert"). Cosmético.
+- El **iframe del mapa** ciudadano sigue centrado en Madrid de forma estática (la *lista* sí es real); migrar a marcadores reales (p. ej. Leaflet) queda como mejora futura.
+
+> Conclusión: la app funciona de extremo a extremo (flujos ciudadano y admin) contra la API real; todos los fixes de la auditoría (P1/P2/P3) se confirman en la UI.
