@@ -1,0 +1,10 @@
+<button
+  class="ui-icon-button__native"
+  [class.ui-icon-button__native--danger]="variant === 'danger'"
+  [class.ui-icon-button__native--success]="variant === 'success'"
+  [type]="type"
+  [disabled]="disabled"
+  [attr.aria-label]="ariaLabel"
+>
+  <ion-icon [name]="icon" aria-hidden="true"></ion-icon>
+</button>

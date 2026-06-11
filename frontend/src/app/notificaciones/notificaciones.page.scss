@@ -12,20 +12,8 @@
   --background: var(--page-bg);
 }
 
-.notifs-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-.notifs-toolbar {
-  --background: rgba(248, 250, 252, 0.86);
-  --border-width: 0;
-  backdrop-filter: blur(12px);
-}
-
-// Cabecera de marca (.toolbar-layout / .brand / .brand__*) compartida en
-// global.scss (#67).
+// La cabecera y el pie de la página son los componentes compartidos
+// <app-header> / <app-footer>; ya no hay barra de cabecera propia.
 
 .page-shell {
   margin: 0 auto;

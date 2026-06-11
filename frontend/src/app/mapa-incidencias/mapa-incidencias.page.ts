@@ -11,12 +11,16 @@ import {
   IncidenciasService,
   ListarFiltros,
 } from '../services/incidencias.service';
-import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
+import { HeaderComponent } from '../shared/header/header.component';
+import { FooterComponent } from '../shared/footer/footer.component';
+import { UiButtonComponent } from '../shared/ui-button/ui-button.component';
 
 interface IncidentMapItem {
   id: number;
   title: string;
   category: string;
+  categoryKey: string;
+  categoryIcon: string;
   status: string;
   address: string;
   tone: 'danger' | 'warning' | 'success';
@@ -41,14 +45,11 @@ const MAP_LIMIT = 100;
   templateUrl: 'mapa-incidencias.page.html',
   styleUrls: ['mapa-incidencias.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, AppMenuComponent],
+  imports: [CommonModule, IonicModule, RouterModule, HeaderComponent, FooterComponent, UiButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapaIncidenciasPage {
   private readonly incidencias = inject(IncidenciasService);
-
-  readonly brandMarkUrl =
-    'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
   readonly mapUrl: SafeResourceUrl;
 
@@ -114,10 +115,13 @@ export class MapaIncidenciasPage {
   private toMapItem(incident: Incidencia): IncidentMapItem {
     const hasCoords =
       Number.isFinite(incident.latitud) && Number.isFinite(incident.longitud);
+    const categoryKey = String(incident.categoria);
     return {
       id: incident.id,
       title: incident.titulo,
       category: this.formatCategory(incident.categoria),
+      categoryKey,
+      categoryIcon: this.categoryIcon(categoryKey),
       status: this.formatStatus(incident.estado),
       address: hasCoords
         ? `${incident.latitud.toFixed(5)}, ${incident.longitud.toFixed(5)}`
@@ -130,6 +134,19 @@ export class MapaIncidenciasPage {
     return category
       .replace(/_/g, ' ')
       .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+
+  /** Icono representativo por categoría (cae a uno genérico si no se conoce). */
+  private categoryIcon(category: string): string {
+    const icons: Record<string, string> = {
+      infraestructura: 'construct-outline',
+      alumbrado: 'bulb-outline',
+      residuos: 'trash-outline',
+      trafico: 'car-outline',
+      zonas_verdes: 'leaf-outline',
+      otro: 'ellipsis-horizontal-circle-outline',
+    };
+    return icons[category] ?? 'pricetag-outline';
   }
 
   private formatStatus(status: Estado): string {

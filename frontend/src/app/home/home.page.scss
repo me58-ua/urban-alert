@@ -16,9 +16,9 @@
   --background: var(--page-bg);
 }
 
-// Cabecera (.site-header / .site-toolbar / .toolbar-layout / .brand* /
-// .header-nav / .login-button) y pie (.site-footer*) viven en global.scss (#67),
-// junto con la cabecera de marca compartida por las páginas ciudadanas.
+// La cabecera y el pie de la home ahora son los componentes compartidos
+// <app-header> y <app-footer>; su antigua cabecera/pie propios (.site-header /
+// .site-footer / .header-nav…) se eliminaron al integrarlos.
 
 .page-shell {
   margin: 0 auto;
@@ -26,32 +26,66 @@
   padding: 1rem 1rem 2.5rem;
 }
 
+// El hero es full-bleed: vive fuera de .page-shell para ocupar todo el ancho de
+// la ventana. El contenido se alinea con el resto de la página vía margin-left.
 .hero {
-  display: grid;
-  gap: 1.75rem;
-  padding: 1.5rem 0 3rem;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 26rem;
+  display: flex;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  padding: 2.5rem 0;
+}
+
+// Vídeo de fondo del hero: cubre todo el bloque y se mantiene DETRAS del
+// contenido. Una fina capa oscura encima (.hero__overlay) realza el texto.
+.hero__video {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0.55));
+  z-index: 1;
 }
 
 .hero__content {
+  position: relative;
+  z-index: 2;
   align-self: center;
+  width: 100%;
+  max-width: 46rem;
+  // Alinea el bloque de texto con el contenido centrado de la página (max 1200px).
+  margin-left: max(1.5rem, calc((100% - 1200px) / 2 + 1.5rem));
+  margin-right: 1.5rem;
+  color: #ffffff;
 
   h1 {
-    color: var(--ink);
+    color: #ffffff;
     font-size: clamp(2.5rem, 8.5vw, 4.5rem);
     font-weight: 800;
     letter-spacing: -0.055em;
     line-height: 0.98;
     margin: 0;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
   }
 
   h1 span {
-    color: var(--primary);
+    color: #7fb0ff;
   }
 }
 
 .eyebrow {
-  --background: rgba(2, 98, 255, 0.1);
-  --color: var(--primary);
+  --background: rgba(255, 255, 255, 0.16);
+  --color: #ffffff;
   --border-radius: 999px;
   font-size: 0.7rem;
   font-weight: 700;
@@ -61,11 +95,12 @@
 }
 
 .hero__description {
-  color: var(--ink-muted);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 1.05rem;
   line-height: 1.65;
   margin: 1.25rem 0 0;
   max-width: 36rem;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
 }
 
 .hero__actions {
@@ -75,36 +110,11 @@
   margin-top: 1.5rem;
 }
 
-.primary-action,
-.secondary-action {
-  --border-radius: 0.75rem;
-  --box-shadow: none;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  text-transform: none;
-}
-
-.primary-action {
-  --background: linear-gradient(135deg, #00152a 0%, #102a43 100%);
-  --background-activated: linear-gradient(135deg, #00152a 0%, #102a43 100%);
-  --background-focused: linear-gradient(135deg, #00152a 0%, #102a43 100%);
-  --background-hover: linear-gradient(135deg, #00152a 0%, #102a43 100%);
-  --color: #ffffff;
-}
-
-.secondary-action {
-  --background: #e4e9ed;
-  --background-activated: #d9e0e5;
-  --background-focused: #d9e0e5;
-  --background-hover: #d9e0e5;
-  --color: #314863;
-}
-
-.hero__visual {
-  display: grid;
-  gap: 1rem;
-  justify-items: center;
-}
+// Los botones de texto (.primary-action / .secondary-action) son ahora
+// <app-ui-button> (#T2). Sus matices propios de la home (degradado navy, radio
+// 0.75rem) viven en global.scss apuntando a `.ui-button__native`, porque las
+// CSS vars de Ionic deben fijarse sobre el <ion-button> interno y una hoja con
+// encapsulación de página no alcanza ese botón proyectado.
 
 // La tarjeta de previsualización del mapa del hero (.preview-card*, .map-canvas*,
 // .status-dot) es decorativa y exclusiva de la home; sus estilos viven ahora en
@@ -391,11 +401,8 @@
   }
 
   .hero {
-    gap: 2.5rem;
-  }
-
-  .hero__visual {
-    justify-items: end;
+    min-height: 30rem;
+    padding: 3rem 0;
   }
 
   .section__header {
@@ -428,16 +435,8 @@
   }
 
   .hero {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    padding: 3rem 0 4.5rem;
-  }
-
-  .hero__content {
-    padding-right: 1rem;
-  }
-
-  .hero__visual {
-    align-self: center;
+    min-height: 34rem;
+    padding: 4rem 0;
   }
 
   .trust-panel {

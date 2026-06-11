@@ -1,21 +1,4 @@
-<ion-header class="map-header" translucent="true">
-  <ion-toolbar class="map-toolbar">
-    <div class="toolbar-layout">
-      <a class="brand" routerLink="/home" aria-label="Urban Alert">
-        <span class="brand__mark" aria-hidden="true">
-          <img [src]="brandMarkUrl" alt="" />
-        </span>
-
-        <span class="brand__text">
-          <span class="brand__title">Urban Alert</span>
-          <span class="brand__subtitle">Mapa de incidencias</span>
-        </span>
-      </a>
-
-      <app-menu></app-menu>
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-header subtitle="Mapa de incidencias"></app-header>
 
 <ion-content class="map-page" fullscreen="true">
   <main class="map-shell">
@@ -28,10 +11,14 @@
         <p>Consulta los reportes activos en la ciudad y abre el detalle de cada incidencia.</p>
       </div>
 
-      <ion-button class="new-report-button" fill="solid" routerLink="/crear-incidencia">
-        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+      <app-ui-button
+        class="new-report-button"
+        variant="primary"
+        icon="add-circle-outline"
+        routerLink="/crear-incidencia"
+      >
         Reportar incidencia
-      </ion-button>
+      </app-ui-button>
     </section>
 
     <section class="map-layout" *ngIf="vm$ | async as vm">
@@ -45,12 +32,13 @@
       </div>
 
       <aside class="incidents-panel">
-        <div class="filter-row" aria-label="Filtros de incidencias">
+        <div class="filter-row" role="tablist" aria-label="Filtros de incidencias">
           <button
             type="button"
             *ngFor="let filter of filters; let i = index; trackBy: trackByLabel"
+            role="tab"
             [class.filter-row__button--active]="selectedFilter() === i"
-            [attr.aria-pressed]="selectedFilter() === i"
+            [attr.aria-selected]="selectedFilter() === i"
             class="filter-row__button"
             (click)="selectFilter(i)"
           >
@@ -70,14 +58,17 @@
 
         <div class="incident-list" *ngIf="!vm.loading && !vm.error">
           <a
-            class="incident-card"
             *ngFor="let incident of vm.incidents; trackBy: trackById"
+            [class]="'incident-card incident-card--cat-' + incident.categoryKey"
             [routerLink]="['/detalle-incidencia', incident.id]"
             [attr.aria-label]="'Ver detalle de la incidencia: ' + incident.title"
           >
             <ion-card-content>
               <div class="incident-card__top">
-                <span class="incident-card__category">{{ incident.category }}</span>
+                <span class="incident-card__category">
+                  <ion-icon [name]="incident.categoryIcon" aria-hidden="true"></ion-icon>
+                  {{ incident.category }}
+                </span>
                 <span class="incident-card__status" [class]="'incident-card__status--' + incident.tone">
                   {{ incident.status }}
                 </span>
@@ -86,10 +77,11 @@
               <h2>{{ incident.title }}</h2>
 
               <div class="incident-card__meta">
-                <span>
-                  <ion-icon name="location-outline"></ion-icon>
+                <span class="incident-card__address">
+                  <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
                   {{ incident.address }}
                 </span>
+                <ion-icon class="incident-card__chevron" name="chevron-forward" aria-hidden="true"></ion-icon>
               </div>
             </ion-card-content>
           </a>
@@ -102,4 +94,6 @@
       </aside>
     </section>
   </main>
+
+  <app-footer></app-footer>
 </ion-content>

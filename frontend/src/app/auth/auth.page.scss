@@ -15,22 +15,8 @@
   --background: var(--page-bg);
 }
 
-.auth-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-.auth-toolbar {
-  --background: rgba(248, 250, 252, 0.86);
-  --border-width: 0;
-  --padding-bottom: 0;
-  --padding-top: 0;
-  backdrop-filter: blur(12px);
-}
-
-// Cabecera de marca (.toolbar-layout / .brand / .brand__*) compartida en
-// global.scss (#67).
+// La cabecera y el pie de la página son los componentes compartidos
+// <app-header> / <app-footer>; ya no hay barra de cabecera propia.
 
 .auth-shell {
   display: grid;
@@ -64,6 +50,16 @@
     line-height: 1.6;
     margin: 0.85rem 0 0;
   }
+}
+
+// Logo de marca centrado, justo debajo del chip de la cabecera (login/registro).
+.auth-card__logo {
+  display: block;
+  height: auto;
+  margin: 0.85rem auto 0;
+  max-width: 100%;
+  object-fit: contain;
+  width: 200px;
 }
 
 .eyebrow {
@@ -157,18 +153,11 @@
   margin: 0;
 }
 
-.primary-action {
-  --background: var(--navy);
-  --background-activated: #102a43;
-  --background-focused: #102a43;
-  --background-hover: #102a43;
-  --border-radius: 0.75rem;
-  --box-shadow: none;
-  --color: #ffffff;
-  font-weight: 850;
-  min-height: 3rem;
-  text-transform: none;
-}
+// El botón de envío es ahora <app-ui-button class="primary-action"> (#T2). Su
+// aspecto navy (min-height 3rem, radio 0.75rem) vive en global.scss apuntando a
+// `.auth-page app-ui-button.primary-action .ui-button__native`, porque las CSS
+// vars de Ionic deben ir sobre el <ion-button> interno y esta hoja con
+// encapsulación de página no lo alcanza.
 
 .auth-switch {
   align-items: center;

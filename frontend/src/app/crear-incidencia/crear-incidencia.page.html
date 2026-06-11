@@ -1,21 +1,4 @@
-<ion-header class="create-header-bar" translucent="true">
-  <ion-toolbar class="create-toolbar">
-    <div class="toolbar-layout">
-      <a class="brand" routerLink="/home" aria-label="Urban Alert">
-        <span class="brand__mark" aria-hidden="true">
-          <img [src]="brandMarkUrl" alt="" />
-        </span>
-
-        <span class="brand__text">
-          <span class="brand__title">Urban Alert</span>
-          <span class="brand__subtitle">Nuevo reporte</span>
-        </span>
-      </a>
-
-      <app-menu></app-menu>
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-header subtitle="Nuevo reporte"></app-header>
 
 <ion-content class="create-page" fullscreen="true">
   <main class="create-shell">
@@ -33,7 +16,13 @@
         <span>1</span>
         Detalles
       </button>
-      <button type="button" [class.step-tabs__item--active]="step === 2" (click)="goTo(2)">
+      <button
+        type="button"
+        [class.step-tabs__item--active]="step === 2"
+        [class.step-tabs__item--disabled]="!step1Complete"
+        [disabled]="!step1Complete"
+        (click)="goTo(2)"
+      >
         <span>2</span>
         Ubicación
       </button>
@@ -126,10 +115,21 @@
         </div>
       </div>
 
-      <ion-button class="primary-action" expand="block" (click)="next()">
+      <app-ui-button
+        class="primary-action"
+        variant="primary"
+        expand="block"
+        icon="chevron-forward-outline"
+        iconSlot="end"
+        [disabled]="!step1Complete"
+        (click)="next()"
+      >
         Continuar
-        <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
-      </ion-button>
+      </app-ui-button>
+
+      <p class="step-hint" *ngIf="!step1Complete">
+        Escribe una descripción para continuar.
+      </p>
     </section>
 
     <section class="create-card" *ngIf="step === 2">
@@ -175,12 +175,21 @@
       </div>
 
       <div class="action-row">
-        <ion-button class="secondary-action" fill="clear" (click)="prev()">Anterior</ion-button>
-        <ion-button class="primary-action" (click)="submit()">
+        <app-ui-button class="secondary-action" variant="ghost" fill="clear" (click)="prev()">
+          Anterior
+        </app-ui-button>
+        <app-ui-button
+          class="primary-action"
+          variant="primary"
+          icon="checkmark-circle-outline"
+          iconSlot="end"
+          (click)="submit()"
+        >
           Enviar reporte
-          <ion-icon slot="end" name="checkmark-circle-outline"></ion-icon>
-        </ion-button>
+        </app-ui-button>
       </div>
     </section>
   </main>
+
+  <app-footer></app-footer>
 </ion-content>

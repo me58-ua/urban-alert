@@ -14,6 +14,9 @@ import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
 import { AdminMenuComponent } from '../shared/admin-menu/admin-menu.component';
+import { StatCardComponent } from '../shared/stat-card/stat-card.component';
+import { UiButtonComponent } from '../shared/ui-button/ui-button.component';
+import { UiIconButtonComponent } from '../shared/ui-icon-button/ui-icon-button.component';
 import { Rol, Usuario, UsersService } from '../services/users.service';
 
 @Component({
@@ -21,7 +24,16 @@ import { Rol, Usuario, UsersService } from '../services/users.service';
   templateUrl: 'users-management.page.html',
   styleUrls: ['users-management.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule, AdminMenuComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    RouterModule,
+    AdminMenuComponent,
+    StatCardComponent,
+    UiButtonComponent,
+    UiIconButtonComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UsersManagementPage implements OnInit {

@@ -1,0 +1,47 @@
+// Botón de solo icono para acciones admin (#T2).
+// Reproduce el aspecto de los antiguos .icon-action (cuadrado 2.2rem, fondo
+// suave, icono centrado) usando los tokens --ua-*. El host es inline-flex para
+// que encaje en las filas de .user-actions / .worker-manage-actions sin saltos.
+
+:host {
+  display: inline-flex;
+}
+
+.ui-icon-button__native {
+  align-items: center;
+  background: var(--ua-icon-btn-bg, #e8f0fb);
+  border: 0;
+  border-radius: var(--ua-radius-sm, 0.55rem);
+  color: var(--ua-icon-btn-color, #0457d3);
+  cursor: pointer;
+  display: flex;
+  height: 2.2rem;
+  justify-content: center;
+  padding: 0;
+  width: 2.2rem;
+
+  ion-icon {
+    font-size: 1.15rem;
+  }
+}
+
+.ui-icon-button__native:hover:not(:disabled) {
+  filter: brightness(0.97);
+}
+
+.ui-icon-button__native:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+// ── Danger: rojo (cubre .icon-action--danger / .danger-link) ─────────────────
+.ui-icon-button__native--danger {
+  background: var(--ua-icon-btn-danger-bg, #ffe9e7);
+  color: var(--ua-icon-btn-danger-color, #8f1d17);
+}
+
+// ── Success: verde (cubre .icon-action--save) ────────────────────────────────
+.ui-icon-button__native--success {
+  background: var(--ua-icon-btn-success-bg, #def7ec);
+  color: var(--ua-icon-btn-success-color, #075f3a);
+}

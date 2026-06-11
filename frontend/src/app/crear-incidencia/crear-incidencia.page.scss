@@ -16,22 +16,8 @@
   --background: var(--page-bg);
 }
 
-.create-header-bar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-.create-toolbar {
-  --background: rgba(248, 250, 252, 0.86);
-  --border-width: 0;
-  --padding-bottom: 0;
-  --padding-top: 0;
-  backdrop-filter: blur(12px);
-}
-
-// Cabecera de marca (.toolbar-layout / .brand / .brand__*) compartida en
-// global.scss (#67).
+// La cabecera y el pie de la página son los componentes compartidos
+// <app-header> / <app-footer>; ya no hay barra de cabecera propia.
 
 .create-shell {
   margin: 0 auto;
@@ -107,6 +93,18 @@
   span {
     background: rgba(255, 255, 255, 0.16) !important;
   }
+}
+
+.step-tabs__item--disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.step-hint {
+  color: var(--ink-faint);
+  font-size: 0.8rem;
+  margin: -0.35rem 0 0;
+  text-align: center;
 }
 
 .create-card {
@@ -344,26 +342,11 @@
   grid-template-columns: 1fr;
 }
 
-.primary-action,
-.secondary-action {
-  --border-radius: 0.75rem;
-  --box-shadow: none;
-  font-weight: 850;
-  min-height: 3rem;
-  text-transform: none;
-}
-
-.primary-action {
-  --background: var(--navy);
-  --background-activated: #102a43;
-  --background-focused: #102a43;
-  --background-hover: #102a43;
-  --color: #ffffff;
-}
-
-.secondary-action {
-  --color: var(--primary);
-}
+// Botones de texto ahora <app-ui-button> (#T2). El navy del primary y el "clear"
+// azul del secondary ("Anterior") viven en global.scss apuntando a
+// `.create-page app-ui-button.<clase> .ui-button__native`, porque las CSS vars
+// de Ionic deben ir sobre el <ion-button> interno y esta hoja con encapsulación
+// de página no lo alcanza.
 
 .map-card {
   border-radius: 0.95rem;

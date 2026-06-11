@@ -1,0 +1,60 @@
+<footer class="app-footer">
+  <div class="app-footer__inner">
+    <div class="app-footer__grid">
+      <!-- Columna de marca -->
+      <div class="app-footer__brand">
+        <a class="app-footer__brand-link" routerLink="/home" aria-label="Urban Alert — inicio">
+          <span class="app-footer__mark" aria-hidden="true">
+            <img [src]="brandMarkUrl" alt="" />
+          </span>
+          <span class="app-footer__brand-name">{{ brandName }}</span>
+        </a>
+
+        <p class="app-footer__description">{{ brandDescription }}</p>
+      </div>
+
+      <!-- Columna de navegación -->
+      <nav class="app-footer__col" aria-label="Navegación del sitio">
+        <h2 class="app-footer__heading">Navegación</h2>
+        <ul class="app-footer__list">
+          <li *ngFor="let link of navLinks; trackBy: trackByLabel">
+            <a class="app-footer__link" [routerLink]="link.route">
+              <ion-icon class="app-footer__link-icon" [name]="link.icon" aria-hidden="true"></ion-icon>
+              <span>{{ link.label }}</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Columna legal / plataforma -->
+      <nav class="app-footer__col" aria-label="Legal y plataforma">
+        <h2 class="app-footer__heading">Legal y plataforma</h2>
+        <ul class="app-footer__list">
+          <li *ngFor="let link of legalLinks; trackBy: trackByLabel">
+            <a class="app-footer__link app-footer__link--muted" href="#" (click)="$event.preventDefault()">
+              <span>{{ link.label }}</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <!-- Barra inferior -->
+    <div class="app-footer__bottom">
+      <p class="app-footer__copy">{{ copyright }}</p>
+
+      <ul class="app-footer__social" aria-label="Redes sociales">
+        <li *ngFor="let social of socials; trackBy: trackByLabel">
+          <a
+            class="app-footer__social-link"
+            href="#"
+            [attr.aria-label]="social.label"
+            (click)="$event.preventDefault()"
+          >
+            <ion-icon [name]="social.icon" aria-hidden="true"></ion-icon>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</footer>

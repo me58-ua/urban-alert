@@ -11,11 +11,24 @@ import { AuthService } from '../services/auth.service';
 import { Incidencia, IncidenciaPage } from '../services/incidencias.service';
 import { MisIncidenciasPage } from './mis-incidencias.page';
 
-/** Stub de AuthService cuyo `isAuthenticated()` se controla por test. */
+/**
+ * Stub de AuthService cuyo `isAuthenticated()` se controla por test. Incluye
+ * `email()`/`role()`/`logout()` porque ahora la página renderiza <app-header>,
+ * que los consulta al pintar el panel de sesión.
+ */
 class AuthServiceStub {
   authenticated = true;
   isAuthenticated(): boolean {
     return this.authenticated;
+  }
+  email(): string | null {
+    return this.authenticated ? 'ciudadano@test.com' : null;
+  }
+  role(): 'admin' | 'ciudadano' | null {
+    return this.authenticated ? 'ciudadano' : null;
+  }
+  logout(): void {
+    this.authenticated = false;
   }
 }
 

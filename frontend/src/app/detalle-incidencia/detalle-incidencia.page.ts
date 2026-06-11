@@ -7,7 +7,9 @@ import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
+import { HeaderComponent } from '../shared/header/header.component';
+import { FooterComponent } from '../shared/footer/footer.component';
+import { UiButtonComponent } from '../shared/ui-button/ui-button.component';
 import { AuthService } from '../services/auth.service';
 import { Estado, Historial, Incidencia, IncidenciasService, Prioridad } from '../services/incidencias.service';
 import { Notificacion, NotificacionesService } from '../services/notificaciones.service';
@@ -58,7 +60,7 @@ interface IncidentView {
   templateUrl: 'detalle-incidencia.page.html',
   styleUrls: ['detalle-incidencia.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule, AppMenuComponent],
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule, HeaderComponent, FooterComponent, UiButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DetalleIncidenciaPage {
@@ -67,9 +69,6 @@ export class DetalleIncidenciaPage {
   private readonly auth = inject(AuthService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly cdr = inject(ChangeDetectorRef);
-
-  readonly brandMarkUrl =
-    'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
   mapUrl: SafeResourceUrl;
   loading = false;

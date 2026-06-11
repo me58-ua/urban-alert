@@ -7,7 +7,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 
 import { environment } from '../../../environments/environment';
-import { AppMenuComponent } from './app-menu.component';
+import { HeaderComponent } from './header.component';
 import { Notificacion } from '../../services/notificaciones.service';
 import {
   AuthService,
@@ -27,14 +27,15 @@ function notif(id: number, leida = false): Notificacion {
   };
 }
 
-describe('AppMenuComponent', () => {
-  let component: AppMenuComponent;
-  let fixture: ComponentFixture<AppMenuComponent>;
+describe('HeaderComponent', () => {
+  let component: HeaderComponent;
+  let fixture: ComponentFixture<HeaderComponent>;
   let httpMock: HttpTestingController;
   const base = environment.apiUrl;
 
   beforeEach(async () => {
     localStorage.clear();
+    document.body.classList.remove('app-header-menu-open');
     await TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -43,7 +44,7 @@ describe('AppMenuComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AppMenuComponent);
+    fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
   });
@@ -51,10 +52,21 @@ describe('AppMenuComponent', () => {
   afterEach(() => {
     httpMock.verify();
     localStorage.clear();
+    document.body.classList.remove('app-header-menu-open');
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('usa el logo de marca local (no la URL de Figma)', () => {
+    expect(component.brandMarkUrl).toBe('assets/media/images/logo-v3.png');
+  });
+
+  it('arranca cerrado y con aria-label "Abrir menú"', () => {
+    fixture.detectChanges();
+    expect(component.isOpen()).toBeFalse();
+    expect(component.toggleLabel()).toBe('Abrir menú');
   });
 
   it('sin sesión: isAuthenticated() es false y no hay email/rol', () => {
@@ -64,13 +76,37 @@ describe('AppMenuComponent', () => {
     expect(component.roleLabel()).toBeNull();
   });
 
-  it('con sesión: refleja email y rol legible tras abrir el menú', () => {
+  it('open() abre el panel, pide ?leida=false y cambia el aria-label', () => {
+    component.open();
+
+    const req = httpMock.expectOne(`${base}/notificaciones?leida=false`);
+    expect(req.request.method).toBe('GET');
+    req.flush([notif(1), notif(2), notif(3)]);
+
+    expect(component.isOpen()).toBeTrue();
+    expect(component.toggleLabel()).toBe('Cerrar menú');
+    expect(component.unreadCount()).toBe(3);
+    expect(document.body.classList.contains('app-header-menu-open')).toBeTrue();
+  });
+
+  it('toggle() abre y vuelve a cerrar; al cerrar restaura el scroll del body', () => {
+    component.toggle(); // abre
+    httpMock.expectOne(`${base}/notificaciones?leida=false`).flush([notif(1)]);
+    expect(component.isOpen()).toBeTrue();
+    expect(component.unreadCount()).toBe(1);
+    expect(document.body.classList.contains('app-header-menu-open')).toBeTrue();
+
+    component.toggle(); // cierra -> no vuelve a pedir
+    expect(component.isOpen()).toBeFalse();
+    expect(document.body.classList.contains('app-header-menu-open')).toBeFalse();
+  });
+
+  it('con sesión: refleja email y rol legible tras abrir el panel', () => {
     localStorage.setItem(TOKEN_KEY, 'jwt-123');
     localStorage.setItem(ROLE_KEY, 'admin');
     localStorage.setItem(EMAIL_KEY, 'admin@test.com');
 
-    // toggle() refresca el estado de sesión derivado de localStorage.
-    component.toggle(new Event('click'));
+    component.open();
     httpMock.expectOne(`${base}/notificaciones?leida=false`).flush([]);
 
     expect(component.isAuthenticated()).toBeTrue();
@@ -82,10 +118,20 @@ describe('AppMenuComponent', () => {
     localStorage.setItem(TOKEN_KEY, 'jwt-123');
     localStorage.setItem(ROLE_KEY, 'ciudadano');
 
-    component.toggle(new Event('click'));
+    component.open();
     httpMock.expectOne(`${base}/notificaciones?leida=false`).flush([]);
 
     expect(component.roleLabel()).toBe('Ciudadano');
+  });
+
+  it('Escape cierra el panel cuando está abierto', () => {
+    component.open();
+    httpMock.expectOne(`${base}/notificaciones?leida=false`).flush([]);
+    expect(component.isOpen()).toBeTrue();
+
+    component.onEscape();
+    expect(component.isOpen()).toBeFalse();
+    expect(document.body.classList.contains('app-header-menu-open')).toBeFalse();
   });
 
   it('logout() cierra sesión, vuelve reactivo el estado y navega a /login', (done) => {
@@ -96,7 +142,7 @@ describe('AppMenuComponent', () => {
 
     localStorage.setItem(TOKEN_KEY, 'jwt-123');
     localStorage.setItem(EMAIL_KEY, 'admin@test.com');
-    component.toggle(new Event('click'));
+    component.open();
     httpMock.expectOne(`${base}/notificaciones?leida=false`).flush([]);
     expect(component.isAuthenticated()).toBeTrue();
 
@@ -105,6 +151,7 @@ describe('AppMenuComponent', () => {
     expect(logoutSpy).toHaveBeenCalled();
     expect(component.isAuthenticated()).toBeFalse();
     expect(component.email()).toBeNull();
+    expect(component.isOpen()).toBeFalse();
 
     // La navegación se hace en un setTimeout(0).
     setTimeout(() => {
@@ -113,21 +160,27 @@ describe('AppMenuComponent', () => {
     }, 0);
   });
 
-  // ── Badge de no leídas (#64) ────────────────────────────────────────────────
-  it('unreadCount() arranca en 0 sin abrir el menú (no pide nada)', () => {
-    fixture.detectChanges();
-    expect(component.unreadCount()).toBe(0);
-    // Sin toggle no debe haber petición pendiente (verify en afterEach).
+  it('goTo() cierra el panel y navega a la ruta indicada', (done) => {
+    const router = TestBed.inject(Router);
+    const navSpy = spyOn(router, 'navigateByUrl').and.resolveTo(true);
+
+    component.open();
+    httpMock.expectOne(`${base}/notificaciones?leida=false`).flush([]);
+
+    component.goTo('/mapa-incidencias', new Event('click'));
+    expect(component.isOpen()).toBeFalse();
+
+    setTimeout(() => {
+      expect(navSpy).toHaveBeenCalledWith('/mapa-incidencias');
+      done();
+    }, 0);
   });
 
-  it('al abrir el menú pide ?leida=false y fija el nº de no leídas', () => {
-    component.toggle(new Event('click'));
-
-    const req = httpMock.expectOne(`${base}/notificaciones?leida=false`);
-    expect(req.request.method).toBe('GET');
-    req.flush([notif(1), notif(2), notif(3)]);
-
-    expect(component.unreadCount()).toBe(3);
+  // ── Badge de no leídas ──────────────────────────────────────────────────────
+  it('unreadCount() arranca en 0 sin abrir el panel (no pide nada)', () => {
+    fixture.detectChanges();
+    expect(component.unreadCount()).toBe(0);
+    // Sin open() no debe haber petición pendiente (verify en afterEach).
   });
 
   it('el item de notificaciones es el que recibe el badge (route /notificaciones)', () => {
@@ -135,17 +188,6 @@ describe('AppMenuComponent', () => {
     const notifItem = component.items.find((i) => i.route === '/notificaciones');
     expect(notifItem).withContext('debe existir el item de notificaciones').toBeTruthy();
     expect(notifItem!.label).toBe('Notificaciones');
-  });
-
-  it('el badge sólo se muestra cuando unreadCount() > 0', () => {
-    // La plantilla condiciona el ion-badge a (route === /notificaciones && unreadCount() > 0).
-    component.refreshUnreadCount();
-    httpMock.expectOne(`${base}/notificaciones?leida=false`).flush([]);
-    expect(component.unreadCount()).toBe(0);
-
-    component.refreshUnreadCount();
-    httpMock.expectOne(`${base}/notificaciones?leida=false`).flush([notif(1), notif(2)]);
-    expect(component.unreadCount()).toBe(2);
   });
 
   it('si la petición de no leídas falla, el contador queda en 0', () => {
@@ -157,12 +199,11 @@ describe('AppMenuComponent', () => {
     expect(component.unreadCount()).toBe(0);
   });
 
-  it('cerrar el menú (segundo toggle) no vuelve a pedir las no leídas', () => {
-    component.toggle(new Event('click')); // abre -> pide
-    httpMock.expectOne(`${base}/notificaciones?leida=false`).flush([notif(1)]);
-    expect(component.unreadCount()).toBe(1);
-
-    component.toggle(new Event('click')); // cierra -> no pide
-    // verify() en afterEach garantiza que no quedó ninguna petición pendiente.
+  it('subtitle es opcional y se proyecta cuando se asigna', () => {
+    component.subtitle = 'Mis incidencias';
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const subtitle = el.querySelector('.app-header__subtitle');
+    expect(subtitle?.textContent?.trim()).toBe('Mis incidencias');
   });
 });
