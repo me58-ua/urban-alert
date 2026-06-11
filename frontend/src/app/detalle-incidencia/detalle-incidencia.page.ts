@@ -23,6 +23,22 @@ interface DetailItem {
 interface EvidenceItem {
   label: string;
   type: string;
+  imageUrl: string | null;
+}
+
+interface IncidentView {
+  id: string;
+  title: string;
+  status: string;
+  statusTone: string;
+  category: string;
+  priority: string;
+  date: string;
+  time: string;
+  address: string;
+  reporter: string;
+  team: string;
+  description: string;
 }
 
 @Component({
@@ -43,6 +59,7 @@ export class DetalleIncidenciaPage {
 
   mapUrl: SafeResourceUrl;
   loading = false;
+  loaded = false;
   error: string | null = null;
   photoUrl: string | null = null;
 
@@ -53,32 +70,24 @@ export class DetalleIncidenciaPage {
     void this.loadIncident();
   }
 
-  incident = {
-    id: '#UA-2048',
-    title: 'Farola fundida en vía principal',
-    status: 'En revisión',
-    statusTone: 'warning',
-    category: 'Alumbrado público',
-    priority: 'Media',
-    date: '09 Jun 2026',
-    time: '18:40',
-    address: 'Calle Mayor, 14, Madrid',
-    reporter: 'Vecino verificado',
-    description:
-      'La farola de la esquina no funciona desde hace varios días. La zona queda oscura por la noche y dificulta el paso de peatones.',
+  incident: IncidentView = {
+    id: '',
+    title: '',
+    status: '',
+    statusTone: 'neutral',
+    category: '',
+    priority: '',
+    date: '',
+    time: '',
+    address: '',
+    reporter: '',
+    team: '',
+    description: '',
   };
 
-  details: DetailItem[] = [
-    { label: 'Categoría', value: this.incident.category },
-    { label: 'Prioridad', value: this.incident.priority },
-    { label: 'Fecha', value: this.incident.date },
-  ];
+  details: DetailItem[] = [];
 
-  evidence: EvidenceItem[] = [
-    { label: 'Foto principal', type: 'Farola apagada' },
-    { label: 'Vista de la calle', type: 'Zona afectada' },
-    { label: 'Referencia', type: 'Ubicación exacta' },
-  ];
+  evidence: EvidenceItem[] = [];
 
   timeline: TimelineItem[] = [];
 
@@ -87,15 +96,21 @@ export class DetalleIncidenciaPage {
 
   private async loadIncident() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (!Number.isFinite(id) || id <= 0) return;
+    if (!Number.isFinite(id) || id <= 0) {
+      this.error = 'Incidencia no encontrada.';
+      this.cdr.markForCheck();
+      return;
+    }
 
     this.loading = true;
+    this.loaded = false;
     this.error = null;
     this.cdr.markForCheck();
 
     try {
       const incident = await firstValueFrom(this.incidencias.obtener(id));
       this.applyIncident(incident);
+      this.loaded = true;
     } catch {
       this.error = 'No se pudo cargar el detalle de esta incidencia.';
     } finally {
@@ -116,13 +131,15 @@ export class DetalleIncidenciaPage {
       date: created.date,
       time: created.time,
       address: `${incident.latitud.toFixed(5)}, ${incident.longitud.toFixed(5)}`,
-      reporter: 'Vecino verificado',
+      reporter: this.formatReporter(incident),
+      team: this.formatTeam(incident),
       description: incident.descripcion || 'Sin descripcion adicional.',
     };
 
     this.details = [
       { label: 'Categoria', value: this.incident.category },
       { label: 'Prioridad', value: this.incident.priority },
+      { label: 'Equipo', value: this.incident.team },
       { label: 'Fecha', value: this.incident.date },
     ];
 
@@ -130,8 +147,9 @@ export class DetalleIncidenciaPage {
       ? incident.imagenes.map((image, index) => ({
           label: index === 0 ? 'Foto principal' : `Foto ${index + 1}`,
           type: this.formatDate(image.fecha_subida),
+          imageUrl: this.publicUrl(image.ruta),
         }))
-      : [{ label: 'Sin fotos', type: 'No hay evidencias adjuntas' }];
+      : [{ label: 'Sin fotos', type: 'No hay evidencias adjuntas', imageUrl: null }];
 
     this.timeline = this.buildTimeline(incident.historial);
 
@@ -141,23 +159,52 @@ export class DetalleIncidenciaPage {
     );
   }
 
+  private formatReporter(incident: Incidencia): string {
+    return incident.user_id == null ? 'Anónimo' : 'Reporte ciudadano';
+  }
+
+  private formatTeam(incident: Incidencia): string {
+    return incident.equipo?.nombre ?? 'Sin asignar';
+  }
+
   private buildTimeline(historial: Historial[]): TimelineItem[] {
     return [...historial]
       .sort(
         (a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime(),
       )
       .map((entry) => ({
-        title: entry.estado_anterior
-          ? `${this.formatStatus(entry.estado_anterior)} -> ${this.formatStatus(entry.estado_nuevo)}`
-          : this.formatStatus(entry.estado_nuevo),
+        title: this.timelineTitle(entry),
         date: this.formatTimelineDate(entry.fecha),
         description: `Cambiado por ${entry.cambiado_por}`,
         active: true,
       }));
   }
 
+  private timelineTitle(entry: Historial): string {
+    const lines: string[] = [];
+
+    if (entry.estado_anterior) {
+      lines.push(
+        `${this.formatStatus(entry.estado_anterior)} -> ${this.formatStatus(entry.estado_nuevo)}`,
+      );
+    } else {
+      lines.push(this.formatStatus(entry.estado_nuevo));
+    }
+
+    if (entry.prioridad_anterior != null && entry.prioridad_nueva != null) {
+      lines.push(
+        `Prioridad: ${this.formatPriority(entry.prioridad_anterior)} -> ${this.formatPriority(entry.prioridad_nueva)}`,
+      );
+    }
+
+    return lines.join(' · ');
+  }
+
   private imageUrl(incident: Incidencia): string | null {
-    const ruta = incident.imagenes?.[0]?.ruta;
+    return this.publicUrl(incident.imagenes?.[0]?.ruta);
+  }
+
+  private publicUrl(ruta: string | null | undefined): string | null {
     if (!ruta) return null;
     if (/^https?:\/\//i.test(ruta) || ruta.startsWith('data:')) return ruta;
     const normalizedPath = ruta.startsWith('/') ? ruta : `/${ruta}`;

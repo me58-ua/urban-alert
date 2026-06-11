@@ -35,8 +35,16 @@ export interface Historial {
   id: number;
   estado_anterior?: Estado | null;
   estado_nuevo: Estado;
+  prioridad_anterior?: Prioridad | null;
+  prioridad_nueva?: Prioridad | null;
   cambiado_por: string;
   fecha: string;
+}
+
+export interface Equipo {
+  id: number;
+  nombre: string;
+  categoria: Categoria;
 }
 
 export interface Incidencia {
@@ -50,6 +58,9 @@ export interface Incidencia {
   longitud: number;
   fecha_creacion: string;
   fecha_actualizacion: string;
+  user_id?: number | null;
+  equipo_id?: number | null;
+  equipo?: Equipo | null;
   imagenes: Imagen[];
   historial: Historial[];
 }

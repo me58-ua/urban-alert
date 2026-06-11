@@ -37,13 +37,6 @@ export const routes: Routes = [
     component: CrearIncidenciaPage,
   },
   {
-    path: 'detalle-incidencia',
-    loadComponent: () =>
-      import('./detalle-incidencia/detalle-incidencia.page').then(
-        (m) => m.DetalleIncidenciaPage
-      ),
-  },
-  {
     path: 'detalle-incidencia/:id',
     loadComponent: () =>
       import('./detalle-incidencia/detalle-incidencia.page').then(

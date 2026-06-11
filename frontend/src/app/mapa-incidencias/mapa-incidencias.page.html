@@ -34,7 +34,7 @@
       </ion-button>
     </section>
 
-    <section class="map-layout">
+    <section class="map-layout" *ngIf="vm$ | async as vm">
       <div class="map-panel">
         <iframe
           title="Mapa real de incidencias"
@@ -44,19 +44,19 @@
         ></iframe>
 
         <div class="map-overlay">
-          <button class="map-pin map-pin--main" type="button" routerLink="/detalle-incidencia">
+          <a
+            *ngFor="let pin of vm.incidents.slice(0, 3); let i = index; trackBy: trackById"
+            class="map-pin"
+            [ngClass]="['map-pin--main', 'map-pin--second', 'map-pin--third'][i]"
+            [routerLink]="['/detalle-incidencia', pin.id]"
+            [attr.aria-label]="pin.title"
+          >
             <span></span>
-          </button>
-          <button class="map-pin map-pin--second" type="button" routerLink="/detalle-incidencia">
-            <span></span>
-          </button>
-          <button class="map-pin map-pin--third" type="button" routerLink="/detalle-incidencia">
-            <span></span>
-          </button>
+          </a>
         </div>
       </div>
 
-      <aside class="incidents-panel" *ngIf="vm$ | async as vm">
+      <aside class="incidents-panel">
         <div class="filter-row" aria-label="Filtros de incidencias">
           <button
             type="button"
