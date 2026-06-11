@@ -26,7 +26,7 @@
       </div>
     </section>
 
-    <section class="offline-banner" *ngIf="error()">
+    <section class="ua-state ua-state--error" *ngIf="error()">
       <ion-icon name="alert-circle-outline"></ion-icon>
       <span>{{ error() }}</span>
     </section>
@@ -82,7 +82,7 @@
       </form>
     </section>
 
-    <section class="state-panel teams-loading" *ngIf="loading()">
+    <section class="ua-state ua-state--inline" *ngIf="loading()">
       <ion-spinner name="crescent"></ion-spinner>
       <span>Cargando equipos...</span>
     </section>
@@ -96,7 +96,7 @@
           </div>
         </div>
 
-        <div class="empty-state" *ngIf="equipos().length === 0">
+        <div class="ua-state ua-state--inline" *ngIf="equipos().length === 0">
           <ion-icon name="people-outline"></ion-icon>
           <span>Aun no hay equipos. Crea el primero arriba.</span>
         </div>
@@ -160,7 +160,7 @@
           <h3>Trabajadores</h3>
 
           <div class="worker-list">
-            <div class="empty-state" *ngIf="team.trabajadores.length === 0">
+            <div class="ua-state ua-state--inline" *ngIf="team.trabajadores.length === 0">
               <span>Sin trabajadores asignados.</span>
             </div>
 
@@ -209,7 +209,7 @@
         </div>
       </div>
 
-      <div class="offline-banner" *ngIf="incidentsError()">
+      <div class="ua-state ua-state--inline ua-state--error" *ngIf="incidentsError()">
         <ion-icon name="alert-circle-outline"></ion-icon>
         <span>{{ incidentsError() }}</span>
       </div>
@@ -224,7 +224,7 @@
         <span>{{ assignSuccess() }}</span>
       </div>
 
-      <section class="state-panel teams-loading" *ngIf="incidentsLoading()">
+      <section class="ua-state ua-state--inline" *ngIf="incidentsLoading()">
         <ion-spinner name="crescent"></ion-spinner>
         <span>Cargando incidencias...</span>
       </section>
@@ -237,9 +237,9 @@
         </div>
 
         <div class="assignment-row" *ngFor="let incident of incidencias(); trackBy: trackByIncidentId">
-          <strong>#{{ incident.id }} {{ incident.titulo }}</strong>
-          <span>{{ categoryLabel(incident.categoria) }}</span>
-          <div class="team-actions">
+          <strong data-label="Incidencia">#{{ incident.id }} {{ incident.titulo }}</strong>
+          <span data-label="Categoria">{{ categoryLabel(incident.categoria) }}</span>
+          <div class="team-actions" data-label="Equipo compatible">
             <button
               type="button"
               *ngFor="let team of eligibleTeams(incident); trackBy: trackByTeamId"
@@ -261,7 +261,7 @@
           </div>
         </div>
 
-        <div class="empty-state" *ngIf="incidencias().length === 0">
+        <div class="ua-state ua-state--inline" *ngIf="incidencias().length === 0">
           <ion-icon name="folder-open-outline"></ion-icon>
           <span>No hay incidencias para asignar todavia.</span>
         </div>
@@ -280,18 +280,18 @@
         </div>
       </div>
 
-      <div class="offline-banner" *ngIf="workersError()">
+      <div class="ua-state ua-state--inline ua-state--error" *ngIf="workersError()">
         <ion-icon name="alert-circle-outline"></ion-icon>
         <span>{{ workersError() }}</span>
       </div>
 
-      <section class="state-panel teams-loading" *ngIf="workersLoading()">
+      <section class="ua-state ua-state--inline" *ngIf="workersLoading()">
         <ion-spinner name="crescent"></ion-spinner>
         <span>Cargando trabajadores...</span>
       </section>
 
       <div class="workers-table" *ngIf="!workersLoading()">
-        <div class="empty-state" *ngIf="workers().length === 0">
+        <div class="ua-state ua-state--inline" *ngIf="workers().length === 0">
           <ion-icon name="person-outline"></ion-icon>
           <span>Aun no hay trabajadores registrados.</span>
         </div>

@@ -1,21 +1,5 @@
-// Banner de error (alta duplicada, autoaccion 400, etc.).
-.users-page .users-error {
-  align-items: center;
-  background: #ffe9e7;
-  border: 1px solid #f5b5b0;
-  border-radius: 0.65rem;
-  color: #8f1d17;
-  display: flex;
-  font-weight: 700;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  padding: 0.75rem 1rem;
-
-  ion-icon {
-    flex-shrink: 0;
-    font-size: 1.2rem;
-  }
-}
+// El estado de error ahora usa .ua-state .ua-state--error (global.scss, #67);
+// el banner local .users-error se ha retirado.
 
 // El modelo del backend solo tiene id/email/rol/activo: 5 columnas de tabla
 // (ID, Email, Rol, Estado, Acciones) en vez de las 6 del mock original.
@@ -34,5 +18,63 @@
 @media (min-width: 760px) {
   :host ::ng-deep .users-page .user-form {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(8rem, 0.7fr) auto;
+  }
+}
+
+// Vista de tarjetas apiladas en móvil (#67): en pantallas estrechas la tabla
+// de usuarios deja de forzar scroll horizontal (min-width 48rem) y cada fila
+// pasa a una tarjeta "etiqueta: valor". Solo CSS; el desktop no cambia.
+@media (max-width: 760px) {
+  :host ::ng-deep .users-page .users-table {
+    overflow-x: visible;
+  }
+
+  :host ::ng-deep .users-page .users-head {
+    display: none;
+  }
+
+  :host ::ng-deep .users-page .users-row {
+    border: 1px solid var(--ua-border, #dbe5ef);
+    border-radius: var(--ua-radius, 0.65rem);
+    gap: 0.55rem;
+    grid-template-columns: minmax(0, 1fr);
+    margin-bottom: 0.6rem;
+    min-width: 0;
+    padding: 0.85rem 0.9rem;
+  }
+
+  // Email como cabecera de la tarjeta (sin etiqueta, destacado y arriba).
+  :host ::ng-deep .users-page .users-row > strong {
+    font-size: 1rem;
+    order: -1;
+  }
+
+  // Celdas de texto (ID): "Etiqueta: valor" en una línea.
+  :host ::ng-deep .users-page .users-row > span[data-label] {
+    align-items: baseline;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+  }
+
+  :host ::ng-deep .users-page .users-row > span[data-label]::before {
+    color: var(--ua-ink-faint, #64748b);
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  // Rol/Estado (pills) alineados a la izquierda; el texto del pill ya describe
+  // el valor (Admin/Ciudadano, Activo/Inactivo), así que no necesitan etiqueta.
+  :host ::ng-deep .users-page .users-row > .role-pill,
+  :host ::ng-deep .users-page .users-row > .status-pill {
+    justify-self: start;
+  }
+
+  // El campo de email en edición ocupa todo el ancho de la tarjeta.
+  :host ::ng-deep .users-page .users-row > .inline-field {
+    order: -1;
   }
 }

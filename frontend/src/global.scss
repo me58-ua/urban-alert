@@ -63,8 +63,7 @@
 .admin-header .brand,
 .admin-page .hero-actions,
 .admin-page .panel__header,
-.admin-page .status-item,
-.admin-page .empty-state {
+.admin-page .status-item {
   align-items: center;
   display: flex;
 }
@@ -263,7 +262,6 @@ button.admin-menu-panel__link {
   text-transform: none;
 }
 
-.admin-page .state-panel,
 .admin-page .metric-card,
 .admin-page .panel {
   background: #fff;
@@ -272,31 +270,8 @@ button.admin-menu-panel__link {
   box-shadow: 0 18px 32px rgb(15 23 42 / 0.08);
 }
 
-.admin-page .state-panel {
-  align-items: center;
-  color: #526070;
-  display: flex;
-  gap: 0.75rem;
-  justify-content: center;
-  min-height: 9rem;
-}
-
-.admin-page .state-panel--error,
-.admin-page .state-panel--error ion-icon {
-  color: #8f1d17;
-}
-
-.admin-page .offline-banner {
-  align-items: center;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-radius: 0.65rem;
-  color: #9a3412;
-  display: flex;
-  gap: 0.55rem;
-  margin-bottom: 1rem;
-  padding: 0.75rem 0.9rem;
-}
+// Los estados de carga/error del dashboard (antes .state-panel / .offline-banner)
+// usan ahora las clases compartidas .ua-state / .ua-state--error (#67).
 
 .admin-page .metrics-grid,
 .admin-page .dashboard-grid {
@@ -624,11 +599,7 @@ button.admin-menu-panel__link {
   color: #0b1728;
 }
 
-.admin-page .empty-state {
-  color: #526070;
-  gap: 0.6rem;
-  padding: 1rem;
-}
+// El estado vacío de la cola del dashboard usa ahora .ua-state .ua-state--inline (#67).
 
 /* Donut sin datos: estado vacío en lugar de un anillo al 0%. */
 .admin-page .donut-wrap--empty {
@@ -884,11 +855,8 @@ button.admin-menu-panel__link {
   margin-top: 1rem;
 }
 
-.teams-page .teams-loading {
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
+// El loading de equipos usa ahora .ua-state .ua-state--inline (#67),
+// que ya es plano (sin superficie ni sombra); .teams-loading se ha retirado.
 
 .teams-page .assignment-table {
   overflow-x: auto;
@@ -936,6 +904,62 @@ button.admin-menu-panel__link {
 .teams-page .team-actions .team-action--assigned {
   background: #def7ec;
   color: #075f3a;
+}
+
+// Vista de tarjetas apiladas en móvil (#67): la tabla de asignación deja de
+// forzar scroll horizontal (min-width 42rem) y cada fila pasa a una tarjeta
+// "etiqueta: valor". Solo CSS; el desktop no cambia.
+@media (max-width: 760px) {
+  .teams-page .assignment-table {
+    overflow-x: visible;
+  }
+
+  .teams-page .assignment-head {
+    display: none;
+  }
+
+  .teams-page .assignment-row {
+    border: 1px solid var(--ua-border, #dbe5ef);
+    border-radius: var(--ua-radius, 0.65rem);
+    gap: 0.5rem;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0.6rem 1rem;
+    min-width: 0;
+    padding: 0.85rem 0.9rem;
+  }
+
+  // Incidencia como cabecera de la tarjeta (sin etiqueta, arriba).
+  .teams-page .assignment-row > strong {
+    order: -1;
+  }
+
+  // Categoría: "Etiqueta: valor" en una línea.
+  .teams-page .assignment-row > span[data-label] {
+    align-items: baseline;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+  }
+
+  .teams-page .assignment-row > span[data-label]::before {
+    color: var(--ua-ink-faint, #64748b);
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  // Equipos compatibles: etiqueta encima de los botones de acción.
+  .teams-page .assignment-row > .team-actions[data-label]::before {
+    color: var(--ua-ink-faint, #64748b);
+    content: attr(data-label);
+    flex-basis: 100%;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
 }
 
 @media (min-width: 760px) {
@@ -1192,9 +1216,11 @@ button.admin-menu-panel__link {
 }
 
 // ── Estados de lista reutilizables: loading / vacío / error (#67) ────────────
-// Contenedor centrado con icono + texto, equivalente visual a los .status-panel
-// que hoy repite cada página (superficie + sombra suave + texto atenuado).
-// Aditivo: no sustituye aún a ningún markup existente.
+// Contenedor centrado con icono + texto que unifica los antiguos estados ad-hoc
+// de cada página (.status-panel, .state-panel, .incident-status, .users-error,
+// .empty-state, .offline-banner…). Superficie + sombra suave + texto atenuado.
+// Modificadores: --error (texto rojo), --inline (plano, dentro de un panel) y
+// --compact (menos altura + margen vertical, p.ej. el detalle de incidencia).
 .ua-state {
   align-items: center;
   background: var(--ua-surface, #ffffff);
@@ -1221,6 +1247,30 @@ button.admin-menu-panel__link {
 .ua-state--error .ua-state__icon,
 .ua-state--error ion-icon {
   color: var(--ua-danger-ink, #8f1d17);
+}
+
+// Texto del estado: párrafos/spans sin margen y con el mismo peso (700),
+// para igualar lo que antes hacía cada .status-panel p { … }.
+.ua-state p,
+.ua-state span {
+  font-weight: 700;
+  margin: 0;
+}
+
+// Variante "inline": el estado vive DENTRO de un panel/tarjeta y no debe
+// pintar otra superficie ni sombra (evita la tarjeta-dentro-de-tarjeta).
+// Equivale a los antiguos .empty-state / .status-panel embebidos.
+.ua-state--inline {
+  background: transparent;
+  box-shadow: none;
+  min-height: auto;
+}
+
+// Variante "compacta": menos altura y con margen vertical, como el
+// .status-panel del detalle de incidencia (min-height 5rem, margin 1rem 0).
+.ua-state--compact {
+  margin: 1rem 0;
+  min-height: 5rem;
 }
 
 // Spinner mínimo por si una vista necesita indicar carga sin <ion-spinner>.

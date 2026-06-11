@@ -37,12 +37,12 @@
       </div>
     </section>
 
-    <section class="state-panel" *ngIf="vm.loading">
+    <section class="ua-state" *ngIf="vm.loading">
       <ion-spinner name="crescent"></ion-spinner>
       <span>Cargando panel...</span>
     </section>
 
-    <section class="offline-banner" *ngIf="!vm.loading && vm.error">
+    <section class="ua-state ua-state--error" *ngIf="!vm.loading && vm.error">
       <ion-icon name="alert-circle-outline"></ion-icon>
       <span>{{ vm.error }}</span>
     </section>
@@ -249,7 +249,7 @@
             <span>{{ formatDate(incident.fecha_creacion) }}</span>
           </a>
 
-          <div class="empty-state" *ngIf="vm.incidents.length === 0">
+          <div class="ua-state ua-state--inline" *ngIf="vm.incidents.length === 0">
             <ion-icon name="folder-open-outline"></ion-icon>
             <span>No hay incidencias registradas.</span>
           </div>

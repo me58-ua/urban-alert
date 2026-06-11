@@ -102,39 +102,9 @@
   padding: 1rem 1rem calc(5rem + env(safe-area-inset-bottom));
 }
 
-.status-panel {
-  align-items: center;
-  background: var(--surface);
-  border-radius: 0.9rem;
-  box-shadow: var(--shadow-soft);
-  color: var(--ink-muted);
-  display: flex;
-  gap: 0.75rem;
-  justify-content: center;
-  margin: 1rem 0;
-  min-height: 5rem;
-  padding: 1rem;
-  text-align: center;
-
-  ion-icon,
-  ion-spinner {
-    color: var(--primary);
-    font-size: 1.35rem;
-  }
-
-  p {
-    font-weight: 700;
-    margin: 0;
-  }
-}
-
-.status-panel--error {
-  color: #8f1d17;
-
-  ion-icon {
-    color: #8f1d17;
-  }
-}
+// Estados loading/error de la incidencia: ahora usan
+// .ua-state .ua-state--compact (+ .ua-state--error) de global.scss (#67).
+// Las reglas locales .status-panel se han retirado.
 
 .incident-hero {
   display: grid;

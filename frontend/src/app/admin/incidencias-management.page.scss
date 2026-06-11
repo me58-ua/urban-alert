@@ -66,16 +66,14 @@
   }
 }
 
-.status-panel {
-  align-items: center;
-  color: var(--ink-faint, #64748b);
-  display: flex;
-  gap: 0.6rem;
-  justify-content: center;
-  padding: 2rem 0;
-}
+// El loading/vacío usan ahora .ua-state .ua-state--inline (global.scss, #67);
+// la regla local .status-panel se ha retirado.
 
-@media (max-width: 768px) {
+// Vista de tarjetas apiladas en móvil (#67): en pantallas estrechas cada fila
+// deja de ser una rejilla de columnas anchas (que forzaba scroll horizontal)
+// y pasa a una tarjeta "etiqueta: valor" por línea. Solo CSS; el desktop no
+// cambia. Las etiquetas salen de los data-label de cada celda.
+@media (max-width: 760px) {
   .filters-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -85,7 +83,47 @@
   }
 
   .incidencias-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    row-gap: 0.35rem;
+    border: 1px solid var(--ua-border, #dbe5ef);
+    border-radius: var(--ua-radius, 0.65rem);
+    display: grid;
+    gap: 0.4rem;
+    grid-template-columns: minmax(0, 1fr);
+    margin-bottom: 0.6rem;
+    padding: 0.85rem 0.9rem;
+
+    &:hover {
+      background: rgba(2, 98, 255, 0.05);
+    }
+
+    // Título de la tarjeta: ocupa toda la fila, sin etiqueta y destacado.
+    strong {
+      font-size: 1rem;
+      order: -1;
+      white-space: normal;
+    }
+
+    // Celdas de texto: "Etiqueta: valor" en una línea.
+    > span:not(.status-pill) {
+      align-items: baseline;
+      display: flex;
+      gap: 0.5rem;
+      justify-content: space-between;
+
+      &::before {
+        color: var(--ua-ink-faint, #64748b);
+        content: attr(data-label);
+        flex: 0 0 auto;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+    }
+
+    // La píldora de estado conserva su forma y color (ya indica el estado);
+    // se muestra alineada a la izquierda, sin prefijo de etiqueta.
+    .status-pill {
+      justify-self: start;
+    }
   }
 }

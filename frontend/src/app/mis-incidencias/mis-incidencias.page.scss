@@ -121,30 +121,8 @@
   text-transform: none;
 }
 
-.status-panel {
-  align-items: center;
-  background: var(--surface);
-  border-radius: 0.9rem;
-  box-shadow: var(--shadow);
-  color: #43474d;
-  display: flex;
-  gap: 0.75rem;
-  justify-content: center;
-  min-height: 10rem;
-  padding: 1rem;
-  text-align: center;
-}
-
-.status-panel ion-icon,
-.status-panel ion-spinner {
-  color: var(--primary);
-  font-size: 1.4rem;
-}
-
-.status-panel--error,
-.status-panel--error ion-icon {
-  color: #8f1d17;
-}
+// Estados loading/vacío/error: ahora usan .ua-state / .ua-state--error
+// (global.scss, #67). Las reglas locales .status-panel se han retirado.
 
 .incidents-list {
   display: grid;

@@ -26,7 +26,7 @@
       </div>
     </section>
 
-    <div class="users-error" *ngIf="error()" role="alert">
+    <div class="ua-state ua-state--error" *ngIf="error()" role="alert">
       <ion-icon name="alert-circle-outline"></ion-icon>
       <span>{{ error() }}</span>
     </div>
@@ -90,7 +90,7 @@
         </div>
       </div>
 
-      <div class="empty-state" *ngIf="loading()">
+      <div class="ua-state ua-state--inline" *ngIf="loading()">
         <ion-spinner name="crescent"></ion-spinner>
         <span>Cargando usuarios...</span>
       </div>
@@ -138,8 +138,8 @@
           </ng-container>
 
           <ng-template #readUser>
-            <span>#{{ user.id }}</span>
-            <strong>{{ user.email }}</strong>
+            <span data-label="ID">#{{ user.id }}</span>
+            <strong data-label="Email">{{ user.email }}</strong>
             <button
               type="button"
               class="role-pill"
@@ -168,7 +168,7 @@
           </ng-template>
         </div>
 
-        <div class="empty-state" *ngIf="!loading() && users().length === 0">
+        <div class="ua-state ua-state--inline" *ngIf="!loading() && users().length === 0">
           <ion-icon name="people-outline"></ion-icon>
           <span>No hay usuarios registrados.</span>
         </div>

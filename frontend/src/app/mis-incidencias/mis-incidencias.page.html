@@ -35,17 +35,17 @@
       </ion-button>
     </section>
 
-    <section class="status-panel" *ngIf="loading()">
+    <section class="ua-state" *ngIf="loading()">
       <ion-spinner name="crescent"></ion-spinner>
       <p>Cargando incidencias...</p>
     </section>
 
-    <section class="status-panel status-panel--error" *ngIf="!loading() && error()">
+    <section class="ua-state ua-state--error" *ngIf="!loading() && error()">
       <ion-icon name="alert-circle-outline"></ion-icon>
       <p>{{ error() }}</p>
     </section>
 
-    <section class="status-panel" *ngIf="!loading() && !error() && incidents().length === 0">
+    <section class="ua-state" *ngIf="!loading() && !error() && incidents().length === 0">
       <ion-icon name="folder-open-outline"></ion-icon>
       <p>Todavia no tienes incidencias registradas.</p>
     </section>
