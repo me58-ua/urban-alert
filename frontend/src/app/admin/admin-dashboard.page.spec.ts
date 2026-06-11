@@ -4,13 +4,12 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { environment } from '../../environments/environment';
 import type { AdminViewModel } from './admin-dashboard.page';
 import { IncidenciaPage } from '../services/incidencias.service';
 import { Estadisticas } from '../services/stats.service';
-import { AuthService } from '../services/auth.service';
 import { AdminDashboardPage } from './admin-dashboard.page';
 
 describe('AdminDashboardPage', () => {
@@ -159,17 +158,5 @@ describe('AdminDashboardPage', () => {
   it('hasIncidents distingue el estado "sin datos" del donut', () => {
     expect(component.hasIncidents([])).toBeFalse();
     expect(component.hasIncidents(page.items)).toBeTrue();
-  });
-
-  it('logout() cierra sesión y navega a /login', () => {
-    const auth = TestBed.inject(AuthService);
-    const router = TestBed.inject(Router);
-    const logoutSpy = spyOn(auth, 'logout');
-    const navSpy = spyOn(router, 'navigateByUrl').and.resolveTo(true);
-
-    component.logout();
-
-    expect(logoutSpy).toHaveBeenCalled();
-    expect(navSpy).toHaveBeenCalledWith('/login');
   });
 });

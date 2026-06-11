@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { catchError, forkJoin, map, of, startWith } from 'rxjs';
-import { AuthService } from '../services/auth.service';
+import { AdminMenuComponent } from '../shared/admin-menu/admin-menu.component';
 import { Estado, Incidencia, IncidenciasService } from '../services/incidencias.service';
 import { Estadisticas, StatsService } from '../services/stats.service';
 
@@ -43,29 +43,18 @@ export interface AdminViewModel {
   error: string | null;
 }
 
-interface AdminMenuItem {
-  label: string;
-  route: string;
-  icon: string;
-}
-
 @Component({
   selector: 'app-admin-dashboard',
   templateUrl: 'admin-dashboard.page.html',
   styleUrls: ['admin-dashboard.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule],
+  imports: [CommonModule, IonicModule, RouterModule, AdminMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardPage {
   private readonly incidencias = inject(IncidenciasService);
   private readonly stats = inject(StatsService);
   private readonly sanitizer = inject(DomSanitizer);
-  private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
-
-  readonly isMenuOpen = signal(false);
-  readonly popoverEvent = signal<Event | undefined>(undefined);
 
   readonly brandMarkUrl =
     'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
@@ -75,15 +64,6 @@ export class AdminDashboardPage {
   );
 
   readonly statusOrder: Estado[] = ['abierta', 'en_progreso', 'resuelta', 'rechazada'];
-
-  readonly menuItems: AdminMenuItem[] = [
-    { label: 'Dashboard', route: '/admin', icon: 'grid-outline' },
-    { label: 'Incidencias', route: '/admin/incidencias', icon: 'document-text-outline' },
-    { label: 'Equipos', route: '/admin/equipos', icon: 'people-circle-outline' },
-    { label: 'Usuarios', route: '/admin/usuarios', icon: 'person-circle-outline' },
-    { label: 'Mapa ciudadano', route: '/mapa-incidencias', icon: 'map-outline' },
-    { label: 'Vista ciudadana', route: '/home', icon: 'people-outline' },
-  ];
 
   readonly vm$ = forkJoin({
     stats: this.stats.obtener(),
@@ -267,27 +247,9 @@ export class AdminDashboardPage {
       .sort((a, b) => b.count - a.count);
   }
 
-  openMenu(event: Event) {
-    this.popoverEvent.set(event);
-    this.isMenuOpen.set(true);
-  }
-
-  closeMenu() {
-    this.isMenuOpen.set(false);
-    this.popoverEvent.set(undefined);
-  }
-
-  /** Cierra la sesión y redirige al login. */
-  logout() {
-    this.closeMenu();
-    this.auth.logout();
-    void this.router.navigateByUrl('/login');
-  }
-
   trackById = (_index: number, item: Incidencia) => item.id;
   trackByLabel = (_index: number, item: { label: string }) => item.label;
   trackByStatus = (_index: number, item: Estado) => item;
-  trackByMenuLabel = (_index: number, item: AdminMenuItem) => item.label;
   trackByBarIndex = (index: number) => index;
   trackByKey = (_index: number, item: BreakdownRow) => item.key;
 

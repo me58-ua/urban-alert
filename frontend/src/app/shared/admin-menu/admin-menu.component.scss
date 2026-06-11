@@ -1,0 +1,12 @@
+// El botón ☰ vive dentro de la `.toolbar-layout` (flex con justify-content:
+// space-between) de cada página admin. Con `display: contents` el host no
+// introduce un nivel extra de layout y el botón sigue alineado a la derecha
+// igual que cuando el markup estaba inline.
+//
+// Los estilos visuales del botón y del popover (`.admin-menu-button`,
+// `.admin-menu-popover`, `.admin-menu-panel*`) viven en `src/global.scss`
+// porque el contenido del `ion-popover` se proyecta al `body` y queda fuera
+// de la encapsulación de vista del componente.
+:host {
+  display: contents;
+}

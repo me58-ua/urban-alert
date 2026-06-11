@@ -10,37 +10,27 @@ import {
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
-import { AuthService } from '../services/auth.service';
+import { AdminMenuComponent } from '../shared/admin-menu/admin-menu.component';
 import { Rol, Usuario, UsersService } from '../services/users.service';
-
-interface AdminMenuItem {
-  label: string;
-  route: string;
-  icon: string;
-}
 
 @Component({
   selector: 'app-users-management',
   templateUrl: 'users-management.page.html',
   styleUrls: ['users-management.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule],
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule, AdminMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UsersManagementPage implements OnInit {
   private readonly usersService = inject(UsersService);
   private readonly cdr = inject(ChangeDetectorRef);
-  private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
 
   readonly brandMarkUrl =
     'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
-  readonly isMenuOpen = signal(false);
-  readonly popoverEvent = signal<Event | undefined>(undefined);
   readonly editingUserId = signal<number | null>(null);
 
   readonly loading = signal(false);
@@ -62,15 +52,6 @@ export class UsersManagementPage implements OnInit {
 
   readonly canPrev = computed(() => this.offset() > 0);
   readonly canNext = computed(() => this.offset() + this.limit < this.total());
-
-  readonly menuItems: AdminMenuItem[] = [
-    { label: 'Dashboard', route: '/admin', icon: 'grid-outline' },
-    { label: 'Incidencias', route: '/admin/incidencias', icon: 'document-text-outline' },
-    { label: 'Equipos', route: '/admin/equipos', icon: 'people-circle-outline' },
-    { label: 'Usuarios', route: '/admin/usuarios', icon: 'person-circle-outline' },
-    { label: 'Mapa ciudadano', route: '/mapa-incidencias', icon: 'map-outline' },
-    { label: 'Vista ciudadana', route: '/home', icon: 'people-outline' },
-  ];
 
   readonly users = signal<Usuario[]>([]);
 
@@ -123,23 +104,6 @@ export class UsersManagementPage implements OnInit {
     if (!this.canNext()) return;
     this.offset.set(this.offset() + this.limit);
     this.loadUsers();
-  }
-
-  openMenu(event: Event) {
-    this.popoverEvent.set(event);
-    this.isMenuOpen.set(true);
-  }
-
-  closeMenu() {
-    this.isMenuOpen.set(false);
-    this.popoverEvent.set(undefined);
-  }
-
-  /** Cierra la sesión y redirige al login. */
-  logout() {
-    this.closeMenu();
-    this.auth.logout();
-    void this.router.navigateByUrl('/login');
   }
 
   createUser() {
@@ -248,7 +212,6 @@ export class UsersManagementPage implements OnInit {
   }
 
   trackByUserId = (_index: number, item: Usuario) => item.id;
-  trackByMenuLabel = (_index: number, item: AdminMenuItem) => item.label;
 }
 
 export default UsersManagementPage;
