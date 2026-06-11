@@ -20,6 +20,7 @@
 ![License](https://img.shields.io/badge/LICENSE-Academic-8B5CF6?style=for-the-badge&labelColor=0B1020)
 ![TDD](https://img.shields.io/badge/Built%20with-TDD-EF4444?style=for-the-badge&labelColor=0B1020)
 ![OpenSpec](https://img.shields.io/badge/Spec--Driven-OpenSpec-06B6D4?style=for-the-badge&labelColor=0B1020)
+![Docker Hub](https://img.shields.io/badge/Docker%20Hub-naoufalcharafat%2Furban--alert-2496ED?style=for-the-badge&logo=docker&logoColor=white&labelColor=0B1020)
 
 </div>
 
@@ -71,6 +72,53 @@ powershell -ExecutionPolicy Bypass -File .\script\deploy.ps1
 
 - 📖 **API / Swagger**: http://localhost:8000/docs
 - 📱 **Frontend**: http://localhost:4200
+
+---
+
+## 🐳 Despliegue con Docker (stack completo)
+
+> La forma **más sencilla** de ejecutar **toda la app** (BD + API + Frontend) en local: **sin instalar Python ni Node**. Usa las imágenes publicadas en **Docker Hub** (`naoufalcharafat/urban-alert`) orquestadas con Docker Compose. Solo se expone el **frontend** (`http://localhost:8080`); la API y la BD viven en la red interna y el frontend (nginx) hace de **proxy** de `/api` y `/uploads` (origen único, sin CORS).
+
+| Servicio | Imagen | Rol |
+|---|---|---|
+| `db` | `postgres:16-alpine` | Base de datos (volumen `pgdata`) |
+| `backend` | `naoufalcharafat/urban-alert:backend` | API FastAPI (migra y crea el admin al arrancar) |
+| `frontend` | `naoufalcharafat/urban-alert:frontend` | nginx: SPA Angular + proxy `/api` y `/uploads` |
+
+**🧰 Prerrequisito:** solo **Docker Desktop** en marcha (no hace falta nada más).
+
+### 📋 Paso a paso
+
+```bash
+# 1) Clona el repo (o descarga solo docker-compose.yml + .env.example)
+git clone https://github.com/me58-ua/urban-alert.git
+cd urban-alert
+
+# 2) Crea tu configuración a partir de la plantilla
+cp .env.example .env          # En Windows (PowerShell):  copy .env.example .env
+#    Edita .env y ajusta: POSTGRES_PASSWORD, SECRET_KEY y
+#    BOOTSTRAP_ADMIN_EMAIL / BOOTSTRAP_ADMIN_PASSWORD (será tu usuario admin).
+
+# 3) Levanta todo (descarga las imágenes de Docker Hub y arranca los 3 servicios)
+docker compose up -d
+
+# 4) Abre la app en el navegador
+#    👉 http://localhost:8080
+#    Inicia sesión con el admin definido en BOOTSTRAP_ADMIN_* del .env.
+```
+
+> En el **primer arranque** el backend aplica las migraciones de la BD y crea el administrador automáticamente; espera unos segundos a que el servicio quede *healthy*.
+
+### ⏹️ Parar y limpiar
+
+```bash
+docker compose down           # detiene los contenedores (CONSERVA los datos)
+docker compose down -v        # ⚠️ además borra los volúmenes (BD + imágenes subidas)
+```
+
+Los datos persisten en los volúmenes `pgdata` (base de datos) y `uploads` (imágenes subidas), así que sobreviven a `down` y a reinicios.
+
+> 📘 Guía Docker ampliada (publicar versiones, CI por tags, build local): [`docs/docker.md`](docs/docker.md)
 
 ---
 

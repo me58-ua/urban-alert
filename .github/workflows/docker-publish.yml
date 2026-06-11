@@ -1,0 +1,63 @@
+name: Publicar imágenes Docker
+
+# Publica las imágenes (backend y frontend) en Docker Hub al crear un tag vX.Y.Z.
+# También se puede lanzar a mano (workflow_dispatch) indicando la versión.
+#
+# Requiere dos secrets en el repo (Settings -> Secrets and variables -> Actions):
+#   DOCKERHUB_USERNAME  = naoufalcharafat
+#   DOCKERHUB_TOKEN     = un Access Token de Docker Hub con permiso Read & Write
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versión a publicar (ej. 1.0.0)'
+        required: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - component: backend
+            context: ./backend
+          - component: frontend
+            context: ./frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Calcular versión
+        id: ver
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configurar QEMU (multi-arquitectura)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Configurar Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login en Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push (${{ matrix.component }})
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/urban-alert:${{ matrix.component }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/urban-alert:${{ matrix.component }}-${{ steps.ver.outputs.version }}

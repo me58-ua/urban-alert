@@ -1,0 +1,61 @@
+# Despliegue completo de Urban Alert en local (BD + API + Frontend).
+#
+# Uso (con las imágenes ya publicadas en Docker Hub):
+#   1) copia .env.example a .env y ajusta los valores
+#   2) docker compose up -d
+#   3) abre http://localhost:8080   (admin: el de BOOTSTRAP_ADMIN_* del .env)
+#
+# Solo se publica/expone el frontend; la API y la BD quedan en la red interna.
+name: urban-alert
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adminpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-incidencias_db}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-incidencias_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    image: ${IMAGE_REPO:-naoufalcharafat/urban-alert}:${BACKEND_TAG:-backend}
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-adminpassword}@db:5432/${POSTGRES_DB:-incidencias_db}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me-in-production}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:8080}
+      STORAGE_BACKEND: local
+      UPLOAD_DIR: /app/uploads
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/ping')\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    restart: unless-stopped
+
+  frontend:
+    image: ${IMAGE_REPO:-naoufalcharafat/urban-alert}:${FRONTEND_TAG:-frontend}
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  uploads:

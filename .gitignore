@@ -15,6 +15,12 @@
 **/android/
 **/ios/
 
+# Variables de entorno locales (contienen secretos) — no versionar.
+# Se conserva .env.example como plantilla.
+.env
+**/.env
+!.env.example
+
 # Logs and temp files
 *.log
 log.txt
