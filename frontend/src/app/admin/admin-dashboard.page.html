@@ -141,7 +141,7 @@
             </div>
           </div>
 
-          <div class="donut-wrap">
+          <div class="donut-wrap" *ngIf="hasIncidents(vm.incidents); else donutEmpty">
             <div class="donut-chart" [style.--value]="completionPercent(vm.incidents) + '%'">
               <strong>{{ completionPercent(vm.incidents) }}%</strong>
             </div>
@@ -150,31 +150,101 @@
               <span><i class="legend-dot legend-dot--blue"></i>Activas</span>
             </div>
           </div>
+
+          <ng-template #donutEmpty>
+            <div class="donut-wrap donut-wrap--empty">
+              <div class="donut-empty" aria-hidden="true">
+                <ion-icon name="pie-chart-outline"></ion-icon>
+              </div>
+              <p class="donut-empty__text">Sin datos todavia</p>
+            </div>
+          </ng-template>
         </article>
 
         <article class="panel chart-panel">
           <div class="panel__header">
             <div>
               <h2>Actividad</h2>
-              <p>Reportes por periodo</p>
+              <p>Reportes de los ultimos 7 dias</p>
+            </div>
+            <span class="status-pill status-pill--blue">
+              {{ activityTotal(activityByDay(vm.incidents)) }} reportes
+            </span>
+          </div>
+
+          <ng-container *ngIf="activityByDay(vm.incidents) as activity">
+            <div class="bar-chart bar-chart--week" aria-label="Reportes por dia de la ultima semana">
+              <span
+                *ngFor="let bar of activity; trackBy: trackByBarIndex"
+                [style.--size.%]="bar.size"
+                [attr.title]="bar.count + ' reportes'"
+                [attr.aria-label]="bar.count + ' reportes'"
+              ></span>
+            </div>
+            <div class="bar-labels bar-labels--week">
+              <span *ngFor="let bar of activity; trackBy: trackByBarIndex">{{ bar.label }}</span>
+            </div>
+          </ng-container>
+        </article>
+
+        <article class="panel stats-panel" *ngIf="vm.stats as s">
+          <div class="panel__header">
+            <div>
+              <h2>Rendimiento</h2>
+              <p>Resumen operativo segun /stats</p>
             </div>
           </div>
 
-          <div class="bar-chart" aria-label="Grafico de actividad">
-            <span style="--size: 42%"></span>
-            <span style="--size: 68%"></span>
-            <span style="--size: 35%"></span>
-            <span style="--size: 78%"></span>
-            <span style="--size: 54%"></span>
-            <span style="--size: 88%"></span>
+          <div class="stats-tiles">
+            <div class="stats-tile">
+              <span class="stats-tile__label">Resueltas</span>
+              <strong>{{ formatPercent(s.porcentaje_resueltas) }}</strong>
+            </div>
+            <div class="stats-tile">
+              <span class="stats-tile__label">Tiempo medio de resolucion</span>
+              <strong>{{ formatResolutionTime(s.tiempo_medio_resolucion_horas) }}</strong>
+            </div>
+            <div class="stats-tile">
+              <span class="stats-tile__label">Ultimos 7 dias</span>
+              <strong>{{ s.reportes_ultimos_7_dias }}</strong>
+            </div>
+            <div class="stats-tile">
+              <span class="stats-tile__label">Ultimos 30 dias</span>
+              <strong>{{ s.reportes_ultimos_30_dias }}</strong>
+            </div>
           </div>
-          <div class="bar-labels">
-            <span>L</span>
-            <span>M</span>
-            <span>X</span>
-            <span>J</span>
-            <span>V</span>
-            <span>S</span>
+
+          <div class="breakdown-grid">
+            <div class="breakdown">
+              <h3>Por categoria</h3>
+              <div
+                class="breakdown-row"
+                *ngFor="let row of categoryBreakdown(s); trackBy: trackByKey"
+              >
+                <span class="breakdown-row__label">{{ row.label }}</span>
+                <span class="breakdown-row__track">
+                  <span class="breakdown-row__fill" [style.--size.%]="row.size"></span>
+                </span>
+                <strong class="breakdown-row__value">{{ row.count }}</strong>
+              </div>
+            </div>
+
+            <div class="breakdown">
+              <h3>Por prioridad</h3>
+              <div
+                class="breakdown-row"
+                *ngFor="let row of priorityBreakdown(s); trackBy: trackByKey"
+              >
+                <span class="breakdown-row__label">{{ row.label }}</span>
+                <span class="breakdown-row__track">
+                  <span
+                    class="breakdown-row__fill breakdown-row__fill--prio-{{ row.key }}"
+                    [style.--size.%]="row.size"
+                  ></span>
+                </span>
+                <strong class="breakdown-row__value">{{ row.count }}</strong>
+              </div>
+            </div>
           </div>
         </article>
 

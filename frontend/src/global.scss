@@ -548,6 +548,17 @@ button.admin-menu-panel__link {
   text-align: center;
 }
 
+/* Variante de 7 columnas para la actividad real (últimos 7 días). */
+.admin-page .bar-chart--week,
+.admin-page .bar-labels--week {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+/* Una barra a 0 reportes sigue siendo visible como base mínima. */
+.admin-page .bar-chart--week span {
+  min-height: 0.4rem;
+}
+
 .admin-page .status-item {
   background: #edf3f8;
   border-radius: 0.55rem;
@@ -569,6 +580,11 @@ button.admin-menu-panel__link {
 .admin-page .status-pill--slate {
   background: #edf2f7;
   color: #475569;
+}
+
+.admin-page .status-pill--blue {
+  background: #e6f0ff;
+  color: #0457d3;
 }
 
 .admin-page .queue-panel {
@@ -612,6 +628,126 @@ button.admin-menu-panel__link {
   color: #526070;
   gap: 0.6rem;
   padding: 1rem;
+}
+
+/* Donut sin datos: estado vacío en lugar de un anillo al 0%. */
+.admin-page .donut-wrap--empty {
+  color: #526070;
+}
+
+.admin-page .donut-empty {
+  align-items: center;
+  background: #eef3f8;
+  border: 2px dashed #c5d3e2;
+  border-radius: 999px;
+  display: flex;
+  height: 9rem;
+  justify-content: center;
+  width: 9rem;
+}
+
+.admin-page .donut-empty ion-icon {
+  color: #9fb1c6;
+  font-size: 3rem;
+}
+
+.admin-page .donut-empty__text {
+  color: #526070;
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+/* Panel de rendimiento: métricas agregadas de /stats. */
+.admin-page .stats-tiles {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 1rem;
+}
+
+.admin-page .stats-tile {
+  background: #edf3f8;
+  border-radius: 0.6rem;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem;
+}
+
+.admin-page .stats-tile__label {
+  color: #526070;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.admin-page .stats-tile strong {
+  color: #0b1728;
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.admin-page .breakdown-grid {
+  border-top: 1px solid #dbe5ef;
+  display: grid;
+  gap: 1.25rem;
+  padding: 1rem;
+}
+
+.admin-page .breakdown h3 {
+  color: #0b1728;
+  font-size: 0.9rem;
+  font-weight: 850;
+  margin: 0 0 0.6rem;
+}
+
+.admin-page .breakdown-row {
+  align-items: center;
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: minmax(5.5rem, 0.7fr) minmax(0, 1fr) 2rem;
+  padding: 0.3rem 0;
+}
+
+.admin-page .breakdown-row__label {
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.admin-page .breakdown-row__track {
+  background: #e3ebf3;
+  border-radius: 999px;
+  display: block;
+  height: 0.55rem;
+  overflow: hidden;
+}
+
+.admin-page .breakdown-row__fill {
+  --size: 0%;
+  background: linear-gradient(90deg, #0457d3, #7dd3fc);
+  border-radius: 999px;
+  display: block;
+  height: 100%;
+  min-width: 0.55rem;
+  width: var(--size);
+}
+
+.admin-page .breakdown-row__fill--prio-alta {
+  background: linear-gradient(90deg, #b91c1c, #f87171);
+}
+
+.admin-page .breakdown-row__fill--prio-media {
+  background: linear-gradient(90deg, #b45309, #fbbf24);
+}
+
+.admin-page .breakdown-row__fill--prio-baja {
+  background: linear-gradient(90deg, #075f3a, #34d399);
+}
+
+.admin-page .breakdown-row__value {
+  color: #0b1728;
+  font-size: 0.95rem;
+  text-align: right;
 }
 
 @media (min-width: 760px) {
