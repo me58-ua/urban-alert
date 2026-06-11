@@ -167,9 +167,27 @@
   text-decoration: none;
 }
 
+button.admin-menu-panel__link {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+
 .admin-menu-panel__link:hover {
   background: #e8f0fb;
   color: #0457d3;
+}
+
+.admin-menu-panel__link--logout {
+  color: #b91c1c;
+}
+
+.admin-menu-panel__link--logout:hover {
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .admin-shell {

@@ -13,6 +13,24 @@
   >
     <ng-template>
       <nav class="menu-panel" aria-label="Menú principal">
+        <div class="menu-panel__session" *ngIf="isAuthenticated()">
+          <ion-icon name="person-circle-outline"></ion-icon>
+          <span class="menu-panel__session-info">
+            <strong class="menu-panel__session-email">{{ email() ?? 'Sesión iniciada' }}</strong>
+            <span class="menu-panel__session-role" *ngIf="roleLabel() as rol">{{ rol }}</span>
+          </span>
+        </div>
+
+        <a
+          class="menu-panel__link"
+          *ngIf="!isAuthenticated()"
+          href="/login"
+          (click)="goTo('/login', $event)"
+        >
+          <ion-icon name="person-circle-outline"></ion-icon>
+          <span>Iniciar sesión / Registrarse</span>
+        </a>
+
         <a
           class="menu-panel__link"
           *ngFor="let item of items; trackBy: trackByLabel"
@@ -21,6 +39,16 @@
         >
           <ion-icon [name]="item.icon"></ion-icon>
           <span>{{ item.label }}</span>
+        </a>
+
+        <a
+          class="menu-panel__link menu-panel__link--logout"
+          *ngIf="isAuthenticated()"
+          href="/login"
+          (click)="logout($event)"
+        >
+          <ion-icon name="log-out-outline"></ion-icon>
+          <span>Cerrar sesión</span>
         </a>
       </nav>
     </ng-template>

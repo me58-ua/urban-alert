@@ -10,9 +10,10 @@ import {
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
+import { AuthService } from '../services/auth.service';
 import { Rol, Usuario, UsersService } from '../services/users.service';
 
 interface AdminMenuItem {
@@ -32,6 +33,8 @@ interface AdminMenuItem {
 export class UsersManagementPage implements OnInit {
   private readonly usersService = inject(UsersService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly brandMarkUrl =
     'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
@@ -97,6 +100,13 @@ export class UsersManagementPage implements OnInit {
   closeMenu() {
     this.isMenuOpen.set(false);
     this.popoverEvent.set(undefined);
+  }
+
+  /** Cierra la sesión y redirige al login. */
+  logout() {
+    this.closeMenu();
+    this.auth.logout();
+    void this.router.navigateByUrl('/login');
   }
 
   createUser() {

@@ -25,6 +25,8 @@ export interface TokenResponse {
 export const TOKEN_KEY = 'urban-alert-token';
 /** Clave de localStorage donde se persiste el rol (la lee el guard de rutas). */
 export const ROLE_KEY = 'urban-alert-role';
+/** Clave de localStorage donde se persiste el email del usuario autenticado. */
+export const EMAIL_KEY = 'urban-alert-email';
 
 /**
  * Servicio de autenticación contra la API (`/auth/*`).
@@ -69,17 +71,21 @@ export class AuthService {
       .pipe(tap((res) => this.setToken(res.access_token)));
   }
 
-  /** Obtiene el perfil autenticado y persiste el rol real. */
+  /** Obtiene el perfil autenticado y persiste el rol y el email reales. */
   me(): Observable<Usuario> {
-    return this.http
-      .get<Usuario>(`${this.base}/auth/me`)
-      .pipe(tap((user) => this.setRole(user.rol)));
+    return this.http.get<Usuario>(`${this.base}/auth/me`).pipe(
+      tap((user) => {
+        this.setRole(user.rol);
+        this.setEmail(user.email);
+      }),
+    );
   }
 
-  /** Cierra sesión: borra token y rol del almacenamiento local. */
+  /** Cierra sesión: borra token, rol y email del almacenamiento local. */
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(ROLE_KEY);
+    localStorage.removeItem(EMAIL_KEY);
   }
 
   /** Devuelve el JWT almacenado, o `null` si no hay sesión. */
@@ -98,6 +104,11 @@ export class AuthService {
     return stored === 'admin' || stored === 'ciudadano' ? stored : null;
   }
 
+  /** Devuelve el email del usuario autenticado, o `null` si no se conoce. */
+  email(): string | null {
+    return localStorage.getItem(EMAIL_KEY);
+  }
+
   /** Persiste el JWT. */
   private setToken(token: string): void {
     localStorage.setItem(TOKEN_KEY, token);
@@ -106,5 +117,10 @@ export class AuthService {
   /** Persiste el rol en la clave que lee el guard de redirección. */
   private setRole(rol: Rol): void {
     localStorage.setItem(ROLE_KEY, rol);
+  }
+
+  /** Persiste el email del usuario autenticado. */
+  private setEmail(email: string): void {
+    localStorage.setItem(EMAIL_KEY, email);
   }
 }
