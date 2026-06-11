@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, ViewChild } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
-import { Observable, catchError, map, of } from 'rxjs';
-import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
-import { IncidenciasService } from '../services/incidencias.service';
+import { HeaderComponent } from '../shared/header/header.component';
+import { FooterComponent } from '../shared/footer/footer.component';
+import { UiButtonComponent } from '../shared/ui-button/ui-button.component';
 
 interface CategoryItem {
   label: string;
@@ -24,50 +24,16 @@ interface TrustPoint {
   icon: string;
 }
 
-interface HeaderLink {
-  label: string;
-  active: boolean;
-  href?: string;
-  route?: string;
-}
-
-interface FooterLink {
-  label: string;
-  route?: string;
-}
-
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, AppMenuComponent],
+  imports: [CommonModule, IonicModule, RouterModule, HeaderComponent, FooterComponent, UiButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomePage {
-  private readonly incidenciasService = inject(IncidenciasService);
-
-  readonly brandMarkUrl = 'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
-
-  /**
-   * Conteo reactivo de incidencias abiertas (estado distinto de "resuelta").
-   * Se envuelve en `{ value }` para que el contador 0 (valor falsy) siga
-   * renderizando con `*ngIf ... as`. Si la API falla, se emite `null` y la
-   * plantilla oculta el contador.
-   */
-  readonly incidenciasAbiertas$: Observable<{ value: number } | null> = this.incidenciasService
-    .listar()
-    .pipe(
-      map((page) => ({
-        value: page.items.filter((incidencia) => incidencia.estado !== 'resuelta').length,
-      })),
-      catchError(() => of(null)),
-    );
-
-  readonly headerLinks: HeaderLink[] = [
-    { label: 'Reportar incidencia', href: '#hero', active: true },
-    { label: 'Ver mapa', route: '/mapa-incidencias', active: false },
-  ];
+export class HomePage implements AfterViewInit {
+  @ViewChild('heroVideo') private readonly heroVideo?: ElementRef<HTMLVideoElement>;
 
   readonly categories: CategoryItem[] = [
     { label: 'Alumbrado', icon: 'bulb-outline' },
@@ -122,12 +88,18 @@ export class HomePage {
     },
   ];
 
-  readonly footerLinks: FooterLink[] = [
-    { label: 'Política de privacidad' },
-    { label: 'Términos del servicio' },
-    { label: 'Contacto' },
-    { label: 'Registro municipal' },
-  ];
+  ngAfterViewInit(): void {
+    // Angular no refleja el atributo estatico `muted` a la propiedad del <video>,
+    // por lo que el navegador bloquea el autoplay (solo permite autoplay sin sonido).
+    // Forzamos muted=true por codigo y arrancamos la reproduccion.
+    const video = this.heroVideo?.nativeElement;
+    if (video) {
+      video.muted = true;
+      void video.play().catch(() => {
+        /* Si el navegador bloquea el autoplay, el video queda visible igualmente. */
+      });
+    }
+  }
 
   trackByLabel = (_index: number, item: { label: string }) => item.label;
   trackByTitle = (_index: number, item: { title: string }) => item.title;

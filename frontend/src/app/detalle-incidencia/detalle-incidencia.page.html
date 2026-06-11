@@ -1,21 +1,4 @@
-<ion-header class="detail-header" translucent="true">
-  <ion-toolbar class="detail-toolbar">
-    <div class="toolbar-layout">
-      <a class="brand" routerLink="/home" aria-label="Urban Alert">
-        <span class="brand__mark" aria-hidden="true">
-          <img [src]="brandMarkUrl" alt="" />
-        </span>
-
-        <span class="brand__text">
-          <span class="brand__title">Urban Alert</span>
-          <span class="brand__subtitle">Detalle de incidencia</span>
-        </span>
-      </a>
-
-      <app-menu></app-menu>
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-header subtitle="Detalle de incidencia"></app-header>
 
 <ion-content class="detail-page" fullscreen="true">
   <main class="page-shell">
@@ -138,9 +121,10 @@
                 <p class="aviso-item__message">{{ aviso.mensaje }}</p>
               </div>
 
-              <ion-button
+              <app-ui-button
                 *ngIf="!aviso.leida"
                 class="aviso-item__action"
+                variant="ghost"
                 size="small"
                 fill="outline"
                 type="button"
@@ -148,7 +132,7 @@
                 (click)="marcarAvisoLeido(aviso.id)"
               >
                 {{ isMarkingAviso(aviso.id) ? 'Marcando...' : 'Marcar como leída' }}
-              </ion-button>
+              </app-ui-button>
 
               <span class="aviso-item__badge" *ngIf="aviso.leida">
                 <ion-icon name="checkmark-circle-outline"></ion-icon>
@@ -201,15 +185,17 @@
               </label>
             </div>
 
-            <ion-button
+            <app-ui-button
               class="primary-action"
+              variant="primary"
               type="button"
+              expand="block"
+              icon="save-outline"
               [disabled]="saving"
               (click)="saveAdminChanges()"
             >
-              <ion-icon slot="start" name="save-outline"></ion-icon>
               {{ saving ? 'Guardando...' : 'Guardar cambios' }}
-            </ion-button>
+            </app-ui-button>
 
             <p class="admin-feedback admin-feedback--error" *ngIf="adminError" role="alert">
               <ion-icon name="alert-circle-outline"></ion-icon>
@@ -281,4 +267,6 @@
       </aside>
     </section>
   </main>
+
+  <app-footer></app-footer>
 </ion-content>

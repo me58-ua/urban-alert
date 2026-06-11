@@ -2,7 +2,8 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
+import { HeaderComponent } from '../shared/header/header.component';
+import { FooterComponent } from '../shared/footer/footer.component';
 import { Notificacion, NotificacionesService } from '../services/notificaciones.service';
 
 @Component({
@@ -10,14 +11,11 @@ import { Notificacion, NotificacionesService } from '../services/notificaciones.
   templateUrl: 'notificaciones.page.html',
   styleUrls: ['notificaciones.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, AppMenuComponent],
+  imports: [CommonModule, IonicModule, RouterModule, HeaderComponent, FooterComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotificacionesPage {
   private readonly notificaciones = inject(NotificacionesService);
-
-  readonly brandMarkUrl =
-    'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
   readonly items = signal<Notificacion[]>([]);
   readonly loading = signal(true);

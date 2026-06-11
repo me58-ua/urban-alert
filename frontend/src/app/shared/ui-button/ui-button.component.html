@@ -1,0 +1,15 @@
+<ion-button
+  class="ui-button__native"
+  [type]="type"
+  [disabled]="disabled"
+  [fill]="ionFill"
+  [size]="ionSize"
+  [expand]="expand"
+  [color]="color"
+  [routerLink]="routerLink"
+  [attr.aria-label]="ariaLabel"
+>
+  <ion-icon *ngIf="icon && iconSlot === 'start'" slot="start" [name]="icon"></ion-icon>
+  <ng-content></ng-content>
+  <ion-icon *ngIf="icon && iconSlot === 'end'" slot="end" [name]="icon"></ion-icon>
+</ion-button>

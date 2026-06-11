@@ -1,21 +1,4 @@
-<ion-header class="auth-header" translucent="true">
-  <ion-toolbar class="auth-toolbar">
-    <div class="toolbar-layout">
-      <a class="brand" routerLink="/home" aria-label="Urban Alert">
-        <span class="brand__mark" aria-hidden="true">
-          <img [src]="brandMarkUrl" alt="" />
-        </span>
-
-        <span class="brand__text">
-          <span class="brand__title">Urban Alert</span>
-          <span class="brand__subtitle">Registro ciudadano</span>
-        </span>
-      </a>
-
-      <app-menu></app-menu>
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-header subtitle="Registro ciudadano"></app-header>
 
 <ion-content class="auth-page" fullscreen="true">
   <main class="auth-shell">
@@ -24,6 +7,13 @@
         <ion-chip class="eyebrow">
           <ion-label>Nuevo perfil</ion-label>
         </ion-chip>
+        <img
+          class="auth-card__logo"
+          src="assets/media/images/logo-v3.png"
+          alt="Urban Alert"
+          width="200"
+          height="200"
+        />
         <h1>Crear cuenta</h1>
         <p>Regístrate para enviar reportes, guardar evidencias y recibir actualizaciones municipales.</p>
       </div>
@@ -69,9 +59,9 @@
 
         <p class="form-error" role="alert" *ngIf="error">{{ error }}</p>
 
-        <ion-button class="primary-action" type="submit" expand="block" [disabled]="loading">
+        <app-ui-button class="primary-action" variant="primary" type="submit" expand="block" [disabled]="loading">
           Registrarme
-        </ion-button>
+        </app-ui-button>
       </form>
 
       <div class="auth-switch">
@@ -80,4 +70,6 @@
       </div>
     </section>
   </main>
+
+  <app-footer></app-footer>
 </ion-content>

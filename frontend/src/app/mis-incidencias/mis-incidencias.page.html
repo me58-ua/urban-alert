@@ -1,21 +1,4 @@
-<ion-header class="incidents-header" translucent="true">
-  <ion-toolbar class="incidents-toolbar">
-    <div class="toolbar-layout">
-      <a class="brand" routerLink="/home" aria-label="Urban Alert">
-        <span class="brand__mark" aria-hidden="true">
-          <img [src]="brandMarkUrl" alt="" />
-        </span>
-
-        <span class="brand__text">
-          <span class="brand__title">Urban Alert</span>
-          <span class="brand__subtitle">Mis incidencias</span>
-        </span>
-      </a>
-
-      <app-menu></app-menu>
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-header subtitle="Mis incidencias"></app-header>
 
 <ion-content class="incidents-page" fullscreen="true">
   <main class="page-shell">
@@ -29,10 +12,14 @@
         <p>Consulta tus reportes, revisa el estado y abre el detalle completo de cada incidencia.</p>
       </div>
 
-      <ion-button class="new-report-button" routerLink="/crear-incidencia">
-        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+      <app-ui-button
+        class="new-report-button"
+        variant="primary"
+        icon="add-circle-outline"
+        routerLink="/crear-incidencia"
+      >
         Nueva incidencia
-      </ion-button>
+      </app-ui-button>
     </section>
 
     <section class="ua-state" *ngIf="loading()">
@@ -129,4 +116,6 @@
       </div>
     </nav>
   </main>
+
+  <app-footer></app-footer>
 </ion-content>

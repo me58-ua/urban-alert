@@ -1,0 +1,353 @@
+:host {
+  display: block;
+}
+
+// ── Cabecera / toolbar de marca ──────────────────────────────────────────────
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.app-header__toolbar {
+  --background: rgba(248, 250, 252, 0.82);
+  --border-width: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  backdrop-filter: blur(12px);
+}
+
+.app-header__layout {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 0.85rem 1rem;
+  width: 100%;
+}
+
+.app-header__brand {
+  align-items: center;
+  color: inherit;
+  display: flex;
+  gap: 0.75rem;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.app-header__mark {
+  align-items: center;
+  background: #f7fafd;
+  border: 1px solid rgba(0, 21, 42, 0.08);
+  border-radius: 0.75rem;
+  display: flex;
+  flex: 0 0 auto;
+  height: 2.5rem;
+  justify-content: center;
+  overflow: hidden;
+  width: 2.5rem;
+
+  img {
+    display: block;
+    height: 1.9rem;
+    object-fit: contain;
+    width: 1.9rem;
+  }
+}
+
+.app-header__brand-text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.app-header__title {
+  color: var(--ua-ink-strong, #0f172a);
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-header__subtitle {
+  color: var(--ua-ink-muted, #43474d);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Botón hamburguesa animado (3 barras → X) ────────────────────────────────
+.app-header__burger {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0.65rem;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 0.32rem;
+  height: 2.6rem;
+  justify-content: center;
+  padding: 0;
+  width: 2.6rem;
+
+  &:active {
+    background: rgba(0, 21, 42, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ua-primary, #004ccb);
+    outline-offset: 2px;
+  }
+}
+
+.app-header__burger-bar {
+  background: var(--ua-ink, #00152a);
+  border-radius: 999px;
+  display: block;
+  height: 2px;
+  transform-origin: center;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+  width: 1.45rem;
+}
+
+// Estado abierto: barra superior baja y rota 45°, la del medio desaparece, la
+// inferior sube y rota -45°, formando una X. (0.32rem gap + 2px barra ≈ 0.45rem.)
+.app-header__burger.is-open .app-header__burger-bar:nth-child(1) {
+  transform: translateY(0.45rem) rotate(45deg);
+}
+
+.app-header__burger.is-open .app-header__burger-bar:nth-child(2) {
+  opacity: 0;
+}
+
+.app-header__burger.is-open .app-header__burger-bar:nth-child(3) {
+  transform: translateY(-0.45rem) rotate(-45deg);
+}
+
+// ── Backdrop ─────────────────────────────────────────────────────────────────
+.app-header__backdrop {
+  background: rgba(0, 0, 0, 0.45);
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  transition: opacity 0.3s ease;
+  visibility: hidden;
+  z-index: 1000;
+
+  &.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+  }
+}
+
+// ── Panel off-canvas lateral (desde la izquierda) ───────────────────────────
+.app-header__drawer {
+  background: var(--ua-surface, #ffffff);
+  box-shadow: 0 0 40px rgb(0 0 0 / 0.22);
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  left: 0;
+  // Escritorio: la mitad EXACTA del ancho de la ventana (sin tope).
+  width: 50vw;
+  overflow-y: auto;
+  padding:
+    calc(env(safe-area-inset-top) + 0.5rem)
+    0
+    calc(env(safe-area-inset-bottom) + 0.5rem)
+    env(safe-area-inset-left);
+  position: fixed;
+  top: 0;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1001;
+
+  &.is-open {
+    transform: translateX(0);
+  }
+}
+
+// Móvil: el 50vw es demasiado estrecho; ensanchamos para usabilidad.
+@media (max-width: 600px) {
+  .app-header__drawer {
+    max-width: none;
+    width: 82vw;
+  }
+}
+
+.app-header__drawer-head {
+  align-items: center;
+  border-bottom: 1px solid var(--ua-border, #dbe5ef);
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.75rem 1rem 0.85rem;
+}
+
+.app-header__close {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0.65rem;
+  color: var(--ua-ink, #00152a);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 2.45rem;
+  justify-content: center;
+  padding: 0;
+  width: 2.45rem;
+
+  ion-icon {
+    font-size: 1.6rem;
+  }
+
+  &:active {
+    background: rgba(0, 21, 42, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ua-primary, #004ccb);
+    outline-offset: 2px;
+  }
+}
+
+.app-header__nav {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem;
+}
+
+// Pie del panel off-canvas: logo grande de marca anclado abajo-izquierda.
+// margin-top:auto lo empuja al fondo del drawer (display:flex column).
+.app-header__drawer-foot {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: auto;
+  padding: 1rem;
+}
+
+.app-header__drawer-logo {
+  background: #f7fafd;
+  border: 1px solid rgba(0, 21, 42, 0.08);
+  border-radius: 1rem;
+  height: auto;
+  object-fit: contain;
+  padding: 0.85rem 1rem;
+  width: clamp(8rem, 55%, 12rem);
+}
+
+.app-header__session {
+  align-items: center;
+  border-bottom: 1px solid var(--ua-border, #dbe5ef);
+  color: var(--ua-ink, #00152a);
+  display: flex;
+  gap: 0.65rem;
+  margin-bottom: 0.35rem;
+  padding: 0.35rem 0.8rem 0.75rem;
+
+  ion-icon {
+    color: var(--ua-primary, #004ccb);
+    flex: 0 0 auto;
+    font-size: 1.95rem;
+  }
+}
+
+.app-header__session-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-header__session-email {
+  font-size: 0.92rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-header__session-role {
+  color: var(--ua-ink-faint, #64748b);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.app-header__link {
+  align-items: center;
+  border-radius: 0.75rem;
+  color: var(--ua-ink, #00152a);
+  display: flex;
+  font-size: 0.97rem;
+  font-weight: 800;
+  gap: 0.7rem;
+  min-height: 3.1rem;
+  padding: 0 0.85rem;
+  text-decoration: none;
+
+  ion-icon {
+    color: var(--ua-primary, #004ccb);
+    flex: 0 0 auto;
+    font-size: 1.2rem;
+  }
+
+  &:active {
+    background: var(--ua-bg, #f6fafe);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ua-primary, #004ccb);
+    outline-offset: -2px;
+  }
+}
+
+@media (hover: hover) {
+  .app-header__link:hover {
+    background: var(--ua-bg, #f6fafe);
+  }
+}
+
+.app-header__badge {
+  margin-left: auto;
+}
+
+.app-header__link--logout {
+  color: var(--ua-danger-ink, #8f1d17);
+
+  ion-icon {
+    color: var(--ua-danger-ink, #8f1d17);
+  }
+
+  &:active {
+    background: #fef2f2;
+  }
+}
+
+@media (hover: hover) {
+  .app-header__link--logout:hover {
+    background: #fef2f2;
+  }
+}
+
+// Accesibilidad: respeta la preferencia de movimiento reducido. Las barras y el
+// panel cambian de estado sin animar la transición.
+@media (prefers-reduced-motion: reduce) {
+  .app-header__burger-bar,
+  .app-header__backdrop,
+  .app-header__drawer {
+    transition: none;
+  }
+}

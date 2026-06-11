@@ -1,0 +1,122 @@
+<ion-header class="app-header" translucent="true">
+  <ion-toolbar class="app-header__toolbar">
+    <div class="app-header__layout">
+      <a class="app-header__brand" routerLink="/home" aria-label="Urban Alert">
+        <span class="app-header__mark" aria-hidden="true">
+          <img [src]="brandMarkUrl" alt="Urban Alert" />
+        </span>
+
+        <span class="app-header__brand-text">
+          <span class="app-header__title">Urban Alert</span>
+          <span class="app-header__subtitle" *ngIf="subtitle">{{ subtitle }}</span>
+        </span>
+      </a>
+
+      <button
+        type="button"
+        class="app-header__burger"
+        [class.is-open]="isOpen()"
+        (click)="toggle()"
+        [attr.aria-label]="toggleLabel()"
+        [attr.aria-expanded]="isOpen()"
+        aria-controls="app-header-drawer"
+      >
+        <span class="app-header__burger-bar"></span>
+        <span class="app-header__burger-bar"></span>
+        <span class="app-header__burger-bar"></span>
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<!-- Backdrop: oscurece el contenido y cierra el panel al pulsarlo. -->
+<div
+  class="app-header__backdrop"
+  [class.is-open]="isOpen()"
+  (click)="close()"
+  aria-hidden="true"
+></div>
+
+<!-- Panel off-canvas lateral (desde la izquierda). -->
+<aside
+  id="app-header-drawer"
+  class="app-header__drawer"
+  [class.is-open]="isOpen()"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Menú principal"
+  [attr.aria-hidden]="!isOpen()"
+  [attr.inert]="isOpen() ? null : ''"
+>
+  <header class="app-header__drawer-head">
+    <a class="app-header__brand" routerLink="/home" (click)="close()" aria-label="Urban Alert">
+      <span class="app-header__mark" aria-hidden="true">
+        <img [src]="brandMarkUrl" alt="Urban Alert" />
+      </span>
+      <span class="app-header__title">Urban Alert</span>
+    </a>
+
+    <button
+      type="button"
+      class="app-header__close"
+      (click)="close()"
+      aria-label="Cerrar menú"
+    >
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </header>
+
+  <nav class="app-header__nav" aria-label="Navegación">
+    <div class="app-header__session" *ngIf="isAuthenticated()">
+      <ion-icon name="person-circle-outline" aria-hidden="true"></ion-icon>
+      <span class="app-header__session-info">
+        <strong class="app-header__session-email">{{ email() ?? 'Sesión iniciada' }}</strong>
+        <span class="app-header__session-role" *ngIf="roleLabel() as rol">{{ rol }}</span>
+      </span>
+    </div>
+
+    <a
+      class="app-header__link"
+      *ngIf="!isAuthenticated()"
+      href="/login"
+      (click)="goTo('/login', $event)"
+    >
+      <ion-icon name="person-circle-outline" aria-hidden="true"></ion-icon>
+      <span>Iniciar sesión / Registrarse</span>
+    </a>
+
+    <a
+      class="app-header__link"
+      *ngFor="let item of items; trackBy: trackByLabel"
+      [href]="item.route"
+      (click)="goTo(item.route, $event)"
+    >
+      <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
+      <span>{{ item.label }}</span>
+      <ion-badge
+        *ngIf="item.route === '/notificaciones' && unreadCount() > 0"
+        class="app-header__badge"
+        color="danger"
+        [attr.aria-label]="unreadCount() + ' notificaciones sin leer'"
+      >{{ unreadCount() }}</ion-badge>
+    </a>
+
+    <a
+      class="app-header__link app-header__link--logout"
+      *ngIf="isAuthenticated()"
+      href="/login"
+      (click)="logout($event)"
+    >
+      <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+      <span>Cerrar sesión</span>
+    </a>
+  </nav>
+
+  <div class="app-header__drawer-foot" aria-hidden="true">
+    <img
+      class="app-header__drawer-logo"
+      src="assets/media/images/logo-v3.png"
+      alt="Urban Alert"
+    />
+  </div>
+</aside>

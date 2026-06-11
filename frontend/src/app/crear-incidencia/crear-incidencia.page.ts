@@ -2,10 +2,13 @@ import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
+import { HeaderComponent } from '../shared/header/header.component';
+import { FooterComponent } from '../shared/footer/footer.component';
+import { UiButtonComponent } from '../shared/ui-button/ui-button.component';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../services/auth.service';
 import { Categoria, IncidenciaCreate, IncidenciasService, Prioridad } from '../services/incidencias.service';
 
 type Priority = 'Baja' | 'Media' | 'Alta';
@@ -27,14 +30,15 @@ const FALLBACK_LOCATION = { lat: 38.3852, lng: -0.5132 } as const;
   templateUrl: 'crear-incidencia.page.html',
   styleUrls: ['crear-incidencia.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, RouterModule, AppMenuComponent],
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule, HeaderComponent, FooterComponent, UiButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CrearIncidenciaPage {
   private readonly incidencias = inject(IncidenciasService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
-  readonly brandMarkUrl = 'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
   readonly mapUrl: SafeResourceUrl;
 
   constructor(private readonly sanitizer: DomSanitizer) {
@@ -76,7 +80,17 @@ export class CrearIncidenciaPage {
     'Zonas verdes': 'zonas_verdes',
   };
 
+  /**
+   * El paso 1 ("Detalles") se considera completo cuando la descripción tiene
+   * texto (el tipo y la prioridad siempre vienen preseleccionados y las fotos
+   * son opcionales).
+   */
+  get step1Complete(): boolean {
+    return !!this.description?.trim();
+  }
+
   goTo(stepNum: number) {
+    if (stepNum === 2 && !this.step1Complete) return;
     this.step = stepNum;
   }
 
@@ -110,6 +124,7 @@ export class CrearIncidenciaPage {
   }
 
   next() {
+    if (!this.step1Complete) return;
     if (this.step < 2) this.step += 1;
   }
 
@@ -118,6 +133,12 @@ export class CrearIncidenciaPage {
   }
 
   async submit() {
+    // Defensa: si la sesión expiró mientras se rellenaba el formulario, no se
+    // intenta crear nada sin autenticación; se redirige al login.
+    if (!this.auth.isAuthenticated()) {
+      this.router.navigateByUrl('/login');
+      return;
+    }
     if (!this.incidentType) {
       alert('Selecciona el tipo de incidencia antes de enviar.');
       return;

@@ -18,22 +18,8 @@
   --background: var(--page-bg);
 }
 
-.detail-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-.detail-toolbar {
-  --background: rgba(248, 250, 252, 0.86);
-  --border-width: 0;
-  --padding-bottom: 0;
-  --padding-top: 0;
-  backdrop-filter: blur(12px);
-}
-
-// Cabecera de marca (.toolbar-layout / .brand / .brand__mark / .brand__text /
-// .brand__title / .brand__subtitle) compartida en global.scss (#67).
+// La cabecera y el pie de la página son los componentes compartidos
+// <app-header> / <app-footer>; ya no hay barra de cabecera propia.
 
 .back-button {
   --border-radius: 0.55rem;

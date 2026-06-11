@@ -11,7 +11,9 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { environment } from '../../environments/environment';
-import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
+import { HeaderComponent } from '../shared/header/header.component';
+import { FooterComponent } from '../shared/footer/footer.component';
+import { UiButtonComponent } from '../shared/ui-button/ui-button.component';
 import { AuthService } from '../services/auth.service';
 import { Estado, Incidencia, IncidenciasService, Prioridad } from '../services/incidencias.service';
 
@@ -20,7 +22,7 @@ import { Estado, Incidencia, IncidenciasService, Prioridad } from '../services/i
   templateUrl: 'mis-incidencias.page.html',
   styleUrls: ['mis-incidencias.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, AppMenuComponent],
+  imports: [CommonModule, IonicModule, RouterModule, HeaderComponent, FooterComponent, UiButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MisIncidenciasPage implements OnInit {
@@ -28,9 +30,6 @@ export class MisIncidenciasPage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
-
-  readonly brandMarkUrl =
-    'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
   readonly incidents = signal<Incidencia[]>([]);
   readonly loading = signal(false);

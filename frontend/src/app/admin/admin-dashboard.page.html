@@ -30,10 +30,9 @@
           <span aria-hidden="true"></span>
           En vivo
         </span>
-        <ion-button class="primary-action" routerLink="/mapa-incidencias">
-          <ion-icon slot="start" name="map-outline"></ion-icon>
+        <app-ui-button class="primary-action" variant="primary" icon="map-outline" routerLink="/mapa-incidencias">
           Abrir mapa
-        </ion-button>
+        </app-ui-button>
       </div>
     </section>
 
@@ -50,16 +49,13 @@
     <ng-container *ngIf="!vm.loading">
       <section class="metrics-grid" aria-label="Indicadores principales">
         <article
-          class="metric-card"
+          appStatCard
           *ngFor="let metric of vm.metrics; trackBy: trackByLabel"
-          [ngClass]="'metric-card--' + metric.tone"
-        >
-          <span class="metric-card__icon">
-            <ion-icon [name]="metric.icon"></ion-icon>
-          </span>
-          <span class="metric-card__label">{{ metric.label }}</span>
-          <strong>{{ metric.value }}</strong>
-        </article>
+          [tone]="metric.tone"
+          [icon]="metric.icon"
+          [label]="metric.label"
+          [value]="metric.value"
+        ></article>
       </section>
 
       <section class="dashboard-grid">
@@ -221,10 +217,9 @@
               <h2>Cola de incidencias</h2>
               <p>Ultimos reportes recibidos</p>
             </div>
-            <ion-button fill="clear" routerLink="/mis-incidencias">
+            <app-ui-button variant="ghost" icon="chevron-forward-outline" iconSlot="end" routerLink="/mis-incidencias">
               Ver todas
-              <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
-            </ion-button>
+            </app-ui-button>
           </div>
 
           <div class="table-head">

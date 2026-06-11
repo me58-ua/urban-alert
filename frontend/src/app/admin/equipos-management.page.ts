@@ -14,6 +14,9 @@ import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
 import { AdminMenuComponent } from '../shared/admin-menu/admin-menu.component';
+import { StatCardComponent } from '../shared/stat-card/stat-card.component';
+import { UiButtonComponent } from '../shared/ui-button/ui-button.component';
+import { UiIconButtonComponent } from '../shared/ui-icon-button/ui-icon-button.component';
 import {
   Categoria,
   Equipo,
@@ -33,7 +36,16 @@ interface CategoriaOption {
   templateUrl: 'equipos-management.page.html',
   styleUrls: ['equipos-management.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule, AdminMenuComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    RouterModule,
+    AdminMenuComponent,
+    StatCardComponent,
+    UiButtonComponent,
+    UiIconButtonComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EquiposManagementPage implements OnInit {

@@ -1,37 +1,21 @@
-<ion-header class="site-header" translucent="true">
-  <ion-toolbar class="site-toolbar">
-    <div class="toolbar-layout">
-      <div class="brand">
-        <div class="brand__mark" aria-hidden="true">
-          <img [src]="brandMarkUrl" alt="" />
-        </div>
-
-        <div class="brand__text">
-          <div class="brand__title">Urban Alert</div>
-          <div class="brand__subtitle">Urban Management</div>
-        </div>
-      </div>
-
-      <nav class="header-nav" aria-label="Principal">
-        <a
-          *ngFor="let link of headerLinks; trackBy: trackByLabel"
-          [class.header-nav__link--active]="link.active"
-          [href]="link.href"
-          [routerLink]="link.route"
-          class="header-nav__link"
-        >
-          {{ link.label }}
-        </a>
-      </nav>
-
-      <app-menu></app-menu>
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-header subtitle="Plataforma ciudadana"></app-header>
 
 <ion-content class="urban-alert-page" fullscreen="true">
-  <main class="page-shell">
-    <section class="hero" id="hero">
+  <section class="hero" id="hero">
+      <video
+        #heroVideo
+        class="hero__video"
+        autoplay
+        loop
+        muted
+        playsinline
+        preload="auto"
+        aria-hidden="true"
+      >
+        <source src="assets/media/video/intro.urban-alert-2.mp4" type="video/mp4" />
+      </video>
+      <div class="hero__overlay" aria-hidden="true"></div>
+
       <div class="hero__content">
         <ion-chip class="eyebrow" color="primary">
           <ion-label>Plataforma ciudadana</ion-label>
@@ -48,42 +32,30 @@
         </p>
 
         <div class="hero__actions">
-          <ion-button class="primary-action" size="large" fill="solid" [routerLink]="['/crear-incidencia']">
-            <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+          <app-ui-button
+            class="primary-action"
+            variant="primary"
+            size="large"
+            icon="add-circle-outline"
+            [routerLink]="['/crear-incidencia']"
+          >
             Reportar incidencia
-          </ion-button>
+          </app-ui-button>
 
-          <ion-button class="secondary-action" size="large" fill="solid" [routerLink]="['/mapa-incidencias']">
-            <ion-icon slot="start" name="map-outline"></ion-icon>
+          <app-ui-button
+            class="secondary-action"
+            variant="secondary"
+            size="large"
+            icon="map-outline"
+            [routerLink]="['/mapa-incidencias']"
+          >
             Ver incidencias en el mapa
-          </ion-button>
+          </app-ui-button>
         </div>
       </div>
+  </section>
 
-      <div class="hero__visual">
-        <a
-          class="preview-card preview-card-link"
-          [routerLink]="['/mapa-incidencias']"
-          aria-label="Abrir el mapa de incidencias en tiempo real"
-        >
-          <div class="map-canvas" aria-hidden="true">
-            <div class="map-canvas__grid"></div>
-            <div class="map-canvas__streets"></div>
-            <div class="map-canvas__pin"></div>
-            <div class="map-canvas__skyline"></div>
-          </div>
-
-          <ion-card-content class="preview-card__footer">
-            <div class="preview-card__label">Mapa en tiempo real</div>
-            <div class="preview-card__status" *ngIf="incidenciasAbiertas$ | async as abiertas">
-              <span class="status-dot"></span>
-              <span>{{ abiertas.value }} Activas</span>
-            </div>
-          </ion-card-content>
-        </a>
-      </div>
-    </section>
-
+  <main class="page-shell">
     <section class="section" id="categories">
       <div class="section__header">
         <div>
@@ -157,18 +129,5 @@
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="site-footer__inner">
-      <div class="site-footer__brand">
-        <div class="site-footer__title">Urban Alert</div>
-        <div class="site-footer__copy">© 2026 Urban Alert. Todos los derechos reservados.</div>
-      </div>
-
-      <nav class="site-footer__links" aria-label="Pie de página">
-        <span class="site-footer__link" *ngFor="let link of footerLinks; trackBy: trackByLabel">
-          {{ link.label }}
-        </span>
-      </nav>
-    </div>
-  </footer>
+  <app-footer></app-footer>
 </ion-content>

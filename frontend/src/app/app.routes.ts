@@ -2,6 +2,7 @@ import { inject } from '@angular/core';
 import { Router, Routes } from '@angular/router';
 import { CrearIncidenciaPage } from './crear-incidencia/crear-incidencia.page';
 import { adminGuard } from './guards/admin.guard';
+import { authGuard } from './guards/auth.guard';
 
 const redirectAdminHome = () => {
   const router = inject(Router);
@@ -40,6 +41,7 @@ export const routes: Routes = [
   },
   {
     path: 'crear-incidencia',
+    canActivate: [authGuard],
     component: CrearIncidenciaPage,
   },
   {

@@ -1,0 +1,77 @@
+// Botón de texto reutilizable (#T2).
+// ---------------------------------------------------------------------------
+// IMPORTANTE: las CSS custom properties de Ionic deben fijarse DIRECTAMENTE
+// sobre el <ion-button> interno (.ui-button__native). No basta con declararlas
+// en el host y confiar en la herencia: Ionic ya define `--background`,
+// `--color`, etc. en el propio <ion-button>, y un valor fijado en el elemento
+// "tapa" (shadow) cualquier valor heredado del ancestro. Por eso las variantes
+// apuntan a `... .ui-button__native`.
+//
+// Los AJUSTES POR PÁGINA (degradado de la home, navy de auth/crear, etc.) no se
+// pueden escribir en la hoja con encapsulación de cada página porque sus
+// selectores no alcanzan el <ion-button> proyectado dentro del componente. Por
+// eso viven en global.scss apuntando a `app-ui-button.<clase> .ui-button__native`
+// (reglas globales sin atributo de encapsulación, que sí llegan al botón).
+
+:host {
+  display: inline-block;
+  // Peso/tipografía coherentes con los botones de marca existentes.
+  --ua-button-font-weight: 800;
+}
+
+// En modo bloque el host ocupa el ancho disponible para que `expand="block"`
+// del ion-button interno se vea correctamente.
+.ui-button--block {
+  display: block;
+}
+
+.ui-button__native {
+  font-weight: var(--ua-button-font-weight, 800);
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-transform: none;
+}
+
+// ── Primary: navy sólido, texto blanco (cubre .primary-action) ───────────────
+.ui-button--primary .ui-button__native {
+  --background: var(--ua-navy, #00152a);
+  --background-activated: #102a43;
+  --background-focused: #102a43;
+  --background-hover: #102a43;
+  --color: #ffffff;
+  --border-radius: var(--ua-radius, 0.65rem);
+  --box-shadow: none;
+}
+
+// ── Secondary: superficie clara, texto oscuro (cubre .secondary-action) ──────
+.ui-button--secondary .ui-button__native {
+  --background: var(--ua-surface-soft, #e4e9ed);
+  --background-activated: #d9e0e5;
+  --background-focused: #d9e0e5;
+  --background-hover: #d9e0e5;
+  --color: #314863;
+  --border-radius: var(--ua-radius, 0.65rem);
+  --box-shadow: none;
+}
+
+// ── Danger: rojo de marca, texto blanco ──────────────────────────────────────
+.ui-button--danger .ui-button__native {
+  --background: var(--ua-danger, #ba1a1a);
+  --background-activated: #9f1717;
+  --background-focused: #9f1717;
+  --background-hover: #9f1717;
+  --color: #ffffff;
+  --border-radius: var(--ua-radius, 0.65rem);
+  --box-shadow: none;
+}
+
+// ── Ghost: sin relleno, texto azul de acción (cubre fill="clear") ────────────
+.ui-button--ghost .ui-button__native {
+  --background: transparent;
+  --background-activated: transparent;
+  --background-focused: transparent;
+  --background-hover: rgba(2, 98, 255, 0.08);
+  --color: var(--ua-primary, #004ccb);
+  --border-radius: var(--ua-radius, 0.65rem);
+  --box-shadow: none;
+}

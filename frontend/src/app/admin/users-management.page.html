@@ -32,23 +32,9 @@
     </div>
 
     <section class="users-summary" aria-label="Resumen de usuarios">
-      <article class="metric-card metric-card--blue">
-        <span class="metric-card__icon"><ion-icon name="people-outline"></ion-icon></span>
-        <span class="metric-card__label">Usuarios totales</span>
-        <strong>{{ users().length }}</strong>
-      </article>
-
-      <article class="metric-card metric-card--green">
-        <span class="metric-card__icon"><ion-icon name="shield-checkmark-outline"></ion-icon></span>
-        <span class="metric-card__label">Administradores</span>
-        <strong>{{ adminCount() }}</strong>
-      </article>
-
-      <article class="metric-card metric-card--amber">
-        <span class="metric-card__icon"><ion-icon name="checkmark-circle-outline"></ion-icon></span>
-        <span class="metric-card__label">Cuentas activas</span>
-        <strong>{{ activeCount() }}</strong>
-      </article>
+      <article appStatCard tone="blue" icon="people-outline" label="Usuarios totales" [value]="users().length"></article>
+      <article appStatCard tone="green" icon="shield-checkmark-outline" label="Administradores" [value]="adminCount()"></article>
+      <article appStatCard tone="amber" icon="checkmark-circle-outline" label="Cuentas activas" [value]="activeCount()"></article>
     </section>
 
     <section class="panel user-create-panel">
@@ -75,10 +61,9 @@
             <ion-select-option value="admin">Admin</ion-select-option>
           </ion-select>
         </label>
-        <ion-button class="primary-action" type="submit">
-          <ion-icon slot="start" name="person-add-outline"></ion-icon>
+        <app-ui-button class="primary-action" variant="primary" type="submit" icon="person-add-outline">
           Crear
-        </ion-button>
+        </app-ui-button>
       </form>
     </section>
 
@@ -128,12 +113,8 @@
               {{ estadoLabel(user.activo) }}
             </button>
             <div class="user-actions">
-              <button type="button" class="icon-action icon-action--save" (click)="saveEdit(user.id)" aria-label="Guardar">
-                <ion-icon name="checkmark-outline"></ion-icon>
-              </button>
-              <button type="button" class="icon-action" (click)="cancelEdit()" aria-label="Cancelar">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
+              <app-ui-icon-button variant="success" icon="checkmark-outline" ariaLabel="Guardar" (click)="saveEdit(user.id)"></app-ui-icon-button>
+              <app-ui-icon-button icon="close-outline" ariaLabel="Cancelar" (click)="cancelEdit()"></app-ui-icon-button>
             </div>
           </ng-container>
 
@@ -158,12 +139,8 @@
               {{ estadoLabel(user.activo) }}
             </button>
             <div class="user-actions">
-              <button type="button" class="icon-action" (click)="startEdit(user)" aria-label="Editar">
-                <ion-icon name="create-outline"></ion-icon>
-              </button>
-              <button type="button" class="icon-action icon-action--danger" (click)="deleteUser(user.id)" aria-label="Eliminar">
-                <ion-icon name="trash-outline"></ion-icon>
-              </button>
+              <app-ui-icon-button icon="create-outline" ariaLabel="Editar" (click)="startEdit(user)"></app-ui-icon-button>
+              <app-ui-icon-button variant="danger" icon="trash-outline" ariaLabel="Eliminar" (click)="deleteUser(user.id)"></app-ui-icon-button>
             </div>
           </ng-template>
         </div>

@@ -15,25 +15,8 @@
   --background: var(--page-bg);
 }
 
-.map-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-.map-toolbar {
-  --background: rgba(248, 250, 252, 0.86);
-  --border-width: 0;
-  --padding-bottom: 0;
-  --padding-top: 0;
-  backdrop-filter: blur(12px);
-}
-
-// Cabecera de marca (.toolbar-layout / .brand / .brand__*) compartida en
-// global.scss (#67). El mapa solo necesita un ancho máximo algo mayor.
-.toolbar-layout {
-  max-width: 1200px;
-}
+// La cabecera y el pie de la página son los componentes compartidos
+// <app-header> / <app-footer>; ya no hay barra de cabecera propia.
 
 .back-button {
   --border-radius: 0.55rem;
@@ -83,17 +66,10 @@
   text-transform: uppercase;
 }
 
-.new-report-button {
-  --background: var(--navy);
-  --background-activated: #102a43;
-  --background-focused: #102a43;
-  --background-hover: #102a43;
-  --border-radius: 0.75rem;
-  --box-shadow: none;
-  --color: #ffffff;
-  font-weight: 800;
-  text-transform: none;
-}
+// Botón "Reportar incidencia" ahora <app-ui-button class="new-report-button">
+// (#T2). Su aspecto navy vive en global.scss apuntando a
+// `.map-page app-ui-button.new-report-button .ui-button__native`, porque las CSS
+// vars de Ionic deben ir sobre el <ion-button> interno.
 
 .map-layout {
   display: grid;
@@ -122,26 +98,59 @@
   gap: 1rem;
 }
 
+// Segmento de filtros estilo "segment": pista redondeada con fondo atenuado,
+// chips que envuelven; en pantallas muy estrechas scroll horizontal limpio.
 .filter-row {
+  background: var(--ua-section-bg, #f0f4f8);
+  border: 1px solid var(--ua-border-soft, #e4e9ed);
+  border-radius: var(--ua-radius-pill, 999px);
   display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.2rem;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.3rem;
 }
 
 .filter-row__button {
-  background: var(--surface);
+  background: transparent;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--ua-radius-pill, 999px);
   color: var(--ink-muted);
-  flex: 0 0 auto;
+  cursor: pointer;
+  flex: 1 1 auto;
+  font-size: 0.82rem;
   font-weight: 800;
-  padding: 0.65rem 0.9rem;
+  padding: 0.55rem 0.85rem;
+  text-align: center;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  white-space: nowrap;
+}
+
+.filter-row__button:hover:not(.filter-row__button--active) {
+  background: rgba(0, 76, 203, 0.08);
+  color: var(--primary);
 }
 
 .filter-row__button--active {
-  background: var(--navy);
-  color: #ffffff;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.12), 0 0 0 1px rgb(0 21 42 / 0.04);
+  color: var(--ink);
+}
+
+// En móvil estrecho: no envolver, scroll horizontal sin barra visible.
+@media (max-width: 400px) {
+  .filter-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .filter-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-row__button {
+    flex: 0 0 auto;
+  }
 }
 
 .incident-list {
@@ -150,25 +159,56 @@
 }
 
 .incident-card {
+  --cat-accent: var(--primary);
   background: var(--surface);
-  border-radius: 0.9rem;
-  box-shadow: 0 1px 1px rgb(0 0 0 / 0.05);
+  border: 1px solid var(--ua-border, #dbe5ef);
+  border-radius: var(--ua-radius-lg, 0.9rem);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
   color: inherit;
   display: block;
   margin: 0;
+  overflow: hidden;
+  position: relative;
   text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+
+  // Banda de color a la izquierda según la categoría.
+  &::before {
+    background: var(--cat-accent);
+    bottom: 0;
+    content: '';
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 4px;
+  }
 
   ion-card-content {
-    padding: 1rem;
+    padding: 1rem 1rem 1rem 1.15rem;
   }
 
   h2 {
     color: var(--ink);
     font-size: 1.05rem;
     font-weight: 850;
+    line-height: 1.3;
     margin: 0.65rem 0 0;
   }
 }
+
+.incident-card:hover {
+  border-color: rgb(0 76 203 / 0.35);
+  box-shadow: var(--ua-shadow-card, 0 18px 32px rgb(15 23 42 / 0.08));
+  transform: translateY(-2px);
+}
+
+// Acentos por categoría (banda + chip de categoría).
+.incident-card--cat-infraestructura { --cat-accent: #0457d3; }
+.incident-card--cat-alumbrado       { --cat-accent: #b45309; }
+.incident-card--cat-residuos        { --cat-accent: #6b7280; }
+.incident-card--cat-trafico         { --cat-accent: #b91c1c; }
+.incident-card--cat-zonas_verdes    { --cat-accent: #15803d; }
+.incident-card--cat-otro            { --cat-accent: #6d28d9; }
 
 .incident-card__top,
 .incident-card__meta {
@@ -179,17 +219,32 @@
 }
 
 .incident-card__category {
-  color: var(--ink-faint);
-  font-size: 0.72rem;
+  align-items: center;
+  background: color-mix(in srgb, var(--cat-accent) 12%, transparent);
+  border-radius: var(--ua-radius-pill, 999px);
+  color: var(--cat-accent);
+  display: inline-flex;
+  font-size: 0.7rem;
   font-weight: 850;
+  gap: 0.3rem;
+  letter-spacing: 0.02em;
+  min-width: 0;
+  padding: 0.32rem 0.6rem;
   text-transform: uppercase;
+
+  ion-icon {
+    flex: 0 0 auto;
+    font-size: 0.95rem;
+  }
 }
 
 .incident-card__status {
-  border-radius: 999px;
+  border-radius: var(--ua-radius-pill, 999px);
+  flex: 0 0 auto;
   font-size: 0.7rem;
   font-weight: 850;
-  padding: 0.3rem 0.55rem;
+  padding: 0.3rem 0.6rem;
+  white-space: nowrap;
 }
 
 .incident-card__status--danger {
@@ -211,19 +266,31 @@
   color: var(--ink-muted);
   font-size: 0.82rem;
   font-weight: 650;
-  margin-top: 0.65rem;
+  margin-top: 0.85rem;
+}
 
-  span:first-child {
-    align-items: center;
-    display: inline-flex;
-    gap: 0.3rem;
-    min-width: 0;
-  }
+.incident-card__address {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.3rem;
+  min-width: 0;
 
   ion-icon {
     color: var(--primary);
     flex: 0 0 auto;
   }
+}
+
+.incident-card__chevron {
+  color: var(--ink-faint);
+  flex: 0 0 auto;
+  font-size: 1rem;
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.incident-card:hover .incident-card__chevron {
+  color: var(--primary);
+  transform: translateX(2px);
 }
 
 @media (min-width: 760px) {

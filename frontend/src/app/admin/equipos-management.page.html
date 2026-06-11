@@ -32,17 +32,8 @@
     </section>
 
     <section class="teams-summary" aria-label="Resumen de equipos">
-      <article class="metric-card metric-card--blue">
-        <span class="metric-card__icon"><ion-icon name="people-circle-outline"></ion-icon></span>
-        <span class="metric-card__label">Equipos activos</span>
-        <strong>{{ equipos().length }}</strong>
-      </article>
-
-      <article class="metric-card metric-card--green">
-        <span class="metric-card__icon"><ion-icon name="person-add-outline"></ion-icon></span>
-        <span class="metric-card__label">Trabajadores disponibles</span>
-        <strong>{{ availableWorkersCount() }}</strong>
-      </article>
+      <article appStatCard tone="blue" icon="people-circle-outline" label="Equipos activos" [value]="equipos().length"></article>
+      <article appStatCard tone="green" icon="person-add-outline" label="Trabajadores disponibles" [value]="availableWorkersCount()"></article>
     </section>
 
     <section class="panel team-create-panel">
@@ -75,10 +66,15 @@
           </ion-select-option>
         </ion-select>
 
-        <ion-button type="submit" [disabled]="!newTeam.nombre.trim()">
-          <ion-icon slot="start" name="add-outline"></ion-icon>
+        <app-ui-button
+          class="primary-action"
+          variant="primary"
+          type="submit"
+          icon="add-outline"
+          [disabled]="!newTeam.nombre.trim()"
+        >
           Crear equipo
-        </ion-button>
+        </app-ui-button>
       </form>
     </section>
 
@@ -123,10 +119,16 @@
             <h2>{{ team.nombre }}</h2>
             <p>EQ-{{ team.id }} · {{ categoryLabel(team.categoria) }}</p>
           </div>
-          <button class="danger-link" type="button" (click)="deleteTeam(team.id)">
-            <ion-icon name="trash-outline"></ion-icon>
+          <app-ui-button
+            class="danger-link"
+            variant="danger"
+            fill="clear"
+            size="small"
+            icon="trash-outline"
+            (click)="deleteTeam(team.id)"
+          >
             Eliminar equipo
-          </button>
+          </app-ui-button>
         </div>
 
         <form class="team-edit-form" (ngSubmit)="saveTeam(team.id)">
@@ -151,9 +153,14 @@
             </ion-select-option>
           </ion-select>
 
-          <ion-button type="submit" fill="outline" [disabled]="!draftName.trim()">
+          <app-ui-button
+            class="secondary-action"
+            variant="secondary"
+            type="submit"
+            [disabled]="!draftName.trim()"
+          >
             Guardar cambios
-          </ion-button>
+          </app-ui-button>
         </form>
 
         <div class="workers-block">
@@ -171,9 +178,12 @@
                   {{ worker.puesto || 'Sin puesto' }} · {{ worker.disponible ? 'Disponible' : 'No disponible' }}
                 </small>
               </span>
-              <button class="danger-link" type="button" (click)="removeWorker(team.id, worker.id)" aria-label="Quitar trabajador">
-                <ion-icon name="close-circle-outline"></ion-icon>
-              </button>
+              <app-ui-icon-button
+                variant="danger"
+                icon="close-circle-outline"
+                ariaLabel="Quitar trabajador"
+                (click)="removeWorker(team.id, worker.id)"
+              ></app-ui-icon-button>
             </div>
           </div>
 
@@ -192,10 +202,15 @@
               [(ngModel)]="newWorker.puesto"
               name="newWorkerRole"
             ></ion-input>
-            <ion-button type="submit" [disabled]="!newWorker.nombre.trim()">
-              <ion-icon slot="start" name="person-add-outline"></ion-icon>
+            <app-ui-button
+              class="primary-action"
+              variant="primary"
+              type="submit"
+              icon="person-add-outline"
+              [disabled]="!newWorker.nombre.trim()"
+            >
               Anadir
-            </ion-button>
+            </app-ui-button>
           </form>
         </div>
       </article>
@@ -317,16 +332,23 @@
                 name="workerDraftRole"
               ></ion-input>
               <div class="worker-manage-edit__actions">
-                <ion-button
+                <app-ui-button
+                  class="primary-action"
+                  variant="primary"
                   size="small"
                   (click)="saveWorker(worker.id)"
                   [disabled]="!workerDraft.nombre.trim()"
                 >
                   Guardar
-                </ion-button>
-                <ion-button size="small" fill="outline" (click)="cancelEditWorker()">
+                </app-ui-button>
+                <app-ui-button
+                  class="secondary-action"
+                  variant="secondary"
+                  size="small"
+                  (click)="cancelEditWorker()"
+                >
                   Cancelar
-                </ion-button>
+                </app-ui-button>
               </div>
             </div>
           </ng-container>
@@ -349,23 +371,18 @@
                 {{ worker.disponible ? 'Disponible' : 'No disponible' }}
               </ion-toggle>
 
-              <button
-                class="icon-link"
-                type="button"
+              <app-ui-icon-button
+                icon="create-outline"
+                ariaLabel="Editar trabajador"
                 (click)="startEditWorker(worker)"
-                aria-label="Editar trabajador"
-              >
-                <ion-icon name="create-outline"></ion-icon>
-              </button>
+              ></app-ui-icon-button>
 
-              <button
-                class="danger-link"
-                type="button"
+              <app-ui-icon-button
+                variant="danger"
+                icon="trash-outline"
+                ariaLabel="Eliminar trabajador"
                 (click)="deleteWorker(worker.id)"
-                aria-label="Eliminar trabajador"
-              >
-                <ion-icon name="trash-outline"></ion-icon>
-              </button>
+              ></app-ui-icon-button>
             </div>
           </ng-template>
         </div>

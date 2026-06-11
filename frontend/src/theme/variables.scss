@@ -47,6 +47,9 @@
   /* Sombras */
   --ua-shadow-soft: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
   --ua-shadow-card: 0 18px 32px rgb(15 23 42 / 0.08);
+  // Sombra de elevación al pasar el puntero (hover) sobre widgets/tarjetas (#T5):
+  // más marcada que --ua-shadow-card para sugerir que la tarjeta "se levanta".
+  --ua-shadow-hover: 0 24px 44px rgb(15 23 42 / 0.16);
 
   /* Escala de espaciado */
   --ua-space-1: 0.25rem;

@@ -1,21 +1,4 @@
-<ion-header class="notifs-header" translucent="true">
-  <ion-toolbar class="notifs-toolbar">
-    <div class="toolbar-layout">
-      <a class="brand" routerLink="/home" aria-label="Urban Alert">
-        <span class="brand__mark" aria-hidden="true">
-          <img [src]="brandMarkUrl" alt="" />
-        </span>
-
-        <span class="brand__text">
-          <span class="brand__title">Urban Alert</span>
-          <span class="brand__subtitle">Notificaciones</span>
-        </span>
-      </a>
-
-      <app-menu></app-menu>
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-header subtitle="Notificaciones"></app-header>
 
 <ion-content class="notifs-page" fullscreen="true">
   <main class="page-shell">
@@ -109,4 +92,6 @@
       </article>
     </section>
   </main>
+
+  <app-footer></app-footer>
 </ion-content>

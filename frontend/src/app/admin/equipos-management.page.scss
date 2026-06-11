@@ -1,8 +1,168 @@
+:host {
+  display: block;
+}
+
+// ── T4 · Rediseño de /admin/equipos al estilo "app startup" ──────────────────
+// Las tarjetas (.panel), la cabecera (.panel__header), las píldoras de estado y
+// la cabecera de marca ya vienen de global.scss (.admin-page / .teams-page). Lo
+// que faltaba — y se añade aquí, acotado a la página — es la maquetación INTERNA
+// de los formularios (crear/editar equipo, crear/editar trabajador) y los
+// bloques de feedback, que hasta ahora se pintaban con los estilos por defecto
+// del navegador (sin padding ni separación). Se reutilizan los tokens --ua-*.
+//
+// Contraste: el bug raíz "texto = fondo" en los <ion-select>/<ion-input> ya lo
+// corrige global.scss (#T3) fijando --color de marca sobre superficies claras de
+// .admin-page. Aquí solo se les da la forma de "píldora" clara (borde suave,
+// radio, foco azul) que comparten con los filtros de T3, sin tocar su color.
+
+// ── Formularios de creación / edición ────────────────────────────────────────
+// Rejillas que apilan los campos en móvil y los reparten en una fila cómoda en
+// pantallas anchas. Reciben padding propio porque .panel ya no envuelve estos
+// formularios con relleno.
+.teams-page {
+  .team-create-form,
+  .team-edit-form,
+  .worker-create-form {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem;
+  }
+
+  // Los <ion-button>/<app-ui-button> de submit no deben estirarse a todo el
+  // ancho de la rejilla: se alinean al inicio para mantener un tamaño natural.
+  .team-create-form app-ui-button,
+  .team-edit-form app-ui-button,
+  .worker-create-form app-ui-button {
+    justify-self: start;
+  }
+
+  // Campos de formulario con la misma "píldora" clara que los filtros de T3:
+  // superficie clara, borde suave de marca, radio y realce azul al enfocar. El
+  // color de texto/icono lo fija ya global.scss (.admin-page ion-select/input).
+  .team-create-form ion-input,
+  .team-create-form ion-select,
+  .team-edit-form ion-input,
+  .team-edit-form ion-select,
+  .worker-create-form ion-input,
+  .worker-create-form ion-select,
+  .worker-manage-edit ion-input {
+    --background: var(--ua-surface, #ffffff);
+    --border-radius: var(--ua-radius, 0.65rem);
+    --padding-start: 0.85rem;
+    --padding-end: 0.65rem;
+    border: 1px solid var(--ua-border, #dbe5ef);
+    border-radius: var(--ua-radius, 0.65rem);
+    min-height: 2.7rem;
+    width: 100%;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .team-create-form ion-input.has-focus,
+  .team-create-form ion-select.select-expanded,
+  .team-create-form ion-select:focus-within,
+  .team-edit-form ion-input.has-focus,
+  .team-edit-form ion-select.select-expanded,
+  .team-edit-form ion-select:focus-within,
+  .worker-create-form ion-input.has-focus,
+  .worker-manage-edit ion-input.has-focus {
+    border-color: var(--ua-primary, #004ccb);
+    box-shadow: 0 0 0 3px rgb(0 76 203 / 0.12);
+  }
+
+  // ── Bloque de trabajadores del equipo seleccionado ─────────────────────────
+  .workers-block {
+    border-top: 1px solid var(--ua-border, #dbe5ef);
+    padding: 1rem;
+
+    h3 {
+      color: var(--ua-ink-navy, #0b1728);
+      font-size: 0.95rem;
+      font-weight: 850;
+      margin: 0 0 0.65rem;
+    }
+  }
+
+  // La lista de trabajadores ya tenía su layout en global.scss; aquí solo se
+  // ajusta su padding al vivir dentro de .workers-block (evita doble relleno).
+  .workers-block .worker-list {
+    padding: 0 0 1rem;
+  }
+
+  .workers-block .worker-create-form {
+    border-top: 1px solid var(--ua-border, #dbe5ef);
+    padding: 1rem 0 0;
+  }
+
+  // ── Botón "Eliminar equipo" de la cabecera del panel ───────────────────────
+  // Es un app-ui-button ghost/danger; que no se encoja ni rompa la cabecera.
+  .workers-panel .panel__header app-ui-button {
+    flex: 0 0 auto;
+  }
+
+  // ── Feedback de asignación (éxito / error) ─────────────────────────────────
+  .assign-feedback {
+    align-items: center;
+    display: flex;
+    font-size: 0.85rem;
+    font-weight: 700;
+    gap: 0.45rem;
+    margin: 0 1rem 0.75rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: var(--ua-radius, 0.65rem);
+
+    ion-icon {
+      flex: 0 0 auto;
+      font-size: 1.2rem;
+    }
+  }
+
+  .assign-feedback--error {
+    background: #ffe9e7;
+    color: var(--ua-danger-ink, #8f1d17);
+  }
+
+  .assign-feedback--success {
+    background: #def7ec;
+    color: #075f3a;
+  }
+
+  // El estado de error de incidencias dentro del panel también con margen.
+  .assignment-panel .ua-state--inline.ua-state--error {
+    margin: 0 1rem;
+  }
+
+  // ── Acciones de asignación de equipo ───────────────────────────────────────
+  // "Sin equipos compatibles" y "Desasignar" no tenían estilo: se alinean con
+  // los chips azules .team-actions button de global.scss.
+  .no-teams {
+    color: var(--ua-ink-faint, #64748b);
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .unassign-button {
+    background: var(--ua-surface-soft, #e4e9ed);
+    border: 0;
+    border-radius: var(--ua-radius-pill, 999px);
+    color: var(--ua-ink-muted, #43474d);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 850;
+    padding: 0.45rem 0.7rem;
+
+    &:hover {
+      background: #d9e0e5;
+    }
+  }
+}
+
+// ── Gestión global de trabajadores (tabla → tarjetas) ────────────────────────
 .workers-management-panel {
   .workers-table {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    padding: 1rem;
   }
 
   .worker-manage-row {
@@ -11,28 +171,45 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--ion-color-step-100, rgba(0, 0, 0, 0.08));
-
-    &:last-child {
-      border-bottom: 0;
-    }
+    padding: 0.85rem;
+    background: var(--ua-surface, #ffffff);
+    border: 1px solid var(--ua-border, #dbe5ef);
+    border-radius: var(--ua-radius, 0.65rem);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
   }
 
   .worker-manage-info {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
+    gap: 0.2rem;
+    min-width: 0;
+
+    strong {
+      color: var(--ua-ink-navy, #0b1728);
+    }
 
     small {
-      opacity: 0.7;
+      color: var(--ua-ink-faint, #64748b);
+      font-weight: 700;
+    }
+
+    .status-pill {
+      margin-top: 0.15rem;
+      width: fit-content;
     }
   }
 
   .worker-manage-actions {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+
+    ion-toggle {
+      --handle-spacing: 2px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
   }
 
   .worker-manage-edit {
@@ -51,14 +228,40 @@
     display: flex;
     gap: 0.5rem;
   }
+}
 
-  .icon-link {
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    color: var(--ion-color-primary, #3880ff);
-    font-size: 1.25rem;
-    display: inline-flex;
-    align-items: center;
+// ── Móvil (~390px): nada desborda; controles que no se aprietan ──────────────
+@media (max-width: 540px) {
+  .workers-management-panel {
+    .worker-manage-row {
+      // En móvil cada trabajador es una tarjeta apilada: info arriba, acciones
+      // debajo ocupando todo el ancho para que el toggle y los iconos respiren.
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .worker-manage-actions {
+      justify-content: space-between;
+    }
+  }
+}
+
+// ── Tablet / desktop: los formularios reparten sus campos en una fila ────────
+@media (min-width: 760px) {
+  .teams-page {
+    .team-create-form {
+      align-items: end;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+    }
+
+    .worker-create-form {
+      align-items: end;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+    }
+
+    .team-edit-form {
+      align-items: end;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+    }
   }
 }

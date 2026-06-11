@@ -5,6 +5,8 @@ import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { catchError, forkJoin, map, of, startWith } from 'rxjs';
 import { AdminMenuComponent } from '../shared/admin-menu/admin-menu.component';
+import { StatCardComponent } from '../shared/stat-card/stat-card.component';
+import { UiButtonComponent } from '../shared/ui-button/ui-button.component';
 import { Estado, Incidencia, IncidenciasService } from '../services/incidencias.service';
 import { Estadisticas, StatsService } from '../services/stats.service';
 
@@ -48,7 +50,7 @@ export interface AdminViewModel {
   templateUrl: 'admin-dashboard.page.html',
   styleUrls: ['admin-dashboard.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, AdminMenuComponent],
+  imports: [CommonModule, IonicModule, RouterModule, AdminMenuComponent, StatCardComponent, UiButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardPage {
