@@ -588,3 +588,6 @@
     grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
   }
 }
+
+// Los estilos del bloque "Acciones de administración" viven en global.scss
+// (.admin-actions-*) para no exceder el presupuesto de este componente.

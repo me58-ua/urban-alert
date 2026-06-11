@@ -963,3 +963,48 @@ button.admin-menu-panel__link {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr) minmax(8rem, 0.7fr) auto;
   }
 }
+
+// ── Acciones admin en el detalle de incidencia (#58) ────────────────────────
+.admin-actions-panel {
+  .admin-actions-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    margin-bottom: 1rem;
+  }
+
+  .admin-field {
+    display: grid;
+    gap: 0.35rem;
+
+    > span {
+      font-size: 0.8rem;
+      font-weight: 600;
+      opacity: 0.75;
+    }
+
+    ion-select {
+      --background: rgba(15, 23, 42, 0.05);
+      border-radius: 0.65rem;
+    }
+  }
+
+  .primary-action {
+    width: 100%;
+  }
+
+  .admin-feedback {
+    align-items: center;
+    display: flex;
+    font-size: 0.85rem;
+    gap: 0.4rem;
+    margin: 0.75rem 0 0;
+
+    &--error { color: #b42318; }
+    &--success { color: #027a48; }
+  }
+}
+
+@media (max-width: 540px) {
+  .admin-actions-panel .admin-actions-grid { grid-template-columns: 1fr; }
+}

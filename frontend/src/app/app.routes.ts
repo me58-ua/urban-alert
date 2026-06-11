@@ -21,6 +21,12 @@ export const routes: Routes = [
       import('./admin/admin-dashboard.page').then((m) => m.AdminDashboardPage),
   },
   {
+    path: 'admin/incidencias',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./admin/incidencias-management.page').then((m) => m.IncidenciasManagementPage),
+  },
+  {
     path: 'admin/equipos',
     canActivate: [adminGuard],
     loadComponent: () =>

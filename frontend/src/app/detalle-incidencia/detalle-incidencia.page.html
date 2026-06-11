@@ -106,6 +106,66 @@
           </ion-card-content>
         </ion-card>
 
+        <ion-card class="panel admin-actions-panel" *ngIf="isAdmin">
+          <ion-card-header>
+            <ion-card-title>Acciones de administración</ion-card-title>
+            <ion-card-subtitle>Cambia el estado o la prioridad de esta incidencia</ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <div class="admin-actions-grid">
+              <label class="admin-field">
+                <span>Estado</span>
+                <ion-select
+                  name="adminEstado"
+                  [(ngModel)]="adminEstado"
+                  interface="popover"
+                  [disabled]="saving"
+                >
+                  <ion-select-option
+                    *ngFor="let opt of estadoOptions"
+                    [value]="opt.value"
+                  >{{ opt.label }}</ion-select-option>
+                </ion-select>
+              </label>
+
+              <label class="admin-field">
+                <span>Prioridad</span>
+                <ion-select
+                  name="adminPrioridad"
+                  [(ngModel)]="adminPrioridad"
+                  interface="popover"
+                  [disabled]="saving"
+                >
+                  <ion-select-option
+                    *ngFor="let opt of prioridadOptions"
+                    [value]="opt.value"
+                  >{{ opt.label }}</ion-select-option>
+                </ion-select>
+              </label>
+            </div>
+
+            <ion-button
+              class="primary-action"
+              type="button"
+              [disabled]="saving"
+              (click)="saveAdminChanges()"
+            >
+              <ion-icon slot="start" name="save-outline"></ion-icon>
+              {{ saving ? 'Guardando...' : 'Guardar cambios' }}
+            </ion-button>
+
+            <p class="admin-feedback admin-feedback--error" *ngIf="adminError" role="alert">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              {{ adminError }}
+            </p>
+            <p class="admin-feedback admin-feedback--success" *ngIf="adminSuccess && !adminError">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              {{ adminSuccess }}
+            </p>
+          </ion-card-content>
+        </ion-card>
+
         <ion-card class="panel map-panel">
           <ion-card-header>
             <ion-card-title>Ubicación</ion-card-title>

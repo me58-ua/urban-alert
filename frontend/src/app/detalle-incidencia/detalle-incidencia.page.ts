@@ -1,11 +1,14 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
+import { AuthService } from '../services/auth.service';
 import { Estado, Historial, Incidencia, IncidenciasService, Prioridad } from '../services/incidencias.service';
 
 interface TimelineItem {
@@ -46,12 +49,13 @@ interface IncidentView {
   templateUrl: 'detalle-incidencia.page.html',
   styleUrls: ['detalle-incidencia.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, AppMenuComponent],
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule, AppMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DetalleIncidenciaPage {
   private readonly route = inject(ActivatedRoute);
   private readonly incidencias = inject(IncidenciasService);
+  private readonly auth = inject(AuthService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   readonly brandMarkUrl =
@@ -62,6 +66,34 @@ export class DetalleIncidenciaPage {
   loaded = false;
   error: string | null = null;
   photoUrl: string | null = null;
+
+  // ── Acciones admin (cambiar estado/prioridad) ─────────────────────────────
+  /** Id de la incidencia cargada (para el PATCH de admin). */
+  private incidentId: number | null = null;
+  /** Borradores de los selects del bloque admin. */
+  adminEstado: Estado = 'abierta';
+  adminPrioridad: Prioridad = 'media';
+  saving = false;
+  adminError: string | null = null;
+  adminSuccess: string | null = null;
+
+  readonly estadoOptions: { value: Estado; label: string }[] = [
+    { value: 'abierta', label: 'Abierta' },
+    { value: 'en_progreso', label: 'En progreso' },
+    { value: 'resuelta', label: 'Resuelta' },
+    { value: 'rechazada', label: 'Rechazada' },
+  ];
+
+  readonly prioridadOptions: { value: Prioridad; label: string }[] = [
+    { value: 'baja', label: 'Baja' },
+    { value: 'media', label: 'Media' },
+    { value: 'alta', label: 'Alta' },
+  ];
+
+  /** `true` si el usuario autenticado es admin (controla el bloque de acciones). */
+  get isAdmin(): boolean {
+    return this.auth.role() === 'admin';
+  }
 
   constructor(private readonly sanitizer: DomSanitizer) {
     this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
@@ -119,7 +151,54 @@ export class DetalleIncidenciaPage {
     }
   }
 
+  /**
+   * Guarda los cambios de estado/prioridad (solo admin).
+   * Llama a `actualizar()` y, al éxito, recarga el detalle (timeline + imágenes).
+   */
+  async saveAdminChanges(): Promise<void> {
+    if (!this.isAdmin || this.incidentId === null || this.saving) return;
+
+    this.saving = true;
+    this.adminError = null;
+    this.adminSuccess = null;
+    this.cdr.markForCheck();
+
+    try {
+      await firstValueFrom(
+        this.incidencias.actualizar(this.incidentId, {
+          estado: this.adminEstado,
+          prioridad: this.adminPrioridad,
+        }),
+      );
+      this.adminSuccess = 'Cambios guardados correctamente.';
+      // Recargar el detalle para refrescar timeline e imágenes con el estado real.
+      await this.loadIncident();
+    } catch (err) {
+      this.adminError = this.messageFromError(err);
+    } finally {
+      this.saving = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  /** Traduce el error HTTP del PATCH a un mensaje legible para el admin. */
+  private messageFromError(err: unknown): string {
+    if (err instanceof HttpErrorResponse) {
+      if (err.status === 401) return 'Sesión expirada: vuelve a iniciar sesión.';
+      if (err.status === 403) return 'No tienes permisos para modificar esta incidencia.';
+      if (err.status === 404) return 'La incidencia ya no existe.';
+      const detail = err.error?.detail;
+      if (typeof detail === 'string' && detail.trim()) return detail;
+    }
+    return 'No se pudieron guardar los cambios.';
+  }
+
   private applyIncident(incident: Incidencia) {
+    this.incidentId = incident.id;
+    // Sembrar los selects de admin con los valores actuales de la incidencia.
+    this.adminEstado = incident.estado;
+    this.adminPrioridad = incident.prioridad;
+
     const created = this.formatDateParts(incident.fecha_creacion);
     this.incident = {
       id: `#UA-${incident.id}`,
