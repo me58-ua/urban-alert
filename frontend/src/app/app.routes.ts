@@ -53,6 +53,7 @@ export const routes: Routes = [
   },
   {
     path: 'mis-incidencias',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./mis-incidencias/mis-incidencias.page').then(
         (m) => m.MisIncidenciasPage
@@ -67,6 +68,7 @@ export const routes: Routes = [
   },
   {
     path: 'notificaciones',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./notificaciones/notificaciones.page').then(
         (m) => m.NotificacionesPage
