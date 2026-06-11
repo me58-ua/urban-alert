@@ -11,40 +11,7 @@
         </span>
       </a>
 
-      <button class="admin-menu-button" type="button" (click)="openMenu($event)" aria-label="Abrir menu">
-        <ion-icon name="menu-outline"></ion-icon>
-      </button>
-
-      <ion-popover
-        class="admin-menu-popover"
-        [isOpen]="isMenuOpen()"
-        [event]="popoverEvent()"
-        (didDismiss)="closeMenu()"
-        side="bottom"
-        alignment="end"
-      >
-        <ng-template>
-          <nav class="admin-menu-panel" aria-label="Administracion">
-            <a
-              class="admin-menu-panel__link"
-              *ngFor="let item of menuItems; trackBy: trackByMenuLabel"
-              [routerLink]="item.route"
-              (click)="closeMenu()"
-            >
-              <ion-icon [name]="item.icon"></ion-icon>
-              <span>{{ item.label }}</span>
-            </a>
-            <button
-              type="button"
-              class="admin-menu-panel__link admin-menu-panel__link--logout"
-              (click)="logout()"
-            >
-              <ion-icon name="log-out-outline"></ion-icon>
-              <span>Cerrar sesion</span>
-            </button>
-          </nav>
-        </ng-template>
-      </ion-popover>
+      <app-admin-menu></app-admin-menu>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -112,7 +79,7 @@
       </div>
     </section>
 
-    <div class="incidencias-error" *ngIf="error()" role="alert">
+    <div class="ua-state ua-state--error" *ngIf="error()" role="alert">
       <ion-icon name="alert-circle-outline"></ion-icon>
       <span>{{ error() }}</span>
     </div>
@@ -125,7 +92,7 @@
         </div>
       </div>
 
-      <div class="status-panel" *ngIf="loading()">
+      <div class="ua-state ua-state--inline" *ngIf="loading()">
         <ion-spinner name="crescent"></ion-spinner>
         <span>Cargando incidencias...</span>
       </div>
@@ -145,22 +112,23 @@
           *ngFor="let inc of incidencias(); trackBy: trackByIncidentId"
           [routerLink]="['/detalle-incidencia', inc.id]"
         >
-          <span>#{{ inc.id }}</span>
-          <strong>{{ inc.titulo }}</strong>
-          <span>{{ categoriaLabel(inc.categoria) }}</span>
+          <span data-label="ID">#{{ inc.id }}</span>
+          <strong data-label="Titulo">{{ inc.titulo }}</strong>
+          <span data-label="Categoria">{{ categoriaLabel(inc.categoria) }}</span>
           <span
             class="status-pill"
+            data-label="Estado"
             [class.status-pill--red]="estadoTone(inc.estado) === 'red'"
             [class.status-pill--amber]="estadoTone(inc.estado) === 'amber'"
             [class.status-pill--green]="estadoTone(inc.estado) === 'green'"
           >
             {{ estadoLabel(inc.estado) }}
           </span>
-          <span>{{ prioridadLabel(inc.prioridad) }}</span>
-          <span>{{ formatDate(inc.fecha_creacion) }}</span>
+          <span data-label="Prioridad">{{ prioridadLabel(inc.prioridad) }}</span>
+          <span data-label="Fecha">{{ formatDate(inc.fecha_creacion) }}</span>
         </a>
 
-        <div class="empty-state" *ngIf="incidencias().length === 0">
+        <div class="ua-state ua-state--inline" *ngIf="incidencias().length === 0">
           <ion-icon name="document-text-outline"></ion-icon>
           <span>No hay incidencias que coincidan con los filtros.</span>
         </div>

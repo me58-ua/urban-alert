@@ -1,2 +1,58 @@
 // For information on how to create your own theme, please refer to:
 // https://ionicframework.com/docs/theming/
+
+/*
+ * Tokens de marca Urban Alert (#67 — consistencia visual).
+ * -----------------------------------------------------------------------------
+ * Base compartida y ADITIVA: reúne los literales que hoy se repiten por todas
+ * las páginas (#00152a, #004ccb/#0262ff, #f6fafe, #64748b, radios 0.8/0.9rem…)
+ * como variables CSS con prefijo --ua-*. No cambian los valores (equivalencia
+ * visual) ni sustituyen aún los tokens locales por página (--primary, --navy,
+ * --surface, --shadow…), que se mantienen intactos para no romper nada.
+ */
+:root {
+  /* Tinta / texto */
+  --ua-ink: #00152a;          // texto principal / navy de marca
+  --ua-ink-strong: #0f172a;   // titulares más oscuros
+  --ua-ink-muted: #43474d;    // texto secundario
+  --ua-ink-faint: #64748b;    // texto terciario / placeholders
+  --ua-slate: #526070;        // gris usado en dashboards admin
+  --ua-ink-navy: #0b1728;     // titulares en superficies admin
+
+  /* Marca / acentos */
+  --ua-primary: #004ccb;        // azul de acción principal
+  --ua-primary-strong: #0262ff; // azul intenso (hover / degradados)
+  --ua-navy: #00152a;           // navy de botones sólidos
+  --ua-danger: #ba1a1a;         // rojo de error / peligro
+  --ua-danger-ink: #8f1d17;     // texto de estado de error
+
+  /* Superficies y fondos */
+  --ua-bg: #f6fafe;             // fondo de página
+  --ua-section-bg: #f0f4f8;     // fondo de sección
+  --ua-surface: #ffffff;        // tarjetas / paneles
+  --ua-surface-soft: #e4e9ed;   // superficie atenuada
+  --ua-surface-muted: #edf3f8;  // celdas / cabeceras de tabla
+
+  /* Bordes */
+  --ua-border: #dbe5ef;         // borde estándar de tarjetas / filas
+  --ua-border-soft: #e4e9ed;    // borde sutil
+
+  /* Radios */
+  --ua-radius-sm: 0.55rem;
+  --ua-radius: 0.65rem;
+  --ua-radius-md: 0.8rem;
+  --ua-radius-lg: 0.9rem;
+  --ua-radius-pill: 999px;
+
+  /* Sombras */
+  --ua-shadow-soft: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+  --ua-shadow-card: 0 18px 32px rgb(15 23 42 / 0.08);
+
+  /* Escala de espaciado */
+  --ua-space-1: 0.25rem;
+  --ua-space-2: 0.5rem;
+  --ua-space-3: 0.75rem;
+  --ua-space-4: 1rem;
+  --ua-space-5: 1.5rem;
+  --ua-space-6: 2rem;
+}

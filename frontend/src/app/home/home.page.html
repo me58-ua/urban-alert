@@ -3,7 +3,7 @@
     <div class="toolbar-layout">
       <div class="brand">
         <div class="brand__mark" aria-hidden="true">
-          <img [src]="brandMarkUrl" alt="Urban Alert" />
+          <img [src]="brandMarkUrl" alt="" />
         </div>
 
         <div class="brand__text">
@@ -60,8 +60,12 @@
         </div>
       </div>
 
-      <div class="hero__visual" aria-label="Vista previa del mapa de incidencias">
-        <a class="preview-card preview-card-link" [routerLink]="['/mapa-incidencias']">
+      <div class="hero__visual">
+        <a
+          class="preview-card preview-card-link"
+          [routerLink]="['/mapa-incidencias']"
+          aria-label="Abrir el mapa de incidencias en tiempo real"
+        >
           <div class="map-canvas" aria-hidden="true">
             <div class="map-canvas__grid"></div>
             <div class="map-canvas__streets"></div>

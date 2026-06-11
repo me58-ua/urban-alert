@@ -58,12 +58,12 @@
           </button>
         </div>
 
-        <div class="incident-status" *ngIf="vm.loading">
+        <div class="ua-state ua-state--inline" *ngIf="vm.loading">
           <ion-spinner name="crescent"></ion-spinner>
           <span>Cargando incidencias...</span>
         </div>
 
-        <div class="incident-status incident-status--error" *ngIf="!vm.loading && vm.error">
+        <div class="ua-state ua-state--inline ua-state--error" *ngIf="!vm.loading && vm.error">
           <ion-icon name="alert-circle-outline"></ion-icon>
           <span>{{ vm.error }}</span>
         </div>
@@ -73,6 +73,7 @@
             class="incident-card"
             *ngFor="let incident of vm.incidents; trackBy: trackById"
             [routerLink]="['/detalle-incidencia', incident.id]"
+            [attr.aria-label]="'Ver detalle de la incidencia: ' + incident.title"
           >
             <ion-card-content>
               <div class="incident-card__top">
@@ -93,7 +94,7 @@
             </ion-card-content>
           </a>
 
-          <div class="incident-status" *ngIf="vm.incidents.length === 0">
+          <div class="ua-state ua-state--inline" *ngIf="vm.incidents.length === 0">
             <ion-icon name="folder-open-outline"></ion-icon>
             <span>No hay incidencias para este filtro.</span>
           </div>

@@ -9,10 +9,10 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
-import { AuthService } from '../services/auth.service';
+import { AdminMenuComponent } from '../shared/admin-menu/admin-menu.component';
 import {
   Categoria,
   Estado,
@@ -21,12 +21,6 @@ import {
   ListarFiltros,
   Prioridad,
 } from '../services/incidencias.service';
-
-interface AdminMenuItem {
-  label: string;
-  route: string;
-  icon: string;
-}
 
 interface FiltroOption<T> {
   value: T | '';
@@ -43,33 +37,19 @@ interface FiltroOption<T> {
   templateUrl: 'incidencias-management.page.html',
   styleUrls: ['incidencias-management.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule],
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule, AdminMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IncidenciasManagementPage implements OnInit {
   private readonly incidenciasService = inject(IncidenciasService);
   private readonly cdr = inject(ChangeDetectorRef);
-  private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
 
   readonly brandMarkUrl =
     'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
-  readonly isMenuOpen = signal(false);
-  readonly popoverEvent = signal<Event | undefined>(undefined);
-
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly incidencias = signal<Incidencia[]>([]);
-
-  readonly menuItems: AdminMenuItem[] = [
-    { label: 'Dashboard', route: '/admin', icon: 'grid-outline' },
-    { label: 'Incidencias', route: '/admin/incidencias', icon: 'document-text-outline' },
-    { label: 'Equipos', route: '/admin/equipos', icon: 'people-circle-outline' },
-    { label: 'Usuarios', route: '/admin/usuarios', icon: 'person-circle-outline' },
-    { label: 'Mapa ciudadano', route: '/mapa-incidencias', icon: 'map-outline' },
-    { label: 'Vista ciudadana', route: '/home', icon: 'people-outline' },
-  ];
 
   // ── Filtros (selects). '' = sin filtro. ──────────────────────────────────
   filtroEstado: Estado | '' = '';
@@ -134,23 +114,6 @@ export class IncidenciasManagementPage implements OnInit {
   /** Re-aplica los filtros (llamado al cambiar cualquier select). */
   applyFilters(): void {
     this.loadIncidents();
-  }
-
-  openMenu(event: Event) {
-    this.popoverEvent.set(event);
-    this.isMenuOpen.set(true);
-  }
-
-  closeMenu() {
-    this.isMenuOpen.set(false);
-    this.popoverEvent.set(undefined);
-  }
-
-  /** Cierra la sesión y redirige al login. */
-  logout() {
-    this.closeMenu();
-    this.auth.logout();
-    void this.router.navigateByUrl('/login');
   }
 
   // ── Helpers de presentación ───────────────────────────────────────────────
@@ -220,7 +183,6 @@ export class IncidenciasManagementPage implements OnInit {
   }
 
   trackByIncidentId = (_index: number, item: Incidencia) => item.id;
-  trackByMenuLabel = (_index: number, item: AdminMenuItem) => item.label;
 }
 
 export default IncidenciasManagementPage;

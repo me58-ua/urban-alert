@@ -63,8 +63,7 @@
 .admin-header .brand,
 .admin-page .hero-actions,
 .admin-page .panel__header,
-.admin-page .status-item,
-.admin-page .empty-state {
+.admin-page .status-item {
   align-items: center;
   display: flex;
 }
@@ -263,7 +262,6 @@ button.admin-menu-panel__link {
   text-transform: none;
 }
 
-.admin-page .state-panel,
 .admin-page .metric-card,
 .admin-page .panel {
   background: #fff;
@@ -272,31 +270,8 @@ button.admin-menu-panel__link {
   box-shadow: 0 18px 32px rgb(15 23 42 / 0.08);
 }
 
-.admin-page .state-panel {
-  align-items: center;
-  color: #526070;
-  display: flex;
-  gap: 0.75rem;
-  justify-content: center;
-  min-height: 9rem;
-}
-
-.admin-page .state-panel--error,
-.admin-page .state-panel--error ion-icon {
-  color: #8f1d17;
-}
-
-.admin-page .offline-banner {
-  align-items: center;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-radius: 0.65rem;
-  color: #9a3412;
-  display: flex;
-  gap: 0.55rem;
-  margin-bottom: 1rem;
-  padding: 0.75rem 0.9rem;
-}
+// Los estados de carga/error del dashboard (antes .state-panel / .offline-banner)
+// usan ahora las clases compartidas .ua-state / .ua-state--error (#67).
 
 .admin-page .metrics-grid,
 .admin-page .dashboard-grid {
@@ -624,11 +599,7 @@ button.admin-menu-panel__link {
   color: #0b1728;
 }
 
-.admin-page .empty-state {
-  color: #526070;
-  gap: 0.6rem;
-  padding: 1rem;
-}
+// El estado vacío de la cola del dashboard usa ahora .ua-state .ua-state--inline (#67).
 
 /* Donut sin datos: estado vacío en lugar de un anillo al 0%. */
 .admin-page .donut-wrap--empty {
@@ -884,11 +855,8 @@ button.admin-menu-panel__link {
   margin-top: 1rem;
 }
 
-.teams-page .teams-loading {
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
+// El loading de equipos usa ahora .ua-state .ua-state--inline (#67),
+// que ya es plano (sin superficie ni sombra); .teams-loading se ha retirado.
 
 .teams-page .assignment-table {
   overflow-x: auto;
@@ -936,6 +904,62 @@ button.admin-menu-panel__link {
 .teams-page .team-actions .team-action--assigned {
   background: #def7ec;
   color: #075f3a;
+}
+
+// Vista de tarjetas apiladas en móvil (#67): la tabla de asignación deja de
+// forzar scroll horizontal (min-width 42rem) y cada fila pasa a una tarjeta
+// "etiqueta: valor". Solo CSS; el desktop no cambia.
+@media (max-width: 760px) {
+  .teams-page .assignment-table {
+    overflow-x: visible;
+  }
+
+  .teams-page .assignment-head {
+    display: none;
+  }
+
+  .teams-page .assignment-row {
+    border: 1px solid var(--ua-border, #dbe5ef);
+    border-radius: var(--ua-radius, 0.65rem);
+    gap: 0.5rem;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0.6rem 1rem;
+    min-width: 0;
+    padding: 0.85rem 0.9rem;
+  }
+
+  // Incidencia como cabecera de la tarjeta (sin etiqueta, arriba).
+  .teams-page .assignment-row > strong {
+    order: -1;
+  }
+
+  // Categoría: "Etiqueta: valor" en una línea.
+  .teams-page .assignment-row > span[data-label] {
+    align-items: baseline;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+  }
+
+  .teams-page .assignment-row > span[data-label]::before {
+    color: var(--ua-ink-faint, #64748b);
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  // Equipos compatibles: etiqueta encima de los botones de acción.
+  .teams-page .assignment-row > .team-actions[data-label]::before {
+    color: var(--ua-ink-faint, #64748b);
+    content: attr(data-label);
+    flex-basis: 100%;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
 }
 
 @media (min-width: 760px) {
@@ -1189,4 +1213,407 @@ button.admin-menu-panel__link {
   background: #edf2f7;
   color: #94a3b8;
   cursor: not-allowed;
+}
+
+// ── Estados de lista reutilizables: loading / vacío / error (#67) ────────────
+// Contenedor centrado con icono + texto que unifica los antiguos estados ad-hoc
+// de cada página (.status-panel, .state-panel, .incident-status, .users-error,
+// .empty-state, .offline-banner…). Superficie + sombra suave + texto atenuado.
+// Modificadores: --error (texto rojo), --inline (plano, dentro de un panel) y
+// --compact (menos altura + margen vertical, p.ej. el detalle de incidencia).
+.ua-state {
+  align-items: center;
+  background: var(--ua-surface, #ffffff);
+  border-radius: var(--ua-radius-lg, 0.9rem);
+  box-shadow: var(--ua-shadow-soft, 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08));
+  color: var(--ua-ink-muted, #43474d);
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  min-height: 10rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.ua-state__icon,
+.ua-state .ua-spinner,
+.ua-state ion-icon,
+.ua-state ion-spinner {
+  color: var(--ua-primary, #004ccb);
+  font-size: 1.4rem;
+}
+
+.ua-state--error,
+.ua-state--error .ua-state__icon,
+.ua-state--error ion-icon {
+  color: var(--ua-danger-ink, #8f1d17);
+}
+
+// Texto del estado: párrafos/spans sin margen y con el mismo peso (700),
+// para igualar lo que antes hacía cada .status-panel p { … }.
+.ua-state p,
+.ua-state span {
+  font-weight: 700;
+  margin: 0;
+}
+
+// Variante "inline": el estado vive DENTRO de un panel/tarjeta y no debe
+// pintar otra superficie ni sombra (evita la tarjeta-dentro-de-tarjeta).
+// Equivale a los antiguos .empty-state / .status-panel embebidos.
+.ua-state--inline {
+  background: transparent;
+  box-shadow: none;
+  min-height: auto;
+}
+
+// Variante "compacta": menos altura y con margen vertical, como el
+// .status-panel del detalle de incidencia (min-height 5rem, margin 1rem 0).
+.ua-state--compact {
+  margin: 1rem 0;
+  min-height: 5rem;
+}
+
+// Spinner mínimo por si una vista necesita indicar carga sin <ion-spinner>.
+.ua-spinner {
+  animation: ua-spin 0.7s linear infinite;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  border-top-color: transparent;
+  display: inline-block;
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+@keyframes ua-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ── Cabecera de marca de las páginas ciudadanas (#67) ────────────────────────
+// .toolbar-layout / .brand / .brand__mark / .brand__text / .brand__title /
+// .brand__subtitle estaban duplicados en home, detalle, mapa, mis-incidencias,
+// crear, notificaciones y auth. Se centralizan aquí con los valores comunes
+// (los de las 6 páginas con cabecera "compacta": max-width 1120, navy del logo,
+// títulos 800 / subtítulos 600). Como los estilos de componente usan
+// encapsulación Emulated (más específicos que estas reglas globales planas), la
+// home conserva sus pequeñas variantes propias (logo #102a43, título 700 con
+// letter-spacing, subtítulo 500) sin que estas reglas la alteren.
+.toolbar-layout {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1120px;
+  padding: 0.85rem 1rem;
+  width: 100%;
+}
+
+.brand {
+  align-items: center;
+  color: inherit;
+  display: flex;
+  gap: 0.75rem;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.brand__mark {
+  align-items: center;
+  background: #00152a;
+  border-radius: 0.75rem;
+  display: flex;
+  height: 2.5rem;
+  justify-content: center;
+  width: 2.5rem;
+}
+
+.brand__mark img {
+  display: block;
+  height: 1.25rem;
+  object-fit: contain;
+  width: 1rem;
+}
+
+.brand__text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.brand__title {
+  color: #0f172a;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.brand__subtitle {
+  color: #43474d;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+// ── Cabecera y pie específicos de la home (#67) ──────────────────────────────
+// La home tiene una cabecera con navegación y un pie de página que no comparten
+// el resto de páginas; sus estilos se trasladan aquí (igual que admin) para
+// aligerar home.page.scss. Quedan acotados a sus clases propias .site-header /
+// .site-toolbar / .site-footer, así que solo afectan a la home.
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.site-toolbar {
+  --background: rgba(248, 250, 252, 0.82);
+  --border-width: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  backdrop-filter: blur(12px);
+}
+
+// La home usa un max-width algo mayor y un poco de gap/padding extra.
+.site-header .toolbar-layout {
+  gap: 1rem;
+  max-width: 1200px;
+  padding: 0.9rem 1rem;
+}
+
+// Variantes visuales propias de la home: logo más claro y pesos de fuente más
+// finos que en las páginas internas.
+.site-header .brand__mark {
+  background: #102a43;
+}
+
+.site-header .brand__title {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.site-header .brand__subtitle {
+  font-weight: 500;
+}
+
+.header-nav {
+  display: none;
+  gap: 1.75rem;
+}
+
+.header-nav__link {
+  color: #475569;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  padding-bottom: 0.375rem;
+  text-decoration: none;
+}
+
+.header-nav__link--active {
+  border-bottom: 2px solid #2563eb;
+  color: #2563eb;
+}
+
+.login-button {
+  --background: #102a43;
+  --background-activated: #0c2238;
+  --background-focused: #0c2238;
+  --background-hover: #0c2238;
+  --border-radius: 0.5rem;
+  --color: #ffffff;
+  --box-shadow: none;
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --padding-top: 0.45rem;
+  --padding-bottom: 0.45rem;
+  font-weight: 600;
+}
+
+.site-footer {
+  background: #f1f5f9;
+}
+
+.site-footer__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 1.5rem 1rem 2rem;
+}
+
+.site-footer__title {
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.site-footer__copy {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-top: 0.4rem;
+}
+
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+}
+
+.site-footer__links a,
+.site-footer__links .site-footer__link {
+  color: #64748b;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .header-nav {
+    display: flex;
+  }
+
+  .site-footer__inner {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 2rem 2rem 2.5rem;
+  }
+}
+
+// ── Tarjeta de previsualización del mapa del hero de la home (#67) ───────────
+// Decoración exclusiva de la home; se traslada aquí (acotada a .urban-alert-page)
+// para aligerar home.page.scss, igual que admin movió su decoración a global.
+// Se usan valores literales en lugar de las variables --shadow-soft / --primary
+// del :host del componente (no accesibles desde global.scss).
+.urban-alert-page .preview-card {
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 0.9rem;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+  margin: 0;
+  max-width: 30rem;
+  overflow: hidden;
+  width: 100%;
+}
+
+.urban-alert-page .preview-card-link {
+  color: inherit;
+  display: block;
+  text-decoration: none;
+}
+
+.urban-alert-page .map-canvas {
+  background:
+    radial-gradient(circle at 50% 48%, rgba(186, 26, 26, 0.95) 0 0.9rem, transparent 0.95rem),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.2), rgba(15, 23, 42, 0.55)),
+    linear-gradient(135deg, #6b7280 0%, #222831 45%, #0f172a 100%);
+  border-radius: 0.8rem;
+  height: 14rem;
+  margin: 1rem 1rem 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.urban-alert-page .map-canvas::before,
+.urban-alert-page .map-canvas::after {
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.urban-alert-page .map-canvas::before {
+  background-image:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(180deg, transparent 72%, rgba(2, 6, 23, 0.55) 72%, rgba(2, 6, 23, 0.85) 100%);
+  background-size: 22px 22px, 22px 22px, 100% 100%;
+  mix-blend-mode: screen;
+  opacity: 0.25;
+}
+
+.urban-alert-page .map-canvas::after {
+  background:
+    linear-gradient(180deg, transparent 0 74%, rgba(255, 255, 255, 0.06) 74% 76%, transparent 76%),
+    linear-gradient(135deg, transparent 0 24%, rgba(255, 255, 255, 0.1) 24% 26%, transparent 26%),
+    linear-gradient(90deg, transparent 0 34%, rgba(255, 255, 255, 0.08) 34% 35%, transparent 35% 100%);
+  opacity: 0.5;
+}
+
+.urban-alert-page .map-canvas__grid,
+.urban-alert-page .map-canvas__streets,
+.urban-alert-page .map-canvas__skyline {
+  inset: 0;
+  position: absolute;
+}
+
+.urban-alert-page .map-canvas__streets {
+  background:
+    linear-gradient(90deg, transparent 0 14%, rgba(255, 255, 255, 0.08) 14% 15%, transparent 15% 44%, rgba(255, 255, 255, 0.06) 44% 45%, transparent 45% 100%),
+    linear-gradient(180deg, transparent 0 28%, rgba(255, 255, 255, 0.1) 28% 29%, transparent 29% 64%, rgba(255, 255, 255, 0.08) 64% 65%, transparent 65% 100%);
+  opacity: 0.75;
+}
+
+.urban-alert-page .map-canvas__skyline {
+  background:
+    linear-gradient(180deg, transparent 0 70%, rgba(2, 6, 23, 0.2) 70% 100%),
+    linear-gradient(90deg, transparent 0 7%, rgba(2, 6, 23, 0.45) 7% 11%, transparent 11% 16%, rgba(2, 6, 23, 0.7) 16% 21%, transparent 21% 25%, rgba(2, 6, 23, 0.5) 25% 32%, transparent 32% 40%, rgba(2, 6, 23, 0.72) 40% 48%, transparent 48% 55%, rgba(2, 6, 23, 0.62) 55% 61%, transparent 61% 100%);
+  opacity: 0.72;
+}
+
+.urban-alert-page .map-canvas__pin {
+  background: #ba1a1a;
+  border: 4px solid #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 0 0 10px rgb(255 255 255 / 0.08), 0 10px 24px rgb(0 0 0 / 0.25);
+  height: 1.9rem;
+  left: 56%;
+  position: absolute;
+  top: 48%;
+  transform: translate(-50%, -50%);
+  width: 1.9rem;
+  z-index: 1;
+}
+
+.urban-alert-page .preview-card__footer {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.urban-alert-page .preview-card__label {
+  color: #43474d;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.urban-alert-page .preview-card__status {
+  align-items: center;
+  color: #004ccb;
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.35rem;
+}
+
+.urban-alert-page .status-dot {
+  background: #004ccb;
+  border-radius: 999px;
+  display: inline-block;
+  height: 0.5rem;
+  width: 0.5rem;
+}
+
+@media (min-width: 1024px) {
+  .urban-alert-page .preview-card {
+    max-width: 37rem;
+  }
+
+  .urban-alert-page .map-canvas {
+    height: 16.5rem;
+  }
 }

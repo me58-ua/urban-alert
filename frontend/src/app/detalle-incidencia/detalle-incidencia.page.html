@@ -19,12 +19,12 @@
 
 <ion-content class="detail-page" fullscreen="true">
   <main class="page-shell">
-    <section class="status-panel" *ngIf="loading">
+    <section class="ua-state ua-state--compact" *ngIf="loading">
       <ion-spinner name="crescent"></ion-spinner>
       <p>Cargando incidencia...</p>
     </section>
 
-    <section class="status-panel status-panel--error" *ngIf="!loading && error">
+    <section class="ua-state ua-state--compact ua-state--error" *ngIf="!loading && error">
       <ion-icon name="alert-circle-outline"></ion-icon>
       <p>{{ error }}</p>
     </section>
@@ -255,6 +255,7 @@
                 class="evidence-item"
                 type="button"
                 *ngFor="let item of evidence; trackBy: trackByLabel"
+                [attr.aria-label]="'Evidencia: ' + item.label + ' (' + item.type + ')'"
               >
                 <span class="evidence-item__image" [class.evidence-item__image--empty]="!item.imageUrl">
                   <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.label" loading="lazy" />

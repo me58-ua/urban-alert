@@ -11,40 +11,7 @@
         </span>
       </a>
 
-      <button class="admin-menu-button" type="button" (click)="openMenu($event)" aria-label="Abrir menu">
-        <ion-icon name="menu-outline"></ion-icon>
-      </button>
-
-      <ion-popover
-        class="admin-menu-popover"
-        [isOpen]="isMenuOpen()"
-        [event]="popoverEvent()"
-        (didDismiss)="closeMenu()"
-        side="bottom"
-        alignment="end"
-      >
-        <ng-template>
-          <nav class="admin-menu-panel" aria-label="Administracion">
-            <a
-              class="admin-menu-panel__link"
-              *ngFor="let item of menuItems; trackBy: trackByMenuLabel"
-              [routerLink]="item.route"
-              (click)="closeMenu()"
-            >
-              <ion-icon [name]="item.icon"></ion-icon>
-              <span>{{ item.label }}</span>
-            </a>
-            <button
-              type="button"
-              class="admin-menu-panel__link admin-menu-panel__link--logout"
-              (click)="logout()"
-            >
-              <ion-icon name="log-out-outline"></ion-icon>
-              <span>Cerrar sesion</span>
-            </button>
-          </nav>
-        </ng-template>
-      </ion-popover>
+      <app-admin-menu></app-admin-menu>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -70,12 +37,12 @@
       </div>
     </section>
 
-    <section class="state-panel" *ngIf="vm.loading">
+    <section class="ua-state" *ngIf="vm.loading">
       <ion-spinner name="crescent"></ion-spinner>
       <span>Cargando panel...</span>
     </section>
 
-    <section class="offline-banner" *ngIf="!vm.loading && vm.error">
+    <section class="ua-state ua-state--error" *ngIf="!vm.loading && vm.error">
       <ion-icon name="alert-circle-outline"></ion-icon>
       <span>{{ vm.error }}</span>
     </section>
@@ -282,7 +249,7 @@
             <span>{{ formatDate(incident.fecha_creacion) }}</span>
           </a>
 
-          <div class="empty-state" *ngIf="vm.incidents.length === 0">
+          <div class="ua-state ua-state--inline" *ngIf="vm.incidents.length === 0">
             <ion-icon name="folder-open-outline"></ion-icon>
             <span>No hay incidencias registradas.</span>
           </div>
