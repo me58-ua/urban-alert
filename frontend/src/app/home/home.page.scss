@@ -179,8 +179,7 @@
 }
 
 .primary-action,
-.secondary-action,
-.report-button {
+.secondary-action {
   --border-radius: 0.75rem;
   --box-shadow: none;
   font-weight: 700;
@@ -329,64 +328,6 @@
   display: inline-block;
   height: 0.5rem;
   width: 0.5rem;
-}
-
-.incident-card {
-  align-items: flex-start;
-  background: rgba(255, 255, 255, 0.75);
-  border-radius: 0.9rem;
-  box-shadow: var(--shadow-soft);
-  display: flex;
-  gap: 1rem;
-  margin: -0.25rem auto 0;
-  max-width: 20rem;
-  padding: 1rem;
-  width: calc(100% - 2.5rem);
-}
-
-.incident-card__icon {
-  align-items: center;
-  background: #dfe3e7;
-  border-radius: 0.6rem;
-  color: var(--primary);
-  display: flex;
-  flex: 0 0 3rem;
-  height: 3rem;
-  justify-content: center;
-
-  ion-icon {
-    font-size: 1.1rem;
-  }
-}
-
-.incident-card__body {
-  min-width: 0;
-}
-
-.incident-card__title {
-  color: var(--ink);
-  font-size: 0.98rem;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.incident-card__meta {
-  color: var(--ink-muted);
-  font-size: 0.8rem;
-  line-height: 1.45;
-  margin-top: 0.3rem;
-}
-
-.incident-card__chip {
-  --background: #ffdad4;
-  --color: #3f0300;
-  border-radius: 0.25rem;
-  font-size: 0.65rem;
-  font-weight: 700;
-  height: 1.4rem;
-  letter-spacing: 0.08em;
-  margin: 0.55rem 0 0;
-  text-transform: uppercase;
 }
 
 .section {
@@ -647,72 +588,6 @@
   line-height: 1.6;
 }
 
-.stats-card {
-  border-radius: 0.85rem;
-  margin: 1.5rem 0 0;
-  overflow: hidden;
-
-  ion-card-content {
-    padding: 1rem;
-  }
-}
-
-.stats-card__heading {
-  align-items: center;
-  color: #171c1f;
-  display: flex;
-  gap: 0.7rem;
-
-  ion-icon {
-    color: var(--primary);
-    font-size: 1rem;
-  }
-
-  h3 {
-    color: inherit;
-    font-size: 1.1rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    margin: 0;
-  }
-}
-
-.stats-grid {
-  display: grid;
-  gap: 0.85rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: 1rem;
-}
-
-.stats-grid__item {
-  background: var(--page-bg);
-  border-radius: 0.65rem;
-  padding: 1rem;
-}
-
-.stats-grid__value {
-  color: var(--ink);
-  font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  line-height: 1.05;
-}
-
-.stats-grid__label {
-  color: var(--ink-muted);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  margin-top: 0.4rem;
-  text-transform: uppercase;
-}
-
-.report-button {
-  --border-color: var(--navy);
-  --color: var(--navy);
-  margin-top: 1rem;
-}
-
 .site-footer {
   background: #f1f5f9;
 }
@@ -744,7 +619,8 @@
   flex-wrap: wrap;
   gap: 1rem 1.5rem;
 
-  a {
+  a,
+  .site-footer__link {
     color: var(--ink-faint);
     font-size: 0.9rem;
     text-decoration: none;
@@ -784,10 +660,6 @@
     justify-items: end;
   }
 
-  .incident-card {
-    margin-right: 1.5rem;
-  }
-
   .section__header {
     align-items: flex-end;
     flex-direction: row;
@@ -809,10 +681,6 @@
 
   .trust-panel {
     padding: 2rem;
-  }
-
-  .stats-card ion-card-content {
-    padding: 1.25rem;
   }
 
   .site-footer__inner {
@@ -849,23 +717,8 @@
     height: 16.5rem;
   }
 
-  .incident-card {
-    align-self: flex-start;
-    margin-left: 0;
-    margin-right: auto;
-    transform: translate(-1.25rem, -0.5rem);
-  }
-
   .trust-panel {
-    display: grid;
-    gap: 2rem;
-    grid-template-columns: minmax(0, 1fr) minmax(18rem, 32rem);
     padding: 3rem;
-  }
-
-  .stats-card {
-    align-self: center;
-    margin-top: 0;
   }
 
   .trust-list {

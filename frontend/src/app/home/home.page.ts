@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
+import { Observable, catchError, map, of } from 'rxjs';
 import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
+import { IncidenciasService } from '../services/incidencias.service';
 
 interface CategoryItem {
   label: string;
@@ -22,15 +24,15 @@ interface TrustPoint {
   icon: string;
 }
 
-interface MetricItem {
-  value: string;
-  label: string;
-}
-
 interface HeaderLink {
   label: string;
   active: boolean;
   href?: string;
+  route?: string;
+}
+
+interface FooterLink {
+  label: string;
   route?: string;
 }
 
@@ -43,11 +45,28 @@ interface HeaderLink {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage {
+  private readonly incidenciasService = inject(IncidenciasService);
+
   readonly brandMarkUrl = 'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
+  /**
+   * Conteo reactivo de incidencias abiertas (estado distinto de "resuelta").
+   * Se envuelve en `{ value }` para que el contador 0 (valor falsy) siga
+   * renderizando con `*ngIf ... as`. Si la API falla, se emite `null` y la
+   * plantilla oculta el contador.
+   */
+  readonly incidenciasAbiertas$: Observable<{ value: number } | null> = this.incidenciasService
+    .listar()
+    .pipe(
+      map((page) => ({
+        value: page.items.filter((incidencia) => incidencia.estado !== 'resuelta').length,
+      })),
+      catchError(() => of(null)),
+    );
+
   readonly headerLinks: HeaderLink[] = [
-    { label: 'Report an Incident', href: '#hero', active: true },
-    { label: 'View Map', route: '/mapa-incidencias', active: false },
+    { label: 'Reportar incidencia', href: '#hero', active: true },
+    { label: 'Ver mapa', route: '/mapa-incidencias', active: false },
   ];
 
   readonly categories: CategoryItem[] = [
@@ -103,21 +122,13 @@ export class HomePage {
     },
   ];
 
-  readonly metrics: MetricItem[] = [
-    { value: '94%', label: 'Resolución' },
-    { value: '24h', label: 'Respuesta media' },
-    { value: '12k', label: 'Incidencias cerradas' },
-    { value: '8.5', label: 'Nota ciudadana' },
-  ];
-
-  readonly footerLinks = [
-    { label: 'Privacy Policy', href: '#' },
-    { label: 'Terms of Service', href: '#' },
-    { label: 'Contact Support', href: '#' },
-    { label: 'City Registry', href: '#' },
+  readonly footerLinks: FooterLink[] = [
+    { label: 'Política de privacidad' },
+    { label: 'Términos del servicio' },
+    { label: 'Contacto' },
+    { label: 'Registro municipal' },
   ];
 
   trackByLabel = (_index: number, item: { label: string }) => item.label;
   trackByTitle = (_index: number, item: { title: string }) => item.title;
-  trackByValue = (_index: number, item: { value: string }) => item.value;
 }
