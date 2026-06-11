@@ -15,7 +15,8 @@
 <br/><br/>
 
 <!-- Status badges -->
-![Status](https://img.shields.io/badge/STATUS-MVP-22C55E?style=for-the-badge&labelColor=0B1020)
+![Release](https://img.shields.io/badge/RELEASE-v1.0.0-22C55E?style=for-the-badge&labelColor=0B1020)
+![Status](https://img.shields.io/badge/STATUS-Stable-3B82F6?style=for-the-badge&labelColor=0B1020)
 ![License](https://img.shields.io/badge/LICENSE-Academic-8B5CF6?style=for-the-badge&labelColor=0B1020)
 ![TDD](https://img.shields.io/badge/Built%20with-TDD-EF4444?style=for-the-badge&labelColor=0B1020)
 ![OpenSpec](https://img.shields.io/badge/Spec--Driven-OpenSpec-06B6D4?style=for-the-badge&labelColor=0B1020)
@@ -132,7 +133,7 @@ flowchart LR
 | **Configuración** | `pydantic-settings` (`.env`) | Secretos y ajustes por entorno |
 | **Subida de archivos** | `python-multipart` | Imágenes `multipart/form-data` (validadas) |
 | **Almacenamiento** | Local (volumen) / **S3** (`boto3`) | Persistencia de imágenes configurable |
-| **Testing** | Pytest `9` + `pytest-asyncio` + SQLite `StaticPool` | Suite TDD en memoria (28 tests) |
+| **Testing** | Pytest `9` + `pytest-asyncio` + SQLite `StaticPool` | Suite TDD en memoria (79 tests) |
 | **Infraestructura** | Docker Compose | BD PostgreSQL reproducible |
 
 ```bash
@@ -174,6 +175,7 @@ pytest tests/                        # 🧪 tests
 | **Reactividad** | RxJS `7.8` | Streams y consumo de la API |
 | **Testing** | Jasmine + Karma | Pruebas unitarias de componentes |
 | **Calidad** | ESLint `9` + Angular ESLint | Linting y estilo de código |
+| **Arquitectura UI** | Componentes reutilizables (`header`, `footer`, `ui-button`, `stat-card`) | Consistencia visual y no duplicar código |
 
 ```bash
 # 🚀 Arranque rápido del frontend
@@ -184,7 +186,7 @@ npm test             # 🧪 tests (Karma)
 npm run lint         # 🧹 ESLint
 ```
 
-**Páginas principales:** 🏠 `home` · ➕ `crear-incidencia` · 📋 `urban-alert`
+**Páginas:** 🏠 `home` · 🗺️ `mapa-incidencias` · ➕ `crear-incidencia` · 📋 `mis-incidencias` · 🔍 `detalle-incidencia` · 🔔 `notificaciones` · 🔐 `login` / `registrar` · 🛡️ **Panel admin** (`dashboard` · `incidencias` · `equipos` · `usuarios`)
 
 ---
 
@@ -239,6 +241,8 @@ urban-alert/
 ├── 📱 frontend/      → Ionic + Angular (web/mobile)
 ├── ⚙️ backend/       → FastAPI + PostgreSQL (API REST)
 ├── 📐 openspec/      → Especificaciones (spec-driven development)
+├── 📖 docs/          → Documentación (integración frontend, test E2E)
+├── 🚀 script/        → deploy.ps1 (levanta todo el stack en local)
 ├── 📄 PRD.md         → Documento de requisitos del producto
 └── 📖 README.md      → Este archivo
 ```
@@ -250,9 +254,10 @@ urban-alert/
 | Fase | 🎯 Entregables |
 |:--:|---|
 | **MVP** ✅ | Reporte + listado + gestión básica |
-| **Fase 2** ✅ | Notificaciones + login/autenticación **JWT** *(backend listo)* |
+| **Fase 2** ✅ | Notificaciones + login/autenticación **JWT** |
+| **v1.0.0** ✅ | App completa: portal ciudadano + **panel de administración** (web/mobile) |
+| **Fase 4** ✅ | Analytics y dashboard municipal (métricas `GET /stats` + dashboard admin) |
 | **Fase 3** 🤖 | IA para priorización automática *(pendiente)* |
-| **Fase 4** 📊 | Analytics y dashboard municipal *(endpoint de métricas `GET /stats` listo)* |
 
 ---
 
