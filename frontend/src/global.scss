@@ -1008,3 +1008,49 @@ button.admin-menu-panel__link {
 @media (max-width: 540px) {
   .admin-actions-panel .admin-actions-grid { grid-template-columns: 1fr; }
 }
+
+// ── Paginación reutilizable (anterior/siguiente + indicador) (#62) ───────────
+.pagination {
+  align-items: center;
+  border-top: 1px solid #dbe5ef;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+}
+
+.pagination__info {
+  color: #526070;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.pagination__controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pagination__button {
+  align-items: center;
+  background: #e8f0fb;
+  border: 0;
+  border-radius: 0.55rem;
+  color: #0457d3;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 850;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+}
+
+.pagination__button:hover:not(:disabled) {
+  background: #d7e6fb;
+}
+
+.pagination__button:disabled {
+  background: #edf2f7;
+  color: #94a3b8;
+  cursor: not-allowed;
+}

@@ -55,11 +55,13 @@ describe('UsersManagementPage', () => {
     expect(component).toBeTruthy();
   });
 
-  it('carga los usuarios reales desde listar() en ngOnInit', () => {
+  it('carga los usuarios reales desde listar(limit, offset) en ngOnInit y guarda el total', () => {
     fixture.detectChanges(); // dispara ngOnInit
 
     expect(usersServiceSpy.listar).toHaveBeenCalledTimes(1);
+    expect(usersServiceSpy.listar).toHaveBeenCalledWith(20, 0);
     expect(component.users().length).toBe(3);
+    expect(component.total()).toBe(3);
     expect(component.adminCount()).toBe(1);
     expect(component.activeCount()).toBe(2);
     expect(component.loading()).toBeFalse();
@@ -196,5 +198,54 @@ describe('UsersManagementPage', () => {
     component.changeEstado(1, false);
 
     expect(component.error()).toBe('No puedes desactivarte a ti mismo');
+  });
+
+  it('nextPage()/prevPage() pasan limit/offset a listar() y actualizan el rango', () => {
+    // 25 usuarios en total -> dos páginas (0..19 y 20..24).
+    usersServiceSpy.listar.and.returnValue(
+      of({ items: usuarios, total: 25, limit: 20, offset: 0 }),
+    );
+    fixture.detectChanges();
+
+    expect(component.offset()).toBe(0);
+    expect(component.total()).toBe(25);
+    expect(component.canPrev()).toBeFalse();
+    expect(component.canNext()).toBeTrue();
+    expect(component.rangeLabel()).toBe('1-20 de 25');
+
+    usersServiceSpy.listar.calls.reset();
+    usersServiceSpy.listar.and.returnValue(
+      of({ items: usuarios, total: 25, limit: 20, offset: 20 }),
+    );
+    component.nextPage();
+
+    expect(usersServiceSpy.listar).toHaveBeenCalledWith(20, 20);
+    expect(component.offset()).toBe(20);
+    expect(component.canPrev()).toBeTrue();
+    expect(component.canNext()).toBeFalse();
+    expect(component.rangeLabel()).toBe('21-25 de 25');
+
+    usersServiceSpy.listar.calls.reset();
+    usersServiceSpy.listar.and.returnValue(
+      of({ items: usuarios, total: 25, limit: 20, offset: 0 }),
+    );
+    component.prevPage();
+
+    expect(usersServiceSpy.listar).toHaveBeenCalledWith(20, 0);
+    expect(component.offset()).toBe(0);
+    expect(component.canPrev()).toBeFalse();
+  });
+
+  it('prevPage() no hace nada en la primera página; nextPage() no pasa de la última', () => {
+    fixture.detectChanges(); // total = 3, una sola página
+    usersServiceSpy.listar.calls.reset();
+
+    component.prevPage();
+    component.nextPage();
+
+    expect(usersServiceSpy.listar).not.toHaveBeenCalled();
+    expect(component.offset()).toBe(0);
+    expect(component.canPrev()).toBeFalse();
+    expect(component.canNext()).toBeFalse();
   });
 });
