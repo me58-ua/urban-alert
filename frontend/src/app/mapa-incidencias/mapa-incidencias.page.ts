@@ -1,14 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
-import { catchError, map, of, startWith } from 'rxjs';
+import { BehaviorSubject, catchError, map, of, startWith, switchMap } from 'rxjs';
 import {
   Categoria,
   Estado,
   Incidencia,
   IncidenciasService,
+  ListarFiltros,
 } from '../services/incidencias.service';
 import { AppMenuComponent } from '../shared/app-menu/app-menu.component';
 
@@ -17,9 +18,13 @@ interface IncidentMapItem {
   title: string;
   category: string;
   status: string;
-  distance: string;
   address: string;
   tone: 'danger' | 'warning' | 'success';
+}
+
+interface MapFilter {
+  label: string;
+  estado: Estado | null;
 }
 
 interface MapViewModel {
@@ -27,6 +32,9 @@ interface MapViewModel {
   loading: boolean;
   error: string | null;
 }
+
+// Cuántas incidencias pedimos al backend para el mapa (sin geofiltro).
+const MAP_LIMIT = 100;
 
 @Component({
   selector: 'app-mapa-incidencias',
@@ -42,31 +50,43 @@ export class MapaIncidenciasPage {
   readonly brandMarkUrl =
     'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
 
-  // Centro de Madrid: mismo punto que el mapa embebido (marker 40.4168, -3.7038).
-  private readonly centerLat = 40.4168;
-  private readonly centerLng = -3.7038;
-
   readonly mapUrl: SafeResourceUrl;
 
-  readonly filters = ['Todas', 'Pendientes', 'En revisión', 'Resueltas'];
+  // Chips de filtro: cada uno mapea a un `estado` del backend (o null = Todas).
+  readonly filters: MapFilter[] = [
+    { label: 'Todas', estado: null },
+    { label: 'Pendientes', estado: 'abierta' },
+    { label: 'En revisión', estado: 'en_progreso' },
+    { label: 'Resueltas', estado: 'resuelta' },
+  ];
 
-  readonly vm$ = this.incidencias
-    .listar({ lat: this.centerLat, lng: this.centerLng, radio: 5000 })
-    .pipe(
-      map(({ items }): MapViewModel => ({
-        incidents: items.map((incident) => this.toMapItem(incident)),
-        loading: false,
-        error: null,
-      })),
-      startWith({ incidents: [], loading: true, error: null }),
-      catchError(() =>
-        of({
-          incidents: [],
+  // Índice del chip activo; al cambiar se reconstruye la consulta y recarga.
+  readonly selectedFilter = signal(0);
+
+  // Emite el índice del chip seleccionado; dispara la recarga de la lista.
+  private readonly selected$ = new BehaviorSubject(0);
+
+  // Sin geofiltro fijo: toda incidencia creada se ve, sea cual sea su ubicación.
+  readonly vm$ = this.selected$.pipe(
+    map((index) => this.buildQuery(index)),
+    switchMap((filtros) =>
+      this.incidencias.listar(filtros).pipe(
+        map(({ items }): MapViewModel => ({
+          incidents: items.map((incident) => this.toMapItem(incident)),
           loading: false,
-          error: 'No se pudieron cargar las incidencias cercanas.',
-        }),
+          error: null,
+        })),
+        startWith<MapViewModel>({ incidents: [], loading: true, error: null }),
+        catchError(() =>
+          of<MapViewModel>({
+            incidents: [],
+            loading: false,
+            error: 'No se pudieron cargar las incidencias.',
+          }),
+        ),
       ),
-    );
+    ),
+  );
 
   constructor(private readonly sanitizer: DomSanitizer) {
     this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
@@ -74,8 +94,22 @@ export class MapaIncidenciasPage {
     );
   }
 
+  selectFilter(index: number): void {
+    if (index === this.selectedFilter()) return;
+    this.selectedFilter.set(index);
+    this.selected$.next(index);
+  }
+
+  /** Construye los filtros de `listar()` a partir del chip seleccionado. */
+  private buildQuery(index: number): ListarFiltros {
+    const estado = this.filters[index]?.estado ?? null;
+    const filtros: ListarFiltros = { limit: MAP_LIMIT };
+    if (estado) filtros.estado = estado;
+    return filtros;
+  }
+
   trackById = (_index: number, item: IncidentMapItem) => item.id;
-  trackByLabel = (_index: number, item: string) => item;
+  trackByLabel = (_index: number, item: MapFilter) => item.label;
 
   private toMapItem(incident: Incidencia): IncidentMapItem {
     const hasCoords =
@@ -85,16 +119,6 @@ export class MapaIncidenciasPage {
       title: incident.titulo,
       category: this.formatCategory(incident.categoria),
       status: this.formatStatus(incident.estado),
-      distance: hasCoords
-        ? this.formatDistance(
-            this.haversine(
-              this.centerLat,
-              this.centerLng,
-              incident.latitud,
-              incident.longitud,
-            ),
-          )
-        : '—',
       address: hasCoords
         ? `${incident.latitud.toFixed(5)}, ${incident.longitud.toFixed(5)}`
         : '—',
@@ -126,28 +150,6 @@ export class MapaIncidenciasPage {
       rechazada: 'success',
     };
     return tones[status] ?? 'warning';
-  }
-
-  /** Distancia haversine en metros entre dos coordenadas. */
-  private haversine(
-    lat1: number,
-    lng1: number,
-    lat2: number,
-    lng2: number,
-  ): number {
-    const toRad = (value: number) => (value * Math.PI) / 180;
-    const earthRadius = 6371000; // metros
-    const dLat = toRad(lat2 - lat1);
-    const dLng = toRad(lng2 - lng1);
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-    return earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  }
-
-  private formatDistance(meters: number): string {
-    if (meters < 1000) return `${Math.round(meters)} m`;
-    return `${(meters / 1000).toFixed(1)} km`;
   }
 }
 

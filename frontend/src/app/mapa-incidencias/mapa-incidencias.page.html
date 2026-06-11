@@ -24,7 +24,7 @@
         <ion-chip class="eyebrow">
           <ion-label>Mapa en tiempo real</ion-label>
         </ion-chip>
-        <h1>Incidencias cercanas</h1>
+        <h1>Incidencias reportadas</h1>
         <p>Consulta los reportes activos en la ciudad y abre el detalle de cada incidencia.</p>
       </div>
 
@@ -42,35 +42,25 @@
           loading="lazy"
           referrerpolicy="no-referrer-when-downgrade"
         ></iframe>
-
-        <div class="map-overlay">
-          <a
-            *ngFor="let pin of vm.incidents.slice(0, 3); let i = index; trackBy: trackById"
-            class="map-pin"
-            [ngClass]="['map-pin--main', 'map-pin--second', 'map-pin--third'][i]"
-            [routerLink]="['/detalle-incidencia', pin.id]"
-            [attr.aria-label]="pin.title"
-          >
-            <span></span>
-          </a>
-        </div>
       </div>
 
       <aside class="incidents-panel">
         <div class="filter-row" aria-label="Filtros de incidencias">
           <button
             type="button"
-            *ngFor="let filter of filters; trackBy: trackByLabel"
-            [class.filter-row__button--active]="filter === 'Todas'"
+            *ngFor="let filter of filters; let i = index; trackBy: trackByLabel"
+            [class.filter-row__button--active]="selectedFilter() === i"
+            [attr.aria-pressed]="selectedFilter() === i"
             class="filter-row__button"
+            (click)="selectFilter(i)"
           >
-            {{ filter }}
+            {{ filter.label }}
           </button>
         </div>
 
         <div class="incident-status" *ngIf="vm.loading">
           <ion-spinner name="crescent"></ion-spinner>
-          <span>Cargando incidencias cercanas...</span>
+          <span>Cargando incidencias...</span>
         </div>
 
         <div class="incident-status incident-status--error" *ngIf="!vm.loading && vm.error">
@@ -99,14 +89,13 @@
                   <ion-icon name="location-outline"></ion-icon>
                   {{ incident.address }}
                 </span>
-                <span>{{ incident.distance }}</span>
               </div>
             </ion-card-content>
           </a>
 
           <div class="incident-status" *ngIf="vm.incidents.length === 0">
             <ion-icon name="folder-open-outline"></ion-icon>
-            <span>No hay incidencias cercanas.</span>
+            <span>No hay incidencias para este filtro.</span>
           </div>
         </div>
       </aside>

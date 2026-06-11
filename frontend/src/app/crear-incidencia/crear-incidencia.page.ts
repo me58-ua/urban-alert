@@ -15,6 +15,13 @@ interface IncidentType {
   icon: string;
 }
 
+/**
+ * Ubicación por defecto cuando el navegador no concede geolocalización.
+ * El mapa de incidencias ya no aplica geofiltro, así que lo creado aquí será
+ * visible con independencia de estas coordenadas. Campus UA (Alicante).
+ */
+const FALLBACK_LOCATION = { lat: 38.3852, lng: -0.5132 } as const;
+
 @Component({
   selector: 'app-crear-incidencia',
   templateUrl: 'crear-incidencia.page.html',
@@ -158,7 +165,7 @@ export class CrearIncidenciaPage {
 
   /** Obtiene la ubicación por GPS; si se deniega o no está disponible usa un fallback. */
   private resolverUbicacion(): Promise<{ lat: number; lng: number }> {
-    const fallback = { lat: 38.3852, lng: -0.5132 }; // Campus UA (por defecto)
+    const fallback = { lat: FALLBACK_LOCATION.lat, lng: FALLBACK_LOCATION.lng };
     if (!('geolocation' in navigator)) return Promise.resolve(fallback);
     return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(

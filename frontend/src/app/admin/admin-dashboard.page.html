@@ -112,16 +112,6 @@
               loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
             ></iframe>
-
-            <div class="map-overlay">
-              <a
-                *ngFor="let pin of recentIncidents(vm.incidents).slice(0, 3); let i = index; trackBy: trackById"
-                class="map-pin"
-                [ngClass]="['map-pin--main', 'map-pin--second', 'map-pin--third'][i]"
-                [routerLink]="['/detalle-incidencia', pin.id]"
-                [attr.aria-label]="'Incidencia #' + pin.id"
-              ></a>
-            </div>
           </div>
         </article>
 
