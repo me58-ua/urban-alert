@@ -1190,3 +1190,52 @@ button.admin-menu-panel__link {
   color: #94a3b8;
   cursor: not-allowed;
 }
+
+// ── Estados de lista reutilizables: loading / vacío / error (#67) ────────────
+// Contenedor centrado con icono + texto, equivalente visual a los .status-panel
+// que hoy repite cada página (superficie + sombra suave + texto atenuado).
+// Aditivo: no sustituye aún a ningún markup existente.
+.ua-state {
+  align-items: center;
+  background: var(--ua-surface, #ffffff);
+  border-radius: var(--ua-radius-lg, 0.9rem);
+  box-shadow: var(--ua-shadow-soft, 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08));
+  color: var(--ua-ink-muted, #43474d);
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  min-height: 10rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.ua-state__icon,
+.ua-state .ua-spinner,
+.ua-state ion-icon,
+.ua-state ion-spinner {
+  color: var(--ua-primary, #004ccb);
+  font-size: 1.4rem;
+}
+
+.ua-state--error,
+.ua-state--error .ua-state__icon,
+.ua-state--error ion-icon {
+  color: var(--ua-danger-ink, #8f1d17);
+}
+
+// Spinner mínimo por si una vista necesita indicar carga sin <ion-spinner>.
+.ua-spinner {
+  animation: ua-spin 0.7s linear infinite;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  border-top-color: transparent;
+  display: inline-block;
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+@keyframes ua-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
