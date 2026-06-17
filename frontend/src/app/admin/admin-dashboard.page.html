@@ -69,12 +69,7 @@
           </div>
 
           <div class="admin-map">
-            <iframe
-              title="Mapa operativo de incidencias"
-              [src]="mapUrl"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-            ></iframe>
+            <div #adminMapRoot class="admin-map__canvas" aria-label="Mapa operativo de incidencias"></div>
           </div>
         </article>
 

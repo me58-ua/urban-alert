@@ -23,12 +23,7 @@
 
     <section class="map-layout" *ngIf="vm$ | async as vm">
       <div class="map-panel">
-        <iframe
-          title="Mapa real de incidencias"
-          [src]="mapUrl"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-        ></iframe>
+        <div #mapRoot class="leaflet-map" aria-label="Mapa real de incidencias"></div>
       </div>
 
       <aside class="incidents-panel">

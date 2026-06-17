@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { RouterModule } from '@angular/router';
+import { ChangeDetectionStrategy, Component, ElementRef, NgZone, OnDestroy, ViewChild, inject } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { catchError, forkJoin, map, of, startWith } from 'rxjs';
+import * as L from 'leaflet';
+import { catchError, forkJoin, map, of, startWith, tap } from 'rxjs';
 import { AdminMenuComponent } from '../shared/admin-menu/admin-menu.component';
 import { StatCardComponent } from '../shared/stat-card/stat-card.component';
 import { UiButtonComponent } from '../shared/ui-button/ui-button.component';
@@ -45,6 +45,8 @@ export interface AdminViewModel {
   error: string | null;
 }
 
+const ADMIN_MAP_CENTER: L.LatLngExpression = [40.4168, -3.7038];
+
 @Component({
   selector: 'app-admin-dashboard',
   templateUrl: 'admin-dashboard.page.html',
@@ -53,17 +55,27 @@ export interface AdminViewModel {
   imports: [CommonModule, IonicModule, RouterModule, AdminMenuComponent, StatCardComponent, UiButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminDashboardPage {
+export class AdminDashboardPage implements OnDestroy {
   private readonly incidencias = inject(IncidenciasService);
   private readonly stats = inject(StatsService);
-  private readonly sanitizer = inject(DomSanitizer);
+  private readonly router = inject(Router);
+  private readonly zone = inject(NgZone);
 
-  readonly brandMarkUrl =
-    'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
+  private mapInstance?: L.Map;
+  private markersLayer?: L.LayerGroup;
+  private baseTileLayer?: L.TileLayer;
+  private resizeObserver?: ResizeObserver;
+  private latestIncidents: Incidencia[] = [];
+  private usingFallbackTiles = false;
 
-  readonly mapUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-    'https://www.openstreetmap.org/export/embed.html?bbox=-3.7186%2C40.4104%2C-3.6951%2C40.4249&layer=mapnik&marker=40.4168%2C-3.7038',
-  );
+  @ViewChild('adminMapRoot')
+  set adminMapRoot(ref: ElementRef<HTMLElement> | undefined) {
+    if (ref) {
+      this.initMap(ref.nativeElement);
+    }
+  }
+
+  readonly brandMarkUrl = 'assets/media/images/logo-v3.png';
 
   readonly statusOrder: Estado[] = ['abierta', 'en_progreso', 'resuelta', 'rechazada'];
 
@@ -78,6 +90,11 @@ export class AdminDashboardPage {
       loading: false,
       error: null,
     })),
+    tap((vm) => {
+      if (!vm.loading) {
+        this.renderMapIncidents(vm.incidents);
+      }
+    }),
     startWith({
       incidents: [],
       metrics: this.buildMetrics(null),
@@ -95,6 +112,15 @@ export class AdminDashboardPage {
       }),
     ),
   );
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+    this.mapInstance?.remove();
+    this.mapInstance = undefined;
+    this.markersLayer = undefined;
+    this.baseTileLayer = undefined;
+    this.resizeObserver = undefined;
+  }
 
   countByStatus(incidents: Incidencia[], status: Estado): number {
     return incidents.filter((incident) => incident.estado === status).length;
@@ -254,6 +280,118 @@ export class AdminDashboardPage {
   trackByStatus = (_index: number, item: Estado) => item;
   trackByBarIndex = (index: number) => index;
   trackByKey = (_index: number, item: BreakdownRow) => item.key;
+
+  private initMap(mapElement: HTMLElement): void {
+    if (this.mapInstance) {
+      this.refreshMapSize();
+      return;
+    }
+
+    this.zone.runOutsideAngular(() => {
+      this.mapInstance = L.map(mapElement, {
+        center: ADMIN_MAP_CENTER,
+        zoom: 12,
+        zoomControl: true,
+        scrollWheelZoom: true,
+      });
+
+      this.baseTileLayer = this.createOsmTileLayer().addTo(this.mapInstance);
+      this.markersLayer = L.layerGroup().addTo(this.mapInstance);
+      this.renderMapIncidents(this.latestIncidents);
+
+      this.resizeObserver = new ResizeObserver(() => this.refreshMapSize());
+      this.resizeObserver.observe(mapElement);
+      this.refreshMapSize();
+    });
+  }
+
+  private renderMapIncidents(incidents: Incidencia[]): void {
+    this.latestIncidents = incidents;
+    if (!this.mapInstance || !this.markersLayer) return;
+
+    this.markersLayer.clearLayers();
+    const located = incidents.filter(
+      (incident) => Number.isFinite(incident.latitud) && Number.isFinite(incident.longitud),
+    );
+
+    if (located.length === 0) {
+      this.mapInstance.setView(ADMIN_MAP_CENTER, 12);
+      return;
+    }
+
+    for (const incident of located) {
+      const marker = L.marker([incident.latitud, incident.longitud], {
+        icon: this.markerIcon(this.markerTone(incident.estado)),
+        keyboard: true,
+        title: incident.titulo,
+      });
+
+      marker.bindTooltip(incident.titulo);
+      marker.on('click', () => {
+        this.zone.run(() => {
+          void this.router.navigate(['/detalle-incidencia', incident.id]);
+        });
+      });
+      marker.addTo(this.markersLayer);
+    }
+
+    const bounds = L.latLngBounds(
+      located.map((incident) => [incident.latitud, incident.longitud]),
+    );
+    this.mapInstance.fitBounds(bounds, { maxZoom: 16, padding: [24, 24] });
+    this.refreshMapSize();
+  }
+
+  private markerTone(status: Estado): 'danger' | 'warning' | 'success' {
+    if (status === 'abierta') return 'danger';
+    if (status === 'en_progreso') return 'warning';
+    return 'success';
+  }
+
+  private markerIcon(tone: 'danger' | 'warning' | 'success'): L.DivIcon {
+    return L.divIcon({
+      className: `admin-map-marker admin-map-marker--${tone}`,
+      html: '<span class="admin-map-marker__pin"></span>',
+      iconAnchor: [14, 28],
+      iconSize: [28, 28],
+    });
+  }
+
+  private createOsmTileLayer(): L.TileLayer {
+    const layer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    });
+
+    layer.on('tileerror', () => this.useFallbackTiles());
+    return layer;
+  }
+
+  private useFallbackTiles(): void {
+    if (this.usingFallbackTiles || !this.mapInstance) return;
+    this.usingFallbackTiles = true;
+
+    if (this.baseTileLayer) {
+      this.mapInstance.removeLayer(this.baseTileLayer);
+    }
+
+    this.baseTileLayer = L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        maxZoom: 20,
+        subdomains: 'abcd',
+      },
+    ).addTo(this.mapInstance);
+  }
+
+  private refreshMapSize(): void {
+    this.zone.runOutsideAngular(() => {
+      for (const delay of [0, 120, 360]) {
+        setTimeout(() => this.mapInstance?.invalidateSize(), delay);
+      }
+    });
+  }
 
   private buildMetrics(stats: Estadisticas | null): AdminMetric[] {
     const porEstado = stats?.por_estado;

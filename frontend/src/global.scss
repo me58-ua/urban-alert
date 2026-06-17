@@ -121,17 +121,19 @@ body.app-header-menu-open {
 }
 
 .admin-header .brand__mark {
-  background: #00152a;
-  border-radius: 0.6rem;
-  height: 2.4rem;
-  width: 2.4rem;
+  background: #f7fafd;
+  border: 1px solid rgba(0, 21, 42, 0.08);
+  border-radius: 0.75rem;
+  height: 2.5rem;
+  overflow: hidden;
+  width: 2.5rem;
 }
 
 .admin-header .brand__mark img {
   display: block;
-  height: 1.25rem;
+  height: 1.9rem;
   object-fit: contain;
-  width: 1rem;
+  width: 1.9rem;
 }
 
 .admin-header .brand__text,
