@@ -75,8 +75,7 @@ export class AdminDashboardPage implements OnDestroy {
     }
   }
 
-  readonly brandMarkUrl =
-    'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
+  readonly brandMarkUrl = 'assets/media/images/logo-v3.png';
 
   readonly statusOrder: Estado[] = ['abierta', 'en_progreso', 'resuelta', 'rechazada'];
 

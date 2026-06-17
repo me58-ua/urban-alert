@@ -44,8 +44,7 @@ export class IncidenciasManagementPage implements OnInit {
   private readonly incidenciasService = inject(IncidenciasService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  readonly brandMarkUrl =
-    'https://www.figma.com/api/mcp/asset/ea43d037-46dd-44c0-84b7-fd6abad3b3d7';
+  readonly brandMarkUrl = 'assets/media/images/logo-v3.png';
 
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
