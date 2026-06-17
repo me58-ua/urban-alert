@@ -81,17 +81,96 @@
   border-radius: 1rem;
   box-shadow: var(--shadow-soft);
   height: min(64vh, 38rem);
+  isolation: isolate;
   min-height: 28rem;
   overflow: hidden;
   position: relative;
-
-  iframe {
-    border: 0;
-    display: block;
-    height: 100%;
-    width: 100%;
-  }
 }
+
+.map-tiles {
+  background: #dbe5ef;
+  inset: 0;
+  position: absolute;
+  z-index: 0;
+}
+
+.map-tiles::after {
+  background: rgb(255 255 255 / 0.84);
+  border-radius: 0.35rem;
+  bottom: 0.35rem;
+  color: var(--ink-muted);
+  content: '© OpenStreetMap contributors';
+  font-size: 0.72rem;
+  left: 0.45rem;
+  padding: 0.18rem 0.35rem;
+  position: absolute;
+}
+
+.map-tile {
+  display: block;
+  height: 20%;
+  position: absolute;
+  width: 20%;
+}
+
+.map-markers {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 5;
+}
+
+.map-marker {
+  --marker-color: var(--primary);
+  align-items: center;
+  display: inline-flex;
+  height: 2.25rem;
+  justify-content: center;
+  pointer-events: auto;
+  position: absolute;
+  transform: translate(-50%, -100%);
+  width: 2.25rem;
+}
+
+.map-marker__dot {
+  background: var(--marker-color);
+  border: 3px solid #ffffff;
+  border-radius: 999px 999px 999px 0;
+  box-shadow: 0 8px 18px rgb(0 21 42 / 0.24);
+  display: block;
+  height: 1.25rem;
+  transform: rotate(-45deg);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  width: 1.25rem;
+}
+
+.map-marker__dot::after {
+  background: #ffffff;
+  border-radius: 999px;
+  content: '';
+  height: 0.38rem;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 0.38rem;
+}
+
+.map-marker:hover .map-marker__dot,
+.map-marker:focus-visible .map-marker__dot {
+  box-shadow: 0 12px 24px rgb(0 21 42 / 0.32);
+  transform: rotate(-45deg) scale(1.14);
+}
+
+.map-marker:focus-visible {
+  border-radius: 999px;
+  outline: 3px solid rgb(0 76 203 / 0.35);
+  outline-offset: 2px;
+}
+
+.map-marker--danger { --marker-color: #b91c1c; }
+.map-marker--warning { --marker-color: #b45309; }
+.map-marker--success { --marker-color: #15803d; }
 
 .incidents-panel {
   display: grid;
