@@ -23,31 +23,7 @@
 
     <section class="map-layout" *ngIf="vm$ | async as vm">
       <div class="map-panel">
-        <div class="map-tiles" aria-hidden="true">
-          <img
-            *ngFor="let tile of vm.canvas.tiles; trackBy: trackByTile"
-            class="map-tile"
-            [src]="tile.url"
-            [ngStyle]="{ left: tile.left + '%', top: tile.top + '%' }"
-            alt=""
-          />
-        </div>
-
-        <div class="map-markers" aria-label="Puntos de incidencias en el mapa">
-          <ng-container *ngFor="let incident of vm.incidents; trackBy: trackById">
-            <a
-              *ngIf="incident.latitud !== null && incident.longitud !== null"
-              class="map-marker"
-              [class]="'map-marker map-marker--' + incident.tone"
-              [ngStyle]="markerStyle(incident, vm.canvas)"
-              [routerLink]="['/detalle-incidencia', incident.id]"
-              [attr.aria-label]="'Ver detalle de la incidencia: ' + incident.title"
-              [title]="incident.title"
-            >
-              <span class="map-marker__dot"></span>
-            </a>
-          </ng-container>
-        </div>
+        <div #mapRoot class="leaflet-map" aria-label="Mapa real de incidencias"></div>
       </div>
 
       <aside class="incidents-panel">

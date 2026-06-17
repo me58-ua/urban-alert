@@ -1,8 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  NgZone,
+  OnDestroy,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
 import { IonicModule } from '@ionic/angular';
-import { RouterModule } from '@angular/router';
-import { BehaviorSubject, catchError, map, of, startWith, switchMap } from 'rxjs';
+import { Router, RouterModule } from '@angular/router';
+import * as L from 'leaflet';
+import { BehaviorSubject, catchError, map, of, startWith, switchMap, tap } from 'rxjs';
 import {
   Categoria,
   Estado,
@@ -27,28 +38,6 @@ interface IncidentMapItem {
   tone: 'danger' | 'warning' | 'success';
 }
 
-interface MapBounds {
-  south: number;
-  west: number;
-  north: number;
-  east: number;
-}
-
-interface MapTile {
-  key: string;
-  url: string;
-  left: number;
-  top: number;
-}
-
-interface MapCanvas {
-  tiles: MapTile[];
-  zoom: number;
-  minX: number;
-  minY: number;
-  size: number;
-}
-
 interface MapFilter {
   label: string;
   estado: Estado | null;
@@ -56,23 +45,12 @@ interface MapFilter {
 
 interface MapViewModel {
   incidents: IncidentMapItem[];
-  bounds: MapBounds;
-  canvas: MapCanvas;
   loading: boolean;
   error: string | null;
 }
 
-// Cuántas incidencias pedimos al backend para el mapa (sin geofiltro).
 const MAP_LIMIT = 100;
-const DEFAULT_BOUNDS: MapBounds = {
-  south: 40.4104,
-  west: -3.7186,
-  north: 40.4249,
-  east: -3.6951,
-};
-const MIN_BOUNDS_SPAN = 0.01;
-const TILE_SIZE = 256;
-const TILE_GRID_SIZE = 5;
+const DEFAULT_CENTER: L.LatLngExpression = [40.4168, -3.7038];
 
 @Component({
   selector: 'app-mapa-incidencias',
@@ -82,10 +60,20 @@ const TILE_GRID_SIZE = 5;
   imports: [CommonModule, IonicModule, RouterModule, HeaderComponent, FooterComponent, UiButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MapaIncidenciasPage {
+export class MapaIncidenciasPage implements AfterViewInit, OnDestroy {
   private readonly incidencias = inject(IncidenciasService);
+  private readonly router = inject(Router);
+  private readonly zone = inject(NgZone);
 
-  // Chips de filtro: cada uno mapea a un `estado` del backend (o null = Todas).
+  @ViewChild('mapRoot') private readonly mapRoot?: ElementRef<HTMLElement>;
+
+  private mapInstance?: L.Map;
+  private markersLayer?: L.LayerGroup;
+  private baseTileLayer?: L.TileLayer;
+  private resizeObserver?: ResizeObserver;
+  private usingFallbackTiles = false;
+  private latestIncidents: IncidentMapItem[] = [];
+
   readonly filters: MapFilter[] = [
     { label: 'Todas', estado: null },
     { label: 'Pendientes', estado: 'abierta' },
@@ -93,40 +81,31 @@ export class MapaIncidenciasPage {
     { label: 'Resueltas', estado: 'resuelta' },
   ];
 
-  // Índice del chip activo; al cambiar se reconstruye la consulta y recarga.
   readonly selectedFilter = signal(0);
 
-  // Emite el índice del chip seleccionado; dispara la recarga de la lista.
   private readonly selected$ = new BehaviorSubject(0);
 
-  // Sin geofiltro fijo: toda incidencia creada se ve, sea cual sea su ubicación.
   readonly vm$ = this.selected$.pipe(
     map((index) => this.buildQuery(index)),
     switchMap((filtros) =>
       this.incidencias.listar(filtros).pipe(
         map(({ items }): MapViewModel => {
           const incidents = items.map((incident) => this.toMapItem(incident));
-          const bounds = this.boundsForIncidents(incidents);
           return {
             incidents,
-            bounds,
-            canvas: this.canvasForBounds(bounds),
             loading: false,
             error: null,
           };
         }),
+        tap((vm) => this.renderIncidents(vm.incidents)),
         startWith<MapViewModel>({
           incidents: [],
-          bounds: DEFAULT_BOUNDS,
-          canvas: this.canvasForBounds(DEFAULT_BOUNDS),
           loading: true,
           error: null,
         }),
         catchError(() =>
           of<MapViewModel>({
             incidents: [],
-            bounds: DEFAULT_BOUNDS,
-            canvas: this.canvasForBounds(DEFAULT_BOUNDS),
             loading: false,
             error: 'No se pudieron cargar las incidencias.',
           }),
@@ -135,33 +114,56 @@ export class MapaIncidenciasPage {
     ),
   );
 
+  ngAfterViewInit(): void {
+    if (!this.mapRoot) return;
+    const mapElement = this.mapRoot.nativeElement;
+
+    this.zone.runOutsideAngular(() => {
+      this.mapInstance = L.map(mapElement, {
+        center: DEFAULT_CENTER,
+        zoom: 13,
+        zoomControl: true,
+        scrollWheelZoom: true,
+      });
+
+      this.baseTileLayer = this.createOsmTileLayer().addTo(this.mapInstance);
+
+      this.markersLayer = L.layerGroup().addTo(this.mapInstance);
+      this.renderIncidents(this.latestIncidents);
+
+      this.resizeObserver = new ResizeObserver(() => this.refreshMapSize());
+      this.resizeObserver.observe(mapElement);
+      this.refreshMapSize();
+    });
+  }
+
+  ionViewDidEnter(): void {
+    this.refreshMapSize();
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+    this.mapInstance?.remove();
+    this.mapInstance = undefined;
+    this.markersLayer = undefined;
+    this.baseTileLayer = undefined;
+    this.resizeObserver = undefined;
+  }
+
   selectFilter(index: number): void {
     if (index === this.selectedFilter()) return;
     this.selectedFilter.set(index);
     this.selected$.next(index);
   }
 
-  /** Construye los filtros de `listar()` a partir del chip seleccionado. */
+  trackById = (_index: number, item: IncidentMapItem) => item.id;
+  trackByLabel = (_index: number, item: MapFilter) => item.label;
+
   private buildQuery(index: number): ListarFiltros {
     const estado = this.filters[index]?.estado ?? null;
     const filtros: ListarFiltros = { limit: MAP_LIMIT };
     if (estado) filtros.estado = estado;
     return filtros;
-  }
-
-  trackById = (_index: number, item: IncidentMapItem) => item.id;
-  trackByLabel = (_index: number, item: MapFilter) => item.label;
-  trackByTile = (_index: number, item: MapTile) => item.key;
-
-  markerStyle(incident: IncidentMapItem, canvas: MapCanvas): Record<string, string> | null {
-    if (incident.latitud === null || incident.longitud === null) return null;
-
-    const point = this.project(incident.latitud, incident.longitud, canvas.zoom);
-
-    return {
-      left: `${((point.x - canvas.minX) / canvas.size) * 100}%`,
-      top: `${((point.y - canvas.minY) / canvas.size) * 100}%`,
-    };
   }
 
   private toMapItem(incident: Incidencia): IncidentMapItem {
@@ -184,92 +186,85 @@ export class MapaIncidenciasPage {
     };
   }
 
-  private boundsForIncidents(incidents: IncidentMapItem[]): MapBounds {
+  private renderIncidents(incidents: IncidentMapItem[]): void {
+    this.latestIncidents = incidents;
+    if (!this.mapInstance || !this.markersLayer) return;
+
+    this.markersLayer.clearLayers();
     const located = incidents.filter(
       (incident) => incident.latitud !== null && incident.longitud !== null,
     );
-    if (located.length === 0) return DEFAULT_BOUNDS;
-
-    const latitudes = located.map((incident) => incident.latitud as number);
-    const longitudes = located.map((incident) => incident.longitud as number);
-    let south = Math.min(...latitudes);
-    let north = Math.max(...latitudes);
-    let west = Math.min(...longitudes);
-    let east = Math.max(...longitudes);
-
-    const latSpan = Math.max(north - south, MIN_BOUNDS_SPAN);
-    const lngSpan = Math.max(east - west, MIN_BOUNDS_SPAN);
-    const latPadding = latSpan * 0.25;
-    const lngPadding = lngSpan * 0.25;
-
-    south -= latPadding;
-    north += latPadding;
-    west -= lngPadding;
-    east += lngPadding;
-
-    return { south, west, north, east };
-  }
-
-  private canvasForBounds(bounds: MapBounds): MapCanvas {
-    const zoom = this.zoomForBounds(bounds);
-    const centerLat = (bounds.north + bounds.south) / 2;
-    const centerLng = (bounds.east + bounds.west) / 2;
-    const center = this.project(centerLat, centerLng, zoom);
-    const centerTileX = Math.floor(center.x / TILE_SIZE);
-    const centerTileY = Math.floor(center.y / TILE_SIZE);
-    const halfGrid = Math.floor(TILE_GRID_SIZE / 2);
-    const firstTileX = centerTileX - halfGrid;
-    const firstTileY = centerTileY - halfGrid;
-    const tiles: MapTile[] = [];
-    const maxTile = 2 ** zoom;
-
-    for (let row = 0; row < TILE_GRID_SIZE; row += 1) {
-      for (let col = 0; col < TILE_GRID_SIZE; col += 1) {
-        const tileX = firstTileX + col;
-        const tileY = firstTileY + row;
-        if (tileY < 0 || tileY >= maxTile) continue;
-
-        const wrappedX = ((tileX % maxTile) + maxTile) % maxTile;
-        tiles.push({
-          key: `${zoom}-${tileX}-${tileY}`,
-          url: `https://tile.openstreetmap.org/${zoom}/${wrappedX}/${tileY}.png`,
-          left: (col / TILE_GRID_SIZE) * 100,
-          top: (row / TILE_GRID_SIZE) * 100,
-        });
-      }
+    if (located.length === 0) {
+      this.mapInstance.setView(DEFAULT_CENTER, 13);
+      return;
     }
 
-    return {
-      tiles,
-      zoom,
-      minX: firstTileX * TILE_SIZE,
-      minY: firstTileY * TILE_SIZE,
-      size: TILE_GRID_SIZE * TILE_SIZE,
-    };
+    for (const incident of located) {
+      const marker = L.marker([incident.latitud as number, incident.longitud as number], {
+        icon: this.markerIcon(incident.tone),
+        keyboard: true,
+        title: incident.title,
+      });
+
+      marker.bindTooltip(incident.title);
+      marker.on('click', () => {
+        this.zone.run(() => {
+          void this.router.navigate(['/detalle-incidencia', incident.id]);
+        });
+      });
+      marker.addTo(this.markersLayer);
+    }
+
+    const bounds = L.latLngBounds(
+      located.map((incident) => [incident.latitud as number, incident.longitud as number]),
+    );
+    this.mapInstance.fitBounds(bounds, { maxZoom: 16, padding: [28, 28] });
+    this.refreshMapSize();
   }
 
-  private zoomForBounds(bounds: MapBounds): number {
-    const span = Math.max(bounds.north - bounds.south, bounds.east - bounds.west);
-    if (span < 0.02) return 15;
-    if (span < 0.05) return 14;
-    if (span < 0.12) return 13;
-    if (span < 0.25) return 12;
-    if (span < 0.5) return 11;
-    if (span < 1) return 10;
-    if (span < 2) return 9;
-    return 8;
+  private markerIcon(tone: IncidentMapItem['tone']): L.DivIcon {
+    return L.divIcon({
+      className: `incident-map-marker incident-map-marker--${tone}`,
+      html: '<span class="incident-map-marker__pin"></span>',
+      iconAnchor: [14, 28],
+      iconSize: [28, 28],
+    });
   }
 
-  private project(lat: number, lng: number, zoom: number): { x: number; y: number } {
-    const sinLat = Math.sin((lat * Math.PI) / 180);
-    const worldSize = TILE_SIZE * 2 ** zoom;
+  private createOsmTileLayer(): L.TileLayer {
+    const layer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    });
 
-    return {
-      x: ((lng + 180) / 360) * worldSize,
-      y:
-        (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) *
-        worldSize,
-    };
+    layer.on('tileerror', () => this.useFallbackTiles());
+    return layer;
+  }
+
+  private useFallbackTiles(): void {
+    if (this.usingFallbackTiles || !this.mapInstance) return;
+    this.usingFallbackTiles = true;
+
+    if (this.baseTileLayer) {
+      this.mapInstance.removeLayer(this.baseTileLayer);
+    }
+
+    this.baseTileLayer = L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        maxZoom: 20,
+        subdomains: 'abcd',
+      },
+    ).addTo(this.mapInstance);
+  }
+
+  private refreshMapSize(): void {
+    this.zone.runOutsideAngular(() => {
+      for (const delay of [0, 120, 360]) {
+        setTimeout(() => this.mapInstance?.invalidateSize(), delay);
+      }
+    });
   }
 
   private formatCategory(category: Categoria | string): string {
@@ -278,7 +273,6 @@ export class MapaIncidenciasPage {
       .replace(/\b\w/g, (letter) => letter.toUpperCase());
   }
 
-  /** Icono representativo por categoría (cae a uno genérico si no se conoce). */
   private categoryIcon(category: string): string {
     const icons: Record<string, string> = {
       infraestructura: 'construct-outline',
